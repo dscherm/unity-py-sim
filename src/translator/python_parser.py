@@ -1,0 +1,241 @@
+"""Python parser using stdlib ast — extracts simulator-aware IR from Python source."""
+
+from __future__ import annotations
+
+import ast
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+from src.translator.type_mapper import snake_to_pascal, snake_to_camel
+
+
+# ── IR Dataclasses (mirrors C# IR) ──────────────────────────
+
+@dataclass
+class PyField:
+    name: str
+    type_annotation: str = ""
+    default_value: str | None = None
+    is_class_level: bool = False
+
+@dataclass
+class PyParameter:
+    name: str
+    type_annotation: str = ""
+    default_value: str | None = None
+
+@dataclass
+class PyMethod:
+    name: str
+    parameters: list[PyParameter] = field(default_factory=list)
+    body_source: str = ""
+    is_static: bool = False
+    is_lifecycle: bool = False
+    decorators: list[str] = field(default_factory=list)
+
+@dataclass
+class PyClass:
+    name: str
+    base_classes: list[str] = field(default_factory=list)
+    is_monobehaviour: bool = False
+    fields: list[PyField] = field(default_factory=list)
+    methods: list[PyMethod] = field(default_factory=list)
+
+@dataclass
+class PyFile:
+    imports: list[str] = field(default_factory=list)
+    classes: list[PyClass] = field(default_factory=list)
+
+
+# ── Known lifecycle methods ──────────────────────────────────
+
+_LIFECYCLE_METHODS = {
+    "awake", "start", "update", "fixed_update", "late_update",
+    "on_destroy", "on_enable", "on_disable",
+    "on_collision_enter_2d", "on_collision_exit_2d", "on_collision_stay_2d",
+    "on_trigger_enter_2d", "on_trigger_exit_2d", "on_trigger_stay_2d",
+}
+
+# ── Known simulator API calls ───────────────────────────────
+
+_SIMULATOR_API_CALLS = {
+    "get_component", "add_component", "find", "find_with_tag",
+    "find_game_objects_with_tag", "destroy",
+}
+
+
+def _get_source_segment(source_lines: list[str], node: ast.AST) -> str:
+    """Extract source text for an AST node."""
+    if hasattr(node, 'lineno') and hasattr(node, 'end_lineno'):
+        start = node.lineno - 1
+        end = node.end_lineno
+        lines = source_lines[start:end]
+        if lines:
+            # Dedent
+            first_indent = len(lines[0]) - len(lines[0].lstrip())
+            return "\n".join(line[first_indent:] if len(line) > first_indent else line
+                           for line in lines)
+    return ""
+
+
+def _annotation_to_str(node: ast.expr | None) -> str:
+    """Convert an annotation AST node to a string."""
+    if node is None:
+        return ""
+    return ast.unparse(node)
+
+
+def _value_to_str(node: ast.expr | None) -> str | None:
+    """Convert a default value AST node to a string."""
+    if node is None:
+        return None
+    return ast.unparse(node)
+
+
+def _parse_init_fields(func: ast.FunctionDef) -> list[PyField]:
+    """Extract self.X = value assignments from __init__."""
+    fields = []
+    for stmt in ast.walk(func):
+        if isinstance(stmt, ast.AnnAssign):
+            # self.name: type = value
+            if (isinstance(stmt.target, ast.Attribute) and
+                isinstance(stmt.target.value, ast.Name) and
+                stmt.target.value.id == "self"):
+                fields.append(PyField(
+                    name=stmt.target.attr,
+                    type_annotation=_annotation_to_str(stmt.annotation),
+                    default_value=_value_to_str(stmt.value),
+                    is_class_level=False,
+                ))
+        elif isinstance(stmt, ast.Assign):
+            # self.name = value (without annotation)
+            for target in stmt.targets:
+                if (isinstance(target, ast.Attribute) and
+                    isinstance(target.value, ast.Name) and
+                    target.value.id == "self"):
+                    fields.append(PyField(
+                        name=target.attr,
+                        type_annotation="",
+                        default_value=_value_to_str(stmt.value),
+                        is_class_level=False,
+                    ))
+    return fields
+
+
+def _parse_class_fields(cls_node: ast.ClassDef) -> list[PyField]:
+    """Extract class-level field assignments (not in methods)."""
+    fields = []
+    for stmt in cls_node.body:
+        if isinstance(stmt, ast.AnnAssign) and isinstance(stmt.target, ast.Name):
+            fields.append(PyField(
+                name=stmt.target.id,
+                type_annotation=_annotation_to_str(stmt.annotation),
+                default_value=_value_to_str(stmt.value),
+                is_class_level=True,
+            ))
+        elif isinstance(stmt, ast.Assign):
+            for target in stmt.targets:
+                if isinstance(target, ast.Name):
+                    fields.append(PyField(
+                        name=target.id,
+                        type_annotation="",
+                        default_value=_value_to_str(stmt.value),
+                        is_class_level=True,
+                    ))
+    return fields
+
+
+def _parse_method(func: ast.FunctionDef, source_lines: list[str]) -> PyMethod:
+    """Parse a method definition into PyMethod."""
+    decorators = [ast.unparse(d) for d in func.decorator_list]
+    is_static = "staticmethod" in decorators
+
+    params = []
+    for arg in func.args.args:
+        if arg.arg == "self":
+            continue
+        params.append(PyParameter(
+            name=arg.arg,
+            type_annotation=_annotation_to_str(arg.annotation),
+        ))
+
+    # Handle defaults (aligned from the right)
+    defaults = func.args.defaults
+    if defaults:
+        offset = len(func.args.args) - len(defaults)
+        if not is_static:
+            offset -= 1  # Account for self
+        for i, default in enumerate(defaults):
+            param_idx = offset + i
+            if 0 <= param_idx < len(params):
+                params[param_idx].default_value = _value_to_str(default)
+
+    # Extract body source
+    body_lines = []
+    for stmt in func.body:
+        body_lines.append(_get_source_segment(source_lines, stmt))
+    body_source = "\n".join(body_lines)
+
+    return PyMethod(
+        name=func.name,
+        parameters=params,
+        body_source=body_source,
+        is_static=is_static,
+        is_lifecycle=func.name in _LIFECYCLE_METHODS,
+        decorators=decorators,
+    )
+
+
+def parse_python(source: str) -> PyFile:
+    """Parse Python source into a PyFile IR."""
+    tree = ast.parse(source)
+    source_lines = source.split("\n")
+
+    imports = []
+    classes = []
+
+    for node in ast.iter_child_nodes(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            imports.append(ast.unparse(node))
+        elif isinstance(node, ast.ClassDef):
+            classes.append(_parse_class_node(node, source_lines))
+
+    return PyFile(imports=imports, classes=classes)
+
+
+def _parse_class_node(cls_node: ast.ClassDef, source_lines: list[str]) -> PyClass:
+    """Parse a class definition into PyClass."""
+    base_classes = []
+    for base in cls_node.bases:
+        base_classes.append(ast.unparse(base))
+
+    is_mono = "MonoBehaviour" in base_classes
+
+    # Class-level fields
+    class_fields = _parse_class_fields(cls_node)
+
+    # Instance fields from __init__
+    instance_fields = []
+    methods = []
+
+    for item in cls_node.body:
+        if isinstance(item, ast.FunctionDef):
+            if item.name == "__init__":
+                instance_fields = _parse_init_fields(item)
+            else:
+                methods.append(_parse_method(item, source_lines))
+
+    return PyClass(
+        name=cls_node.name,
+        base_classes=base_classes,
+        is_monobehaviour=is_mono,
+        fields=class_fields + instance_fields,
+        methods=methods,
+    )
+
+
+def parse_python_file(path: str | Path) -> PyFile:
+    """Parse a Python file from disk."""
+    source = Path(path).read_text(encoding="utf-8")
+    return parse_python(source)
