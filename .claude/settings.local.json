@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat *)",
+      "Bash(cd *)",
+      "Bash(cp *)",
+      "Bash(curl *)",
+      "Bash(dir *)",
+      "Bash(echo *)",
+      "Bash(find *)",
+      "Bash(git *)",
+      "Bash(grep *)",
+      "Bash(head *)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(mv *)",
+      "Bash(mypy *)",
+      "Bash(pip *)",
+      "Bash(pip3 *)",
+      "Bash(pyright *)",
+      "Bash(pytest *)",
+      "Bash(python *)",
+      "Bash(python3 *)",
+      "Bash(rm *)",
+      "Bash(ruff *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(where *)",
+      "Bash(which *)",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Read",
+      "Write"
+    ]
+  }
+}

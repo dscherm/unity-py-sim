@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ralph loop state
+.ralph/logs/
+.ralph/lock
+.ralph/pending_tasks.md
+.ralph/recent_activity.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Type checker
+.pyright/
+.mypy_cache/
+
+# pytest
+.pytest_cache/
+
+# Environment
+.env
+*.pem
+*.key
+credentials.*
