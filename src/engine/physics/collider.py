@@ -54,8 +54,8 @@ class Collider2D(Component):
     def _register_shape(self, shape: pymunk.Shape) -> None:
         """Register the shape with the physics manager."""
         self._shape = shape
-        shape.friction = 0.5
-        shape.elasticity = 0.5
+        shape.friction = 0.4
+        shape.elasticity = 1.0
 
         rb = self.game_object.get_component(Rigidbody2D)
         if rb is not None:

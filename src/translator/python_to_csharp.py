@@ -171,22 +171,50 @@ def _infer_param_type(param_name: str, method: PyMethod) -> str:
 
 
 def _translate_body(body: str) -> str:
-    """Translate Python method body to C#."""
+    """Translate Python method body to C#, adding braces for indented blocks."""
     if not body.strip():
         return ""
 
-    lines = []
-    for raw_line in body.split("\n"):
+    raw_lines = body.split("\n")
+    # First pass: collect (indent_level, translated_line) pairs
+    entries: list[tuple[int, str]] = []
+    for raw_line in raw_lines:
         stripped = raw_line.strip()
-        if not stripped or stripped == "pass":
+        if not stripped or stripped == "pass" or stripped == "super().__init__()":
             continue
-
-        # Calculate indentation
         indent = len(raw_line) - len(raw_line.lstrip())
-        cs_indent = "        " + "    " * (indent // 4)
-
+        indent_level = indent // 4
         translated = _translate_py_statement(stripped)
-        lines.append(f"{cs_indent}{translated}")
+        entries.append((indent_level, translated))
+
+    if not entries:
+        return ""
+
+    # Second pass: emit with braces on indentation changes
+    lines = []
+    base_indent = "        "
+    prev_indent = entries[0][0]
+    indent_stack: list[int] = []
+
+    for i, (level, text) in enumerate(entries):
+        # Check if previous line opened a block (if/else/while)
+        if level > prev_indent:
+            lines.append(f"{base_indent}{'    ' * prev_indent}{{")
+            indent_stack.append(prev_indent)
+        elif level < prev_indent:
+            # Close blocks
+            while indent_stack and indent_stack[-1] >= level:
+                close_level = indent_stack.pop()
+                lines.append(f"{base_indent}{'    ' * close_level}}}")
+
+        cs_indent = base_indent + "    " * level
+        lines.append(f"{cs_indent}{text}")
+        prev_indent = level
+
+    # Close any remaining open blocks
+    while indent_stack:
+        close_level = indent_stack.pop()
+        lines.append(f"{base_indent}{'    ' * close_level}}}")
 
     return "\n".join(lines)
 
@@ -308,6 +336,16 @@ def _translate_py_expression(expr: str) -> str:
     # Vector2(0, 0) -> Vector2.zero
     expr = re.sub(r"Vector2\(0,\s*0\)", "Vector2.zero", expr)
     expr = re.sub(r"Vector3\(0,\s*0,\s*0\)", "Vector3.zero", expr)
+
+    # Add 'new' keyword for constructors
+    for ctor in ("Vector2", "Vector3", "Quaternion", "GameObject"):
+        # Match Ctor( but not .Ctor( or already preceded by 'new '
+        expr = re.sub(rf"(?<!\.)\b{ctor}\((?!\.)", f"new {ctor}(", expr)
+    # Clean up double 'new new'
+    expr = expr.replace("new new ", "new ")
+    # Don't add new to Vector2.zero etc.
+    expr = expr.replace("new Vector2.zero", "Vector2.zero")
+    expr = expr.replace("new Vector3.zero", "Vector3.zero")
 
     return expr
 

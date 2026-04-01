@@ -11,6 +11,8 @@ from typing import Any
 _AXIS_DEFINITIONS: dict[str, dict[str, list[str]]] = {
     "Horizontal": {"positive": ["d", "right"], "negative": ["a", "left"]},
     "Vertical": {"positive": ["w", "up"], "negative": ["s", "down"]},
+    "Vertical1": {"positive": ["w"], "negative": ["s"]},
+    "Vertical2": {"positive": ["up"], "negative": ["down"]},
 }
 
 

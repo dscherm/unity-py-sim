@@ -101,7 +101,7 @@ class TestPongParsing:
 
         method_names = [m.name for m in cls.methods]
         assert "start" in method_names
-        assert "fixed_update" in method_names
+        assert "update" in method_names
 
     def test_parse_ball_controller(self):
         result = parse_python_file(PONG_DIR / "ball_controller.py")

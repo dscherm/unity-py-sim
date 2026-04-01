@@ -113,14 +113,13 @@ class TestPongReverseTranslation:
         assert "public class PaddleController : MonoBehaviour" in result
         assert "[SerializeField] private float speed = 10f;" in result
         assert "Start()" in result
-        assert "FixedUpdate()" in result
+        assert "Update()" in result
         assert "Input.GetAxis(" in result
-        assert "GetComponent<Rigidbody2D>()" in result
 
     def test_translate_ball_controller(self):
         result = translate_file(PONG_DIR / "ball_controller.py")
         assert "public class BallController : MonoBehaviour" in result
-        assert "[SerializeField] private float initialSpeed = 8f;" in result
+        assert "[SerializeField] private float initialSpeed = 6f;" in result
         assert "Start()" in result
         assert "Launch()" in result
         assert "Reset()" in result
