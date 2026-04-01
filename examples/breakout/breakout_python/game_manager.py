@@ -35,11 +35,9 @@ class GameManager(MonoBehaviour):
     @staticmethod
     def on_brick_destroyed():
         # Check win condition — count remaining bricks
-        remaining = 0
-        for go in list(GameObject._registry.values()):
-            if go.tag == "Brick" and go.active:
-                remaining += 1
-        if remaining <= 0:
+        remaining = GameObject.find_game_objects_with_tag("Brick")
+        active = [go for go in remaining if go.active]
+        if len(active) <= 0:
             GameManager.game_won = True
             print("You Win!")
 
