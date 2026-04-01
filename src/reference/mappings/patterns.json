@@ -1,0 +1,82 @@
+[
+  {
+    "pattern_id": "getcomponent",
+    "name": "GetComponent Pattern",
+    "category": "component_access",
+    "difficulty": "easy",
+    "unity_pattern": "Rigidbody2D rb = GetComponent<Rigidbody2D>();",
+    "python_pattern": "rb = self.get_component(Rigidbody2D)",
+    "translation_strategy": "GetComponent<T>() -> get_component(T). Generic type parameter becomes function argument.",
+    "notes": "Most common Unity pattern. Appears in nearly every script."
+  },
+  {
+    "pattern_id": "find_gameobject",
+    "name": "Find GameObject by Name/Tag",
+    "category": "scene_query",
+    "difficulty": "easy",
+    "unity_pattern": "GameObject player = GameObject.Find(\"Player\");\nGameObject[] enemies = GameObject.FindGameObjectsWithTag(\"Enemy\");",
+    "python_pattern": "player = GameObject.find('Player')\nenemies = GameObject.find_game_objects_with_tag('Enemy')",
+    "translation_strategy": "Direct method name conversion: Find->find, FindWithTag->find_with_tag, FindGameObjectsWithTag->find_game_objects_with_tag. Array becomes list.",
+    "notes": "Unity docs warn these are slow — same applies to Python version."
+  },
+  {
+    "pattern_id": "destroy_object",
+    "name": "Destroy GameObject",
+    "category": "lifecycle",
+    "difficulty": "easy",
+    "unity_pattern": "Destroy(gameObject);\nDestroy(gameObject, 2f);",
+    "python_pattern": "GameObject.destroy(self.game_object)\nGameObject.destroy(self.game_object, 2.0)",
+    "translation_strategy": "Destroy() is a global function in Unity (inherited from Object). In Python it's a static method on GameObject.",
+    "notes": "Delay parameter not yet implemented in simulator."
+  },
+  {
+    "pattern_id": "input_axis",
+    "name": "Input Axis Movement",
+    "category": "input",
+    "difficulty": "easy",
+    "unity_pattern": "float h = Input.GetAxis(\"Horizontal\");\nfloat v = Input.GetAxis(\"Vertical\");\ntransform.Translate(new Vector2(h, v) * speed * Time.deltaTime);",
+    "python_pattern": "h = Input.get_axis('Horizontal')\nv = Input.get_axis('Vertical')\nself.transform.translate(Vector2(h, v) * speed * Time.delta_time)",
+    "translation_strategy": "Input.GetAxis -> Input.get_axis, Time.deltaTime -> Time.delta_time, transform.Translate -> self.transform.translate",
+    "notes": "Very common in player movement scripts."
+  },
+  {
+    "pattern_id": "velocity_movement",
+    "name": "Rigidbody Velocity-Based Movement",
+    "category": "physics",
+    "difficulty": "easy",
+    "unity_pattern": "Rigidbody2D rb = GetComponent<Rigidbody2D>();\nrb.velocity = new Vector2(speed, rb.velocity.y);",
+    "python_pattern": "rb = self.get_component(Rigidbody2D)\nrb.velocity = Vector2(speed, rb.velocity.y)",
+    "translation_strategy": "Combine GetComponent pattern with property access. new Vector2() -> Vector2().",
+    "notes": "Common in platformer physics."
+  },
+  {
+    "pattern_id": "collision_callback",
+    "name": "Collision Callback",
+    "category": "physics",
+    "difficulty": "medium",
+    "unity_pattern": "void OnCollisionEnter2D(Collision2D collision) {\n    if (collision.gameObject.tag == \"Enemy\") {\n        Destroy(collision.gameObject);\n    }\n}",
+    "python_pattern": "def on_collision_enter_2d(self, collision):\n    if collision.game_object.tag == 'Enemy':\n        GameObject.destroy(collision.game_object)",
+    "translation_strategy": "Method name: OnCollisionEnter2D -> on_collision_enter_2d. collision.gameObject -> collision.game_object. Destroy() -> GameObject.destroy().",
+    "notes": "Collision2D.game_object gives the other object involved."
+  },
+  {
+    "pattern_id": "serialized_field",
+    "name": "SerializeField for Inspector Values",
+    "category": "editor",
+    "difficulty": "medium",
+    "unity_pattern": "[SerializeField] private float speed = 5f;\n[SerializeField] private GameObject bulletPrefab;",
+    "python_pattern": "def __init__(self):\n    super().__init__()\n    self.speed: float = 5.0\n    self.bullet_prefab: GameObject | None = None",
+    "translation_strategy": "[SerializeField] private T name = val -> self.name: T = val in __init__. Remove private modifier. Convert camelCase to snake_case.",
+    "notes": "No inspector in Python. Values are set directly in code or scene setup."
+  },
+  {
+    "pattern_id": "coroutine_basic",
+    "name": "Basic Coroutine with WaitForSeconds",
+    "category": "coroutine",
+    "difficulty": "hard",
+    "unity_pattern": "IEnumerator SpawnEnemies() {\n    while (true) {\n        SpawnEnemy();\n        yield return new WaitForSeconds(2f);\n    }\n}\nvoid Start() { StartCoroutine(SpawnEnemies()); }",
+    "python_pattern": "# Coroutines not yet supported in simulator.\n# Workaround: use timer-based approach in update().\ndef start(self):\n    self._spawn_timer = 0.0\n\ndef update(self):\n    self._spawn_timer += Time.delta_time\n    if self._spawn_timer >= 2.0:\n        self.spawn_enemy()\n        self._spawn_timer = 0.0",
+    "translation_strategy": "IEnumerator + yield return WaitForSeconds -> timer accumulator in update(). StartCoroutine() removed. Each yield becomes a timer check.",
+    "notes": "Coroutine support is planned but not yet implemented. Timer workaround covers most cases."
+  }
+]

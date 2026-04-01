@@ -1,0 +1,23 @@
+[
+  {
+    "unity_enum": "ForceMode2D",
+    "unity_namespace": "UnityEngine",
+    "python_enum": "ForceMode2D",
+    "python_module": "src.engine.physics.rigidbody",
+    "values": {
+      "Force": "FORCE",
+      "Impulse": "IMPULSE"
+    }
+  },
+  {
+    "unity_enum": "RigidbodyType2D",
+    "unity_namespace": "UnityEngine",
+    "python_enum": "RigidbodyType2D",
+    "python_module": "src.engine.physics.rigidbody",
+    "values": {
+      "Dynamic": "DYNAMIC",
+      "Kinematic": "KINEMATIC",
+      "Static": "STATIC"
+    }
+  }
+]

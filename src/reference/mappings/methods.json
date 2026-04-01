@@ -1,0 +1,132 @@
+[
+  {
+    "unity_class": "GameObject",
+    "unity_method": "Find",
+    "unity_signature": "static GameObject Find(string name)",
+    "python_class": "GameObject",
+    "python_method": "find",
+    "python_signature": "def find(name: str) -> GameObject | None",
+    "parameter_mapping": {"name": "name"},
+    "notes": "Static method. Returns None instead of null if not found."
+  },
+  {
+    "unity_class": "GameObject",
+    "unity_method": "FindWithTag",
+    "unity_signature": "static GameObject FindWithTag(string tag)",
+    "python_class": "GameObject",
+    "python_method": "find_with_tag",
+    "python_signature": "def find_with_tag(tag: str) -> GameObject | None",
+    "parameter_mapping": {"tag": "tag"},
+    "notes": "Static method."
+  },
+  {
+    "unity_class": "GameObject",
+    "unity_method": "FindGameObjectsWithTag",
+    "unity_signature": "static GameObject[] FindGameObjectsWithTag(string tag)",
+    "python_class": "GameObject",
+    "python_method": "find_game_objects_with_tag",
+    "python_signature": "def find_game_objects_with_tag(tag: str) -> list[GameObject]",
+    "parameter_mapping": {"tag": "tag"},
+    "notes": "Returns a list instead of array."
+  },
+  {
+    "unity_class": "GameObject",
+    "unity_method": "AddComponent",
+    "unity_signature": "T AddComponent<T>() where T : Component",
+    "python_class": "GameObject",
+    "python_method": "add_component",
+    "python_signature": "def add_component(self, cls: Type[T]) -> T",
+    "parameter_mapping": {"T (generic)": "cls"},
+    "notes": "Generic type parameter becomes a class argument: AddComponent<Foo>() -> add_component(Foo)"
+  },
+  {
+    "unity_class": "Component",
+    "unity_method": "GetComponent",
+    "unity_signature": "T GetComponent<T>() where T : Component",
+    "python_class": "Component",
+    "python_method": "get_component",
+    "python_signature": "def get_component(self, cls: Type[T]) -> T | None",
+    "parameter_mapping": {"T (generic)": "cls"},
+    "notes": "Returns None instead of null. Generic becomes argument."
+  },
+  {
+    "unity_class": "Object",
+    "unity_method": "Destroy",
+    "unity_signature": "static void Destroy(Object obj, float t = 0)",
+    "python_class": "GameObject",
+    "python_method": "destroy",
+    "python_signature": "def destroy(obj: GameObject | Component, delay: float = 0.0) -> None",
+    "parameter_mapping": {"obj": "obj", "t": "delay"},
+    "notes": "Static method on GameObject (not Object). Delay not yet implemented."
+  },
+  {
+    "unity_class": "Transform",
+    "unity_method": "Translate",
+    "unity_signature": "void Translate(Vector3 translation)",
+    "python_class": "Transform",
+    "python_method": "translate",
+    "python_signature": "def translate(self, delta: Vector3 | Vector2) -> None",
+    "parameter_mapping": {"translation": "delta"},
+    "notes": "Accepts Vector2 (z=0) for 2D convenience."
+  },
+  {
+    "unity_class": "Transform",
+    "unity_method": "Rotate",
+    "unity_signature": "void Rotate(Vector3 eulers)",
+    "python_class": "Transform",
+    "python_method": "rotate",
+    "python_signature": "def rotate(self, euler_angles: Vector3) -> None",
+    "parameter_mapping": {"eulers": "euler_angles"},
+    "notes": "Euler angles in degrees."
+  },
+  {
+    "unity_class": "Transform",
+    "unity_method": "LookAt",
+    "unity_signature": "void LookAt(Vector3 worldPosition)",
+    "python_class": "Transform",
+    "python_method": "look_at",
+    "python_signature": "def look_at(self, target: Vector3) -> None",
+    "parameter_mapping": {"worldPosition": "target"},
+    "notes": "Simplified Y-up look-at."
+  },
+  {
+    "unity_class": "Rigidbody2D",
+    "unity_method": "AddForce",
+    "unity_signature": "void AddForce(Vector2 force, ForceMode2D mode = ForceMode2D.Force)",
+    "python_class": "Rigidbody2D",
+    "python_method": "add_force",
+    "python_signature": "def add_force(self, force: Vector2, mode: ForceMode2D = ForceMode2D.FORCE) -> None",
+    "parameter_mapping": {"force": "force", "mode": "mode"},
+    "notes": "ForceMode2D enum values are UPPER_CASE in Python."
+  },
+  {
+    "unity_class": "Input",
+    "unity_method": "GetKey",
+    "unity_signature": "static bool GetKey(string name)",
+    "python_class": "Input",
+    "python_method": "get_key",
+    "python_signature": "def get_key(key_name: str) -> bool",
+    "parameter_mapping": {"name": "key_name"},
+    "notes": "Static method. Key names are lowercase strings."
+  },
+  {
+    "unity_class": "Input",
+    "unity_method": "GetKeyDown",
+    "unity_signature": "static bool GetKeyDown(string name)",
+    "python_class": "Input",
+    "python_method": "get_key_down",
+    "python_signature": "def get_key_down(key_name: str) -> bool",
+    "parameter_mapping": {"name": "key_name"},
+    "notes": "True only on the frame the key was first pressed."
+  },
+  {
+    "unity_class": "Input",
+    "unity_method": "GetAxis",
+    "unity_signature": "static float GetAxis(string axisName)",
+    "python_class": "Input",
+    "python_method": "get_axis",
+    "python_signature": "def get_axis(axis_name: str) -> float",
+    "parameter_mapping": {"axisName": "axis_name"},
+    "notes": "Returns -1 to 1. Supported axes: 'Horizontal', 'Vertical'."
+  }
+]

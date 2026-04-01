@@ -1,0 +1,90 @@
+{
+  "execution_order": [
+    "Awake",
+    "OnEnable",
+    "Start",
+    "FixedUpdate",
+    "OnTriggerEnter2D",
+    "OnTriggerExit2D",
+    "OnCollisionEnter2D",
+    "OnCollisionExit2D",
+    "Update",
+    "LateUpdate",
+    "OnDisable",
+    "OnDestroy"
+  ],
+  "mappings": {
+    "Awake": {
+      "python_method": "awake",
+      "unity_signature": "void Awake()",
+      "python_signature": "def awake(self) -> None",
+      "notes": "Called once when the component is first created, before Start"
+    },
+    "Start": {
+      "python_method": "start",
+      "unity_signature": "void Start()",
+      "python_signature": "def start(self) -> None",
+      "notes": "Called once before the first Update, after Awake"
+    },
+    "Update": {
+      "python_method": "update",
+      "unity_signature": "void Update()",
+      "python_signature": "def update(self) -> None",
+      "notes": "Called every frame. Use Time.delta_time for frame-rate-independent movement"
+    },
+    "FixedUpdate": {
+      "python_method": "fixed_update",
+      "unity_signature": "void FixedUpdate()",
+      "python_signature": "def fixed_update(self) -> None",
+      "notes": "Called at fixed intervals (default 50Hz). Use for physics-related code"
+    },
+    "LateUpdate": {
+      "python_method": "late_update",
+      "unity_signature": "void LateUpdate()",
+      "python_signature": "def late_update(self) -> None",
+      "notes": "Called after all Update calls. Common for camera follow scripts"
+    },
+    "OnDestroy": {
+      "python_method": "on_destroy",
+      "unity_signature": "void OnDestroy()",
+      "python_signature": "def on_destroy(self) -> None",
+      "notes": "Called when the GameObject or component is destroyed"
+    },
+    "OnEnable": {
+      "python_method": "on_enable",
+      "unity_signature": "void OnEnable()",
+      "python_signature": "def on_enable(self) -> None",
+      "notes": "Called when the component becomes enabled"
+    },
+    "OnDisable": {
+      "python_method": "on_disable",
+      "unity_signature": "void OnDisable()",
+      "python_signature": "def on_disable(self) -> None",
+      "notes": "Called when the component becomes disabled"
+    },
+    "OnCollisionEnter2D": {
+      "python_method": "on_collision_enter_2d",
+      "unity_signature": "void OnCollisionEnter2D(Collision2D collision)",
+      "python_signature": "def on_collision_enter_2d(self, collision: Collision2D) -> None",
+      "notes": "Called when two non-trigger colliders first touch"
+    },
+    "OnCollisionExit2D": {
+      "python_method": "on_collision_exit_2d",
+      "unity_signature": "void OnCollisionExit2D(Collision2D collision)",
+      "python_signature": "def on_collision_exit_2d(self, collision: Collision2D) -> None",
+      "notes": "Called when two non-trigger colliders stop touching"
+    },
+    "OnTriggerEnter2D": {
+      "python_method": "on_trigger_enter_2d",
+      "unity_signature": "void OnTriggerEnter2D(Collider2D other)",
+      "python_signature": "def on_trigger_enter_2d(self, other: GameObject) -> None",
+      "notes": "Called when a trigger collider is entered. Python passes the other GameObject directly"
+    },
+    "OnTriggerExit2D": {
+      "python_method": "on_trigger_exit_2d",
+      "unity_signature": "void OnTriggerExit2D(Collider2D other)",
+      "python_signature": "def on_trigger_exit_2d(self, other: GameObject) -> None",
+      "notes": "Called when a trigger collider is exited"
+    }
+  }
+}

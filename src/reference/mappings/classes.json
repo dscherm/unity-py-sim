@@ -1,0 +1,171 @@
+[
+  {
+    "unity_class": "MonoBehaviour",
+    "unity_namespace": "UnityEngine",
+    "python_class": "MonoBehaviour",
+    "python_module": "src.engine.core",
+    "category": "core",
+    "notes": "Base class for all Unity scripts. Inherit to get lifecycle methods (awake, start, update, etc.).",
+    "example_unity": "public class PlayerController : MonoBehaviour { }",
+    "example_python": "class PlayerController(MonoBehaviour): pass",
+    "completeness": "full",
+    "behavioral_differences": [
+      "Unity uses reflection to find lifecycle methods; Python version uses inheritance and method override",
+      "Unity supports partial classes; Python does not"
+    ]
+  },
+  {
+    "unity_class": "GameObject",
+    "unity_namespace": "UnityEngine",
+    "python_class": "GameObject",
+    "python_module": "src.engine.core",
+    "category": "core",
+    "notes": "Container for components. Created with GameObject('name'). Has global registry for Find/FindWithTag.",
+    "example_unity": "GameObject player = new GameObject(\"Player\");",
+    "example_python": "player = GameObject('Player')",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Unity GameObjects exist in scenes; Python uses a flat global registry",
+      "Unity has SetActive(); Python uses .active bool directly"
+    ]
+  },
+  {
+    "unity_class": "Transform",
+    "unity_namespace": "UnityEngine",
+    "python_class": "Transform",
+    "python_module": "src.engine.transform",
+    "category": "core",
+    "notes": "Every GameObject has a Transform. Stores position (Vector3), rotation (Quaternion), scale. Supports parent-child hierarchy.",
+    "example_unity": "transform.position = new Vector3(1, 2, 3);",
+    "example_python": "self.transform.position = Vector3(1, 2, 3)",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Unity Transform has localPosition/localRotation separate from world; Python stores world position directly",
+      "Position setter accepts Vector2 (converted to Vector3 with z=0) for 2D convenience"
+    ]
+  },
+  {
+    "unity_class": "Rigidbody2D",
+    "unity_namespace": "UnityEngine",
+    "python_class": "Rigidbody2D",
+    "python_module": "src.engine.physics.rigidbody",
+    "category": "physics",
+    "notes": "2D physics body wrapping pymunk.Body. Supports dynamic, kinematic, and static body types.",
+    "example_unity": "Rigidbody2D rb = GetComponent<Rigidbody2D>();\nrb.velocity = new Vector2(5, 0);",
+    "example_python": "rb = self.get_component(Rigidbody2D)\nrb.velocity = Vector2(5, 0)",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Unity uses Box2D internally; Python uses pymunk (Chipmunk). Collision resolution differs slightly",
+      "Unity drag maps approximately to pymunk damping"
+    ]
+  },
+  {
+    "unity_class": "BoxCollider2D",
+    "unity_namespace": "UnityEngine",
+    "python_class": "BoxCollider2D",
+    "python_module": "src.engine.physics.collider",
+    "category": "physics",
+    "notes": "Box-shaped 2D collider. Must call build() after setting size and attaching to GameObject.",
+    "example_unity": "BoxCollider2D col = gameObject.AddComponent<BoxCollider2D>();\ncol.size = new Vector2(2, 1);",
+    "example_python": "col = self.game_object.add_component(BoxCollider2D)\ncol.size = Vector2(2, 1)\ncol.build()",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Python requires explicit build() call; Unity auto-builds colliders",
+      "Trigger detection uses pymunk sensor shapes"
+    ]
+  },
+  {
+    "unity_class": "CircleCollider2D",
+    "unity_namespace": "UnityEngine",
+    "python_class": "CircleCollider2D",
+    "python_module": "src.engine.physics.collider",
+    "category": "physics",
+    "notes": "Circle-shaped 2D collider. Must call build() after setting radius.",
+    "example_unity": "CircleCollider2D col = gameObject.AddComponent<CircleCollider2D>();\ncol.radius = 0.5f;",
+    "example_python": "col = self.game_object.add_component(CircleCollider2D)\ncol.radius = 0.5\ncol.build()",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Same as BoxCollider2D — requires explicit build()"
+    ]
+  },
+  {
+    "unity_class": "Camera",
+    "unity_namespace": "UnityEngine",
+    "python_class": "Camera",
+    "python_module": "src.engine.rendering.camera",
+    "category": "rendering",
+    "notes": "Orthographic camera for 2D. First camera created becomes Camera.main. Handles world-to-screen conversion.",
+    "example_unity": "Camera.main.orthographicSize = 5f;",
+    "example_python": "Camera.main.orthographic_size = 5.0",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Only orthographic mode supported (no perspective)",
+      "Unity uses orthographicSize (camelCase); Python uses orthographic_size (snake_case)"
+    ]
+  },
+  {
+    "unity_class": "SpriteRenderer",
+    "unity_namespace": "UnityEngine",
+    "python_class": "SpriteRenderer",
+    "python_module": "src.engine.rendering.renderer",
+    "category": "rendering",
+    "notes": "Renders a sprite or colored rectangle. Falls back to shape drawing when no sprite assigned.",
+    "example_unity": "SpriteRenderer sr = GetComponent<SpriteRenderer>();\nsr.color = Color.red;",
+    "example_python": "sr = self.get_component(SpriteRenderer)\nsr.color = (255, 0, 0)",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Unity Color is a struct (0-1 floats); Python uses RGB tuple (0-255 ints)",
+      "No sprite atlas or animation support"
+    ]
+  },
+  {
+    "unity_class": "Vector2",
+    "unity_namespace": "UnityEngine",
+    "python_class": "Vector2",
+    "python_module": "src.engine.math.vector",
+    "category": "math",
+    "notes": "2D vector backed by numpy. Supports arithmetic, dot, distance, lerp, angle. Static constructors: Vector2.zero, Vector2.up, etc.",
+    "example_unity": "Vector2 v = new Vector2(3, 4);\nfloat mag = v.magnitude;",
+    "example_python": "v = Vector2(3, 4)\nmag = v.magnitude",
+    "completeness": "full",
+    "behavioral_differences": []
+  },
+  {
+    "unity_class": "Vector3",
+    "unity_namespace": "UnityEngine",
+    "python_class": "Vector3",
+    "python_module": "src.engine.math.vector",
+    "category": "math",
+    "notes": "3D vector backed by numpy. Supports cross product, project, reflect. Static constructors: Vector3.zero, Vector3.forward, etc.",
+    "example_unity": "Vector3 v = new Vector3(1, 2, 3);\nVector3 n = v.normalized;",
+    "example_python": "v = Vector3(1, 2, 3)\nn = v.normalized",
+    "completeness": "full",
+    "behavioral_differences": []
+  },
+  {
+    "unity_class": "Quaternion",
+    "unity_namespace": "UnityEngine",
+    "python_class": "Quaternion",
+    "python_module": "src.engine.math.quaternion",
+    "category": "math",
+    "notes": "Rotation quaternion backed by pyrr. Supports euler conversion, angle-axis, slerp.",
+    "example_unity": "Quaternion rot = Quaternion.Euler(0, 90, 0);",
+    "example_python": "rot = Quaternion.euler(0, 90, 0)",
+    "completeness": "full",
+    "behavioral_differences": [
+      "Unity Quaternion.Euler is PascalCase; Python is snake_case"
+    ]
+  },
+  {
+    "unity_class": "Mathf",
+    "unity_namespace": "UnityEngine",
+    "python_class": "Mathf",
+    "python_module": "src.engine.math.mathf",
+    "category": "math",
+    "notes": "Static math utilities. Lerp, Clamp, Approximately, SmoothStep, etc.",
+    "example_unity": "float v = Mathf.Lerp(0, 10, 0.5f);",
+    "example_python": "v = Mathf.lerp(0, 10, 0.5)",
+    "completeness": "full",
+    "behavioral_differences": []
+  }
+]

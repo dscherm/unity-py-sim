@@ -1,0 +1,69 @@
+[
+  {
+    "topic": "Naming Conventions",
+    "description": "C# uses PascalCase for methods and camelCase for fields. Python uses snake_case for both.",
+    "examples": [
+      "GetComponent -> get_component",
+      "deltaTime -> delta_time",
+      "OnCollisionEnter2D -> on_collision_enter_2d",
+      "FindWithTag -> find_with_tag"
+    ]
+  },
+  {
+    "topic": "Null vs None",
+    "description": "C# uses null for missing references. Python uses None. Unity's null check is overloaded (destroyed objects == null); Python uses 'is None' or truthiness.",
+    "examples": [
+      "if (rb != null) -> if rb is not None",
+      "if (gameObject) -> if game_object is not None and game_object.active"
+    ]
+  },
+  {
+    "topic": "Float Literals",
+    "description": "C# requires 'f' suffix for float literals (5f, 0.5f). Python floats need no suffix.",
+    "examples": [
+      "float speed = 5f; -> speed: float = 5.0",
+      "new Vector2(0.5f, 1.0f) -> Vector2(0.5, 1.0)"
+    ]
+  },
+  {
+    "topic": "new Keyword",
+    "description": "C# uses 'new' to construct objects. Python does not.",
+    "examples": [
+      "new Vector2(1, 2) -> Vector2(1, 2)",
+      "new GameObject(\"Player\") -> GameObject('Player')"
+    ]
+  },
+  {
+    "topic": "Access Modifiers",
+    "description": "C# has public/private/protected. Python uses convention (_prefix for private). Translated code drops access modifiers.",
+    "examples": [
+      "private float speed = 5f; -> self.speed: float = 5.0",
+      "public void DoThing() -> def do_thing(self):"
+    ]
+  },
+  {
+    "topic": "this vs self",
+    "description": "C# uses 'this' implicitly (or explicitly). Python requires explicit 'self' parameter.",
+    "examples": [
+      "transform.position -> self.transform.position",
+      "GetComponent<T>() -> self.get_component(T)"
+    ]
+  },
+  {
+    "topic": "Physics Engine Differences",
+    "description": "Unity uses Box2D for 2D physics. The simulator uses pymunk (Chipmunk). Collision resolution, friction, and restitution behave slightly differently.",
+    "examples": [
+      "Default gravity: Unity (0, -9.81) matches simulator",
+      "Collider.build() must be called explicitly in Python (auto in Unity)"
+    ]
+  },
+  {
+    "topic": "Color Representation",
+    "description": "Unity Color is a struct with float components 0-1 (Color.red = (1,0,0,1)). Python uses int RGB tuples 0-255 ((255,0,0)).",
+    "examples": [
+      "Color.red -> (255, 0, 0)",
+      "Color.white -> (255, 255, 255)",
+      "new Color(0.5f, 0.5f, 0.5f) -> (128, 128, 128)"
+    ]
+  }
+]

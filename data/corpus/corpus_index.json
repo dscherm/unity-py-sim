@@ -1,1 +1,6 @@
-[]
+[
+  {"id": "001_paddle_controller", "game": "pong", "file": "pairs/001_paddle_controller.json"},
+  {"id": "002_ball_controller", "game": "pong", "file": "pairs/002_ball_controller.json"},
+  {"id": "003_score_manager", "game": "pong", "file": "pairs/003_score_manager.json"},
+  {"id": "004_game_manager", "game": "pong", "file": "pairs/004_game_manager.json"}
+]

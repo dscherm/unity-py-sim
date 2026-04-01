@@ -1,0 +1,13 @@
+{
+  "id": "001_paddle_controller",
+  "unity_file": "examples/pong/pong_unity/PaddleController.cs",
+  "python_file": "examples/pong/pong_python/paddle_controller.py",
+  "game": "pong",
+  "unity_apis_used": [
+    "MonoBehaviour", "Rigidbody2D", "Input.GetAxis", "Vector2",
+    "Time.fixedDeltaTime", "Transform.position", "SerializeField"
+  ],
+  "patterns_used": ["getcomponent", "input_axis", "velocity_movement", "serialized_field"],
+  "translation_notes": "Clean 1:1 translation. SerializeField becomes __init__ instance vars.",
+  "manual_fixes_needed": false
+}
