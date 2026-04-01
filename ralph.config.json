@@ -32,25 +32,64 @@
   },
   "gate": {
     "test_map": {
-      "vector.py": ["tests/engine/test_math.py"],
-      "quaternion.py": ["tests/engine/test_math.py"],
-      "mathf.py": ["tests/engine/test_math.py"],
-      "core.py": ["tests/engine/test_core.py"],
-      "transform.py": ["tests/engine/test_transform.py"],
-      "lifecycle.py": ["tests/engine/test_lifecycle.py"],
-      "input_manager.py": ["tests/engine/test_input.py"],
-      "time_manager.py": ["tests/engine/test_time.py"],
-      "physics_manager.py": ["tests/engine/test_physics.py"],
-      "rigidbody.py": ["tests/engine/test_physics.py"],
-      "collider.py": ["tests/engine/test_physics.py"],
-      "renderer.py": ["tests/engine/test_rendering.py"],
-      "camera.py": ["tests/engine/test_rendering.py"],
-      "display.py": ["tests/engine/test_rendering.py"],
-      "mapping.py": ["tests/reference/test_mapping.py"],
-      "csharp_parser.py": ["tests/translator/test_csharp_parser.py"],
-      "csharp_to_python.py": ["tests/translator/test_csharp_to_python.py"],
-      "python_to_csharp.py": ["tests/translator/test_python_to_csharp.py"],
-      "type_mapper.py": ["tests/translator/test_csharp_to_python.py", "tests/translator/test_python_to_csharp.py"]
+      "vector.py": [
+        "tests/engine/test_math.py"
+      ],
+      "quaternion.py": [
+        "tests/engine/test_math.py"
+      ],
+      "mathf.py": [
+        "tests/engine/test_math.py"
+      ],
+      "core.py": [
+        "tests/engine/test_core.py"
+      ],
+      "transform.py": [
+        "tests/engine/test_transform.py"
+      ],
+      "lifecycle.py": [
+        "tests/engine/test_lifecycle.py"
+      ],
+      "input_manager.py": [
+        "tests/engine/test_input.py"
+      ],
+      "time_manager.py": [
+        "tests/engine/test_time.py"
+      ],
+      "physics_manager.py": [
+        "tests/engine/test_physics.py"
+      ],
+      "rigidbody.py": [
+        "tests/engine/test_physics.py"
+      ],
+      "collider.py": [
+        "tests/engine/test_physics.py"
+      ],
+      "renderer.py": [
+        "tests/engine/test_rendering.py"
+      ],
+      "camera.py": [
+        "tests/engine/test_rendering.py"
+      ],
+      "display.py": [
+        "tests/engine/test_rendering.py"
+      ],
+      "mapping.py": [
+        "tests/reference/test_mapping.py"
+      ],
+      "csharp_parser.py": [
+        "tests/translator/test_csharp_parser.py"
+      ],
+      "csharp_to_python.py": [
+        "tests/translator/test_csharp_to_python.py"
+      ],
+      "python_to_csharp.py": [
+        "tests/translator/test_python_to_csharp.py"
+      ],
+      "type_mapper.py": [
+        "tests/translator/test_csharp_to_python.py",
+        "tests/translator/test_python_to_csharp.py"
+      ]
     },
     "shared_files": [
       "src/translator/rules/translation_rules.json",
@@ -115,5 +154,9 @@
       "needs_human"
     ],
     "alert_file": ".ralph/alerts.log"
+  },
+  "observations": {
+    "enabled": true,
+    "sync_to_global": true
   }
 }
