@@ -25,6 +25,11 @@ Behavioral differences discovered during C# <-> Python translation.
 - **Scene objects** (transforms, colliders) must be set via Inspector or MCP — code that sets them up may never execute
 - **Prefabs, materials, sprites** have no Python equivalent — scene setup is manual
 
+## Engine Internal API
+- **`GameObject._registry` doesn't exist** — the engine uses a module-level `_game_objects` dict in `core.py`, not a class attribute. Use the public API: `GameObject.find()`, `GameObject.find_game_objects_with_tag()` instead of accessing internal registries.
+- **Discovered in**: Breakout `game_manager.py` — `on_brick_destroyed()` tried to iterate `GameObject._registry.values()` to count remaining bricks, caused `AttributeError` at runtime during collision callbacks. Fix: use `GameObject.find_game_objects_with_tag("Brick")`.
+- **Rule**: Always use public `GameObject` class methods, never assume internal storage attributes.
+
 ## Behavioral Differences
 - **FSMState.Act()** in Python takes `MonoBehaviour` base type; original Unity C# used `EnemyBehaviour` — generalization required
 - **MonoBehaviour cast**: Python duck-types (`player = owner`), C# requires explicit cast (`var player = (PlayerInputHandler)owner`)
