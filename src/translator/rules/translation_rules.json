@@ -1,0 +1,65 @@
+{
+  "naming_conventions": {
+    "csharp_to_python": {
+      "method_names": "pascal_to_snake",
+      "field_names": "camel_to_snake",
+      "property_names": "camel_to_snake",
+      "class_names": "preserve",
+      "constant_names": "upper_snake"
+    },
+    "python_to_csharp": {
+      "method_names": "snake_to_pascal",
+      "field_names": "snake_to_camel",
+      "property_names": "snake_to_pascal",
+      "class_names": "preserve",
+      "constant_names": "preserve"
+    }
+  },
+  "lifecycle_method_mapping": {
+    "Awake": "awake",
+    "Start": "start",
+    "Update": "update",
+    "FixedUpdate": "fixed_update",
+    "LateUpdate": "late_update",
+    "OnDestroy": "on_destroy",
+    "OnEnable": "on_enable",
+    "OnDisable": "on_disable",
+    "OnCollisionEnter2D": "on_collision_enter_2d",
+    "OnCollisionExit2D": "on_collision_exit_2d",
+    "OnCollisionStay2D": "on_collision_stay_2d",
+    "OnTriggerEnter2D": "on_trigger_enter_2d",
+    "OnTriggerExit2D": "on_trigger_exit_2d",
+    "OnTriggerStay2D": "on_trigger_stay_2d"
+  },
+  "api_translations": {
+    "GetComponent": "get_component",
+    "AddComponent": "add_component",
+    "GameObject.Find": "GameObject.find",
+    "GameObject.FindWithTag": "GameObject.find_with_tag",
+    "GameObject.FindGameObjectsWithTag": "GameObject.find_game_objects_with_tag",
+    "Destroy": "GameObject.destroy",
+    "Input.GetAxis": "Input.get_axis",
+    "Input.GetKey": "Input.get_key",
+    "Input.GetKeyDown": "Input.get_key_down",
+    "Input.GetKeyUp": "Input.get_key_up",
+    "Time.deltaTime": "Time.delta_time",
+    "Time.fixedDeltaTime": "Time.fixed_delta_time",
+    "Time.time": "Time.time",
+    "Debug.Log": "print",
+    "Mathf.Lerp": "Mathf.lerp",
+    "Mathf.Clamp": "Mathf.clamp",
+    "Mathf.Abs": "Mathf.abs",
+    "Random.value": "random.random()",
+    "Random.Range": "random.uniform"
+  },
+  "literal_transforms": {
+    "float_suffix": "remove_f",
+    "true": "True",
+    "false": "False",
+    "null": "None",
+    "Vector2.zero": "Vector2(0, 0)",
+    "Vector3.zero": "Vector3(0, 0, 0)",
+    "Vector2.one": "Vector2(1, 1)",
+    "Vector3.one": "Vector3(1, 1, 1)"
+  }
+}

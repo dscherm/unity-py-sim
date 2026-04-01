@@ -1,0 +1,43 @@
+{
+  "primitive_types": {
+    "int": "int",
+    "float": "float",
+    "double": "float",
+    "bool": "bool",
+    "string": "str",
+    "void": "None",
+    "byte": "int",
+    "short": "int",
+    "long": "int",
+    "char": "str",
+    "object": "object"
+  },
+  "unity_types": {
+    "Vector2": "Vector2",
+    "Vector3": "Vector3",
+    "Quaternion": "Quaternion",
+    "GameObject": "GameObject",
+    "Transform": "Transform",
+    "Component": "Component",
+    "MonoBehaviour": "MonoBehaviour",
+    "Rigidbody2D": "Rigidbody2D",
+    "BoxCollider2D": "BoxCollider2D",
+    "CircleCollider2D": "CircleCollider2D",
+    "Collider2D": "Collider2D",
+    "Collision2D": "Collision2D",
+    "Camera": "Camera",
+    "SpriteRenderer": "SpriteRenderer",
+    "Color": "tuple[int, int, int]",
+    "ForceMode2D": "ForceMode2D",
+    "RigidbodyType2D": "RigidbodyType2D"
+  },
+  "generic_types": {
+    "List": "list",
+    "Dictionary": "dict",
+    "HashSet": "set",
+    "Queue": "list",
+    "Stack": "list"
+  },
+  "nullable_suffix": "| None",
+  "array_suffix": "list"
+}
