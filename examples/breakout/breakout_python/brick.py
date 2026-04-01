@@ -20,7 +20,14 @@ class Brick(MonoBehaviour):
     def destroy(self):
         """Remove brick from game."""
         from breakout_python.game_manager import GameManager
+        from breakout_python.powerup import maybe_spawn_powerup
+        from src.engine.lifecycle import LifecycleManager
+
         GameManager.add_score(self.points)
+
+        # Spawn powerup chance
+        maybe_spawn_powerup(self.transform.position, LifecycleManager.instance())
+
         self.game_object.active = False
         # Remove physics body
         collider = self.get_component(BoxCollider2D)

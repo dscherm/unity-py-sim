@@ -25,7 +25,7 @@ See git history and activity.md for details.
     "Create run_breakout.py — scene setup with camera, paddle, ball, top/left/right walls, bottom kill zone",
     "Run headless 300 frames, verify no errors"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -44,7 +44,8 @@ See git history and activity.md for details.
     "Track remaining bricks — when all destroyed, log 'Level Complete'",
     "Run headless 300 frames, verify bricks spawn and ball bounces"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Brick grid, collision, and destruction built in Task 1"
 }
 ```
 
@@ -64,7 +65,8 @@ See git history and activity.md for details.
     "Display score and lives in window title (like pong example)",
     "Run headless 300 frames, verify game flow"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Score, lives, win/lose all built in Task 1"
 }
 ```
 
@@ -83,7 +85,7 @@ See git history and activity.md for details.
     "Integrate with game_manager for life/score effects",
     "Run headless 300 frames, verify powerups spawn and fall"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
