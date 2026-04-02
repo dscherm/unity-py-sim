@@ -19,6 +19,7 @@ import io
 import json
 import subprocess
 import traceback
+import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -26,6 +27,8 @@ ROOT = Path(__file__).resolve().parent.parent
 GOTCHAS_FILE = ROOT / "data" / "lessons" / "gotchas.md"
 ERROR_LOG = ROOT / "data" / "lessons" / "playtest_errors.jsonl"
 SESSION_LOG = ROOT / ".ralph" / "playtest_log.jsonl"
+OBS_FILE = ROOT / ".ralph" / "observations.jsonl"
+RALPH_UNIVERSAL = Path("D:/Projects/ralph-universal")
 
 EXAMPLES = {
     "breakout": "examples/breakout/run_breakout.py",
@@ -99,6 +102,9 @@ def run_playtest(example: str, extra_args: list[str]) -> dict:
         print(f"  {GOTCHAS_FILE}")
     else:
         print(f"\n[playtest] Clean run — no errors detected.")
+
+    # Emit observation record for ralph-universal sync
+    emit_observation(session, errors)
 
     print(f"[playtest] Session logged to {SESSION_LOG}")
     return session
@@ -205,6 +211,57 @@ def append_gotchas(errors: list[dict], example: str, ts: str):
             existing = existing.rstrip() + "\n" + section
 
         GOTCHAS_FILE.write_text(existing, encoding="utf-8")
+
+
+def emit_observation(session: dict, errors: list[dict]):
+    """Emit an observation record to .ralph/observations.jsonl and ralph-universal."""
+    ts = session["timestamp"]
+    example = session["example"]
+    project = ROOT.name
+
+    # Build error signatures from parsed errors
+    error_signatures = []
+    for err in errors:
+        sig = f"{err['type']}: {err['message'][:80]}"
+        error_signatures.append(sig)
+
+    # Deterministic id from timestamp + example
+    raw_id = f"playtest-{example}-{ts}"
+    short_hash = hashlib.sha1(raw_id.encode()).hexdigest()[:7]
+
+    obs = {
+        "version": "1",
+        "id": f"obs-playtest-{short_hash}",
+        "timestamp": ts,
+        "project": project,
+        "run_id": "playtest",
+        "iteration": 0,
+        "files": {"count": 0, "test_files_touched": False},
+        "gate": {
+            "result": "pass" if not errors else "fail",
+        },
+        "error_signatures": error_signatures,
+        "source": "playtest",
+        "example": example,
+    }
+
+    obs_json = json.dumps(obs)
+
+    # Write to local .ralph/observations.jsonl
+    OBS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(OBS_FILE, "a", encoding="utf-8") as f:
+        f.write(obs_json + "\n")
+
+    # Sync to ralph-universal global observations if available
+    global_dir = RALPH_UNIVERSAL / "observations"
+    if global_dir.is_dir():
+        global_file = global_dir / f"{project}.jsonl"
+        with open(global_file, "a", encoding="utf-8") as f:
+            f.write(obs_json + "\n")
+        print(f"[playtest] Observation synced to {global_file}")
+
+    print(f"[playtest] Observation recorded: gate={obs['gate']['result']}, "
+          f"errors={len(error_signatures)}")
 
 
 if __name__ == "__main__":

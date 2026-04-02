@@ -23,6 +23,7 @@ Follow these phases in order. ONE task per iteration.
 ### Phase 1: Orient
 
 - Read pending tasks (above). Your task is the FIRST one listed.
+- Read lesson warnings injected below pending tasks. Apply them proactively.
 - Read recent activity to understand what was just completed.
 - Read memories for cross-iteration context.
 - **If gate_failure.md is non-empty, FIX THE GATE FAILURE before starting any new task.**
