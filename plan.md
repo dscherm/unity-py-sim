@@ -153,7 +153,7 @@ Priority order based on real bugs hit during Breakout/FSM ports and common Unity
     "Update src/reference/mappings/classes.json with PhysicsMaterial2D entry",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -175,7 +175,7 @@ Priority order based on real bugs hit during Breakout/FSM ports and common Unity
     "Update src/reference/mappings/classes.json and methods.json",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -194,7 +194,7 @@ Priority order based on real bugs hit during Breakout/FSM ports and common Unity
     "Update src/reference/mappings/lifecycle.json",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -215,7 +215,7 @@ Priority order based on real bugs hit during Breakout/FSM ports and common Unity
     "Update src/reference/mappings/patterns.json to mark coroutines as supported",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -236,7 +236,7 @@ Priority order based on real bugs hit during Breakout/FSM ports and common Unity
     "Update src/reference/mappings/classes.json",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -257,7 +257,7 @@ Priority order based on real bugs hit during Breakout/FSM ports and common Unity
     "Update src/reference/mappings/classes.json",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -280,7 +280,7 @@ Priority order based on real bugs hit during Breakout/FSM ports and common Unity
     "Update src/reference/mappings/classes.json",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -301,7 +301,7 @@ Priority order based on real bugs hit during Breakout/FSM ports and common Unity
     "Update src/reference/mappings/classes.json and methods.json",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -322,7 +322,7 @@ Priority order based on real bugs hit during Breakout/FSM ports and common Unity
     "Run test_mapping tests to validate JSON structure",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 

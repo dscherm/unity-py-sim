@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -28,6 +29,17 @@ class Collision2D:
     relative_velocity: Vector2 = field(default_factory=lambda: Vector2(0, 0))
 
 
+@dataclass
+class RaycastHit2D:
+    """Result of a Physics2D raycast query."""
+    point: Vector2
+    normal: Vector2
+    distance: float
+    collider: object | None = None  # Collider2D
+    rigidbody: object | None = None  # Rigidbody2D
+    transform: object | None = None  # Transform
+
+
 class PhysicsManager:
     """Singleton managing the pymunk physics space."""
 
@@ -38,6 +50,8 @@ class PhysicsManager:
         self._space.gravity = (0, -9.81)
         self._body_map: dict[int, 'Rigidbody2D'] = {}  # pymunk body hash -> Rigidbody2D
         self._trigger_shapes: set[int] = set()  # shape ids that are triggers
+        # Track active contacts for Stay callbacks: (body_id_a, body_id_b) -> is_trigger
+        self._active_contacts: dict[tuple[int, int], bool] = {}
 
         # Set up collision handlers (pymunk 7.x API)
         self._space.on_collision(
@@ -96,10 +110,38 @@ class PhysicsManager:
     def step(self, dt: float) -> None:
         """Step the physics simulation."""
         self._space.step(dt)
+        # Dispatch Stay callbacks for active contacts
+        self._dispatch_stay_callbacks()
         # Sync positions back to transforms
         for rb in self._body_map.values():
             if rb._body.body_type == pymunk.Body.DYNAMIC:
                 rb._sync_to_transform()
+
+    @staticmethod
+    def _contact_key(rb_a: 'Rigidbody2D', rb_b: 'Rigidbody2D') -> tuple[int, int]:
+        a, b = id(rb_a._body), id(rb_b._body)
+        return (min(a, b), max(a, b))
+
+    def _dispatch_stay_callbacks(self) -> None:
+        """Dispatch Stay callbacks for all active contacts."""
+        from src.engine.core import MonoBehaviour
+        for (id_a, id_b), is_trigger in list(self._active_contacts.items()):
+            rb_a = self._body_map.get(id_a)
+            rb_b = self._body_map.get(id_b)
+            if rb_a is None or rb_b is None:
+                continue
+            if is_trigger:
+                for comp in rb_a.game_object.get_components(MonoBehaviour):
+                    comp.on_trigger_stay_2d(rb_b.game_object)
+                for comp in rb_b.game_object.get_components(MonoBehaviour):
+                    comp.on_trigger_stay_2d(rb_a.game_object)
+            else:
+                col_a = Collision2D(game_object=rb_b.game_object)
+                col_b = Collision2D(game_object=rb_a.game_object)
+                for comp in rb_a.game_object.get_components(MonoBehaviour):
+                    comp.on_collision_stay_2d(col_a)
+                for comp in rb_b.game_object.get_components(MonoBehaviour):
+                    comp.on_collision_stay_2d(col_b)
 
     def _get_rb_from_body(self, body: pymunk.Body) -> 'Rigidbody2D | None':
         return self._body_map.get(id(body))
@@ -112,10 +154,13 @@ class PhysicsManager:
         is_trigger = self.is_trigger(shape_a) or self.is_trigger(shape_b)
 
         if rb_a and rb_b:
+            key = self._contact_key(rb_a, rb_b)
             if is_trigger:
+                self._active_contacts[key] = True
                 self._dispatch_trigger_enter(rb_a, rb_b)
                 arbiter.process_collision = False  # Triggers don't resolve physics
             else:
+                self._active_contacts[key] = False
                 self._dispatch_collision_enter(rb_a, rb_b, arbiter)
 
     def _on_pre_solve(self, arbiter: pymunk.Arbiter, space, data) -> None:
@@ -131,6 +176,8 @@ class PhysicsManager:
         is_trigger = self.is_trigger(shape_a) or self.is_trigger(shape_b)
 
         if rb_a and rb_b:
+            key = self._contact_key(rb_a, rb_b)
+            self._active_contacts.pop(key, None)
             if is_trigger:
                 self._dispatch_trigger_exit(rb_a, rb_b)
             else:
@@ -193,6 +240,151 @@ class PhysicsManager:
             comp.on_trigger_exit_2d(rb_b.game_object)
         for comp in rb_b.game_object.get_components(MonoBehaviour):
             comp.on_trigger_exit_2d(rb_a.game_object)
+
+
+class Physics2D:
+    """Unity-compatible static class for 2D physics queries."""
+
+    @staticmethod
+    def raycast(origin: Vector2, direction: Vector2, distance: float = math.inf,
+                layer_mask: int = -1) -> RaycastHit2D | None:
+        """Cast a ray and return the first hit, or None."""
+        pm = PhysicsManager.instance()
+        d = direction.normalized
+        end = Vector2(origin.x + d.x * distance, origin.y + d.y * distance)
+        results = pm._space.segment_query(
+            (origin.x, origin.y), (end.x, end.y), 0.0, pymunk.ShapeFilter()
+        )
+        if not results:
+            return None
+        # Find closest
+        best = None
+        best_dist = math.inf
+        for info in results:
+            if info.shape is None:
+                continue
+            dist = info.alpha * distance if distance != math.inf else info.alpha * 1e6
+            if dist < best_dist:
+                best_dist = dist
+                best = info
+        if best is None:
+            return None
+
+        hit_point = Vector2(best.point[0], best.point[1])
+        hit_normal = Vector2(best.normal[0], best.normal[1])
+        actual_dist = Vector2.distance(origin, hit_point)
+
+        # Resolve collider/rigidbody/transform from shape
+        collider_comp, rb_comp, transform_comp = Physics2D._resolve_components(best.shape, pm)
+
+        return RaycastHit2D(
+            point=hit_point,
+            normal=hit_normal,
+            distance=actual_dist,
+            collider=collider_comp,
+            rigidbody=rb_comp,
+            transform=transform_comp,
+        )
+
+    @staticmethod
+    def raycast_all(origin: Vector2, direction: Vector2, distance: float = math.inf,
+                    layer_mask: int = -1) -> list[RaycastHit2D]:
+        """Cast a ray and return all hits."""
+        pm = PhysicsManager.instance()
+        d = direction.normalized
+        end = Vector2(origin.x + d.x * distance, origin.y + d.y * distance)
+        results = pm._space.segment_query(
+            (origin.x, origin.y), (end.x, end.y), 0.0, pymunk.ShapeFilter()
+        )
+        hits = []
+        for info in results:
+            if info.shape is None:
+                continue
+            hit_point = Vector2(info.point[0], info.point[1])
+            hit_normal = Vector2(info.normal[0], info.normal[1])
+            actual_dist = Vector2.distance(origin, hit_point)
+            collider_comp, rb_comp, transform_comp = Physics2D._resolve_components(info.shape, pm)
+            hits.append(RaycastHit2D(
+                point=hit_point, normal=hit_normal, distance=actual_dist,
+                collider=collider_comp, rigidbody=rb_comp, transform=transform_comp,
+            ))
+        hits.sort(key=lambda h: h.distance)
+        return hits
+
+    @staticmethod
+    def overlap_circle(point: Vector2, radius: float, layer_mask: int = -1) -> 'Collider2D | None':
+        """Check if any collider overlaps a circle. Returns first found or None."""
+        pm = PhysicsManager.instance()
+        query = pm._space.point_query(
+            (point.x, point.y), radius, pymunk.ShapeFilter()
+        )
+        for info in query:
+            if info.shape is None:
+                continue
+            collider_comp, _, _ = Physics2D._resolve_components(info.shape, pm)
+            if collider_comp is not None:
+                return collider_comp
+        return None
+
+    @staticmethod
+    def overlap_circle_all(point: Vector2, radius: float, layer_mask: int = -1) -> list:
+        """Return all colliders overlapping a circle."""
+        pm = PhysicsManager.instance()
+        query = pm._space.point_query(
+            (point.x, point.y), radius, pymunk.ShapeFilter()
+        )
+        colliders = []
+        for info in query:
+            if info.shape is None:
+                continue
+            collider_comp, _, _ = Physics2D._resolve_components(info.shape, pm)
+            if collider_comp is not None:
+                colliders.append(collider_comp)
+        return colliders
+
+    @staticmethod
+    def overlap_box(point: Vector2, size: Vector2, angle: float = 0.0,
+                    layer_mask: int = -1) -> 'Collider2D | None':
+        """Check if any collider overlaps a box. Returns first found or None."""
+        pm = PhysicsManager.instance()
+        hw, hh = size.x / 2, size.y / 2
+        bb = pymunk.BB(point.x - hw, point.y - hh, point.x + hw, point.y + hh)
+        query = pm._space.bb_query(bb, pymunk.ShapeFilter())
+        for shape in query:
+            collider_comp, _, _ = Physics2D._resolve_components(shape, pm)
+            if collider_comp is not None:
+                return collider_comp
+        return None
+
+    @staticmethod
+    def overlap_box_all(point: Vector2, size: Vector2, angle: float = 0.0,
+                        layer_mask: int = -1) -> list:
+        """Return all colliders overlapping a box."""
+        pm = PhysicsManager.instance()
+        hw, hh = size.x / 2, size.y / 2
+        bb = pymunk.BB(point.x - hw, point.y - hh, point.x + hw, point.y + hh)
+        query = pm._space.bb_query(bb, pymunk.ShapeFilter())
+        colliders = []
+        for shape in query:
+            collider_comp, _, _ = Physics2D._resolve_components(shape, pm)
+            if collider_comp is not None:
+                colliders.append(collider_comp)
+        return colliders
+
+    @staticmethod
+    def _resolve_components(shape: pymunk.Shape, pm: PhysicsManager):
+        """Resolve Collider2D, Rigidbody2D, Transform from a pymunk shape."""
+        from src.engine.physics.collider import Collider2D
+        rb = pm._get_rb_from_body(shape.body)
+        if rb is None:
+            return None, None, None
+        go = rb.game_object
+        collider = None
+        for col in go.get_components(Collider2D):
+            if col._shape is shape:
+                collider = col
+                break
+        return collider, rb, go.transform
 
 
 # Import here to avoid circular — used by type hints above

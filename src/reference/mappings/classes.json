@@ -167,5 +167,197 @@
     "example_python": "v = Mathf.lerp(0, 10, 0.5)",
     "completeness": "full",
     "behavioral_differences": []
+  },
+  {
+    "unity_class": "PhysicsMaterial2D",
+    "unity_namespace": "UnityEngine",
+    "python_class": "PhysicsMaterial2D",
+    "python_module": "src.engine.physics.collider",
+    "category": "physics",
+    "notes": "Controls bounciness and friction for 2D colliders. Assign to Collider2D.shared_material or .material. Unity defaults: bounciness=0, friction=0.4.",
+    "example_unity": "PhysicsMaterial2D mat = new PhysicsMaterial2D();\nmat.bounciness = 1f;\nmat.friction = 0f;\ncollider.sharedMaterial = mat;",
+    "example_python": "mat = PhysicsMaterial2D(bounciness=1.0, friction=0.0)\ncol.shared_material = mat",
+    "completeness": "full",
+    "behavioral_differences": [
+      "Unity PhysicsMaterial2D is a ScriptableObject asset; Python version is a plain object",
+      "pymunk uses 'elasticity' for bounciness — mapped automatically"
+    ]
+  },
+  {
+    "unity_class": "Physics2D",
+    "unity_namespace": "UnityEngine",
+    "python_class": "Physics2D",
+    "python_module": "src.engine.physics.physics_manager",
+    "category": "physics",
+    "notes": "Static class for 2D physics queries: Raycast, OverlapCircle, OverlapBox. Uses pymunk spatial queries.",
+    "example_unity": "RaycastHit2D hit = Physics2D.Raycast(origin, direction, distance);\nCollider2D col = Physics2D.OverlapCircle(point, radius);",
+    "example_python": "hit = Physics2D.raycast(origin, direction, distance)\ncol = Physics2D.overlap_circle(point, radius)",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "pymunk uses segment_query for raycasts; results may differ slightly from Box2D",
+      "layer_mask parameter accepted but not yet filtered"
+    ]
+  },
+  {
+    "unity_class": "RaycastHit2D",
+    "unity_namespace": "UnityEngine",
+    "python_class": "RaycastHit2D",
+    "python_module": "src.engine.physics.physics_manager",
+    "category": "physics",
+    "notes": "Data class returned by Physics2D.Raycast. Contains point, normal, distance, collider, rigidbody, transform.",
+    "example_unity": "RaycastHit2D hit;\nif (Physics2D.Raycast(origin, dir, out hit)) { Debug.Log(hit.point); }",
+    "example_python": "hit = Physics2D.raycast(origin, dir)\nif hit: print(hit.point)",
+    "completeness": "full",
+    "behavioral_differences": [
+      "Unity RaycastHit2D is a struct; Python version is a dataclass"
+    ]
+  },
+  {
+    "unity_class": "Debug",
+    "unity_namespace": "UnityEngine",
+    "python_class": "Debug",
+    "python_module": "src.engine.debug",
+    "category": "core",
+    "notes": "Static class for logging and visual debugging. Log, LogWarning, LogError for console output. DrawLine, DrawRay for visual debug.",
+    "example_unity": "Debug.Log(\"Hello\");\nDebug.DrawLine(start, end, Color.red, 1f);",
+    "example_python": "Debug.log('Hello')\nDebug.draw_line(start, end, (255, 0, 0), 1.0)",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Unity Debug.Log outputs to Unity Console; Python prints to stdout/stderr",
+      "Debug.DrawLine renders via pygame overlay, not Unity Gizmos"
+    ]
+  },
+  {
+    "unity_class": "AudioClip",
+    "unity_namespace": "UnityEngine",
+    "python_class": "AudioClip",
+    "python_module": "src.engine.audio",
+    "category": "audio",
+    "notes": "Wraps an audio file. Created with AudioClip('path/to/file.wav'). Unity version is an asset.",
+    "example_unity": "public AudioClip hitSound;",
+    "example_python": "hit_sound = AudioClip('sounds/hit.wav')",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Unity AudioClip is a serialized asset; Python loads from file path at runtime"
+    ]
+  },
+  {
+    "unity_class": "AudioSource",
+    "unity_namespace": "UnityEngine",
+    "python_class": "AudioSource",
+    "python_module": "src.engine.audio",
+    "category": "audio",
+    "notes": "Component for playing audio. Supports play, stop, pause, loop, volume, pitch, PlayOneShot.",
+    "example_unity": "AudioSource src = GetComponent<AudioSource>();\nsrc.clip = hitClip;\nsrc.Play();",
+    "example_python": "src = self.get_component(AudioSource)\nsrc.clip = hit_clip\nsrc.play()",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Unity AudioSource has spatial audio (3D sound); Python version is 2D only via pygame.mixer",
+      "Pitch control not implemented in pygame backend"
+    ]
+  },
+  {
+    "unity_class": "AudioListener",
+    "unity_namespace": "UnityEngine",
+    "python_class": "AudioListener",
+    "python_module": "src.engine.audio",
+    "category": "audio",
+    "notes": "Marks a GameObject as the audio listener. Only one active at a time. Typically on the main camera.",
+    "example_unity": "// Usually added via Unity Inspector on Camera",
+    "example_python": "camera_go.add_component(AudioListener)",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Unity AudioListener handles 3D spatialization; Python version is a marker component only"
+    ]
+  },
+  {
+    "unity_class": "Canvas",
+    "unity_namespace": "UnityEngine.UI",
+    "python_class": "Canvas",
+    "python_module": "src.engine.ui",
+    "category": "ui",
+    "notes": "Root container for UI elements. Supports ScreenSpaceOverlay render mode. All UI elements should be children of a Canvas.",
+    "example_unity": "Canvas canvas = gameObject.AddComponent<Canvas>();\ncanvas.renderMode = RenderMode.ScreenSpaceOverlay;",
+    "example_python": "canvas = go.add_component(Canvas)\ncanvas.render_mode = RenderMode.SCREEN_SPACE_OVERLAY",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Only ScreenSpaceOverlay mode implemented",
+      "No Canvas Scaler or Graphic Raycaster"
+    ]
+  },
+  {
+    "unity_class": "RectTransform",
+    "unity_namespace": "UnityEngine",
+    "python_class": "RectTransform",
+    "python_module": "src.engine.ui",
+    "category": "ui",
+    "notes": "UI-specific transform with anchoring, pivot, and sizeDelta. Used instead of Transform for UI elements.",
+    "example_unity": "RectTransform rt = GetComponent<RectTransform>();\nrt.sizeDelta = new Vector2(200, 50);",
+    "example_python": "rt = self.get_component(RectTransform)\nrt.size_delta = Vector2(200, 50)",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Simplified anchor/pivot model; no stretch anchors or layout groups"
+    ]
+  },
+  {
+    "unity_class": "Text",
+    "unity_namespace": "UnityEngine.UI",
+    "python_class": "Text",
+    "python_module": "src.engine.ui",
+    "category": "ui",
+    "notes": "UI text display. Properties: text, fontSize, color, alignment.",
+    "example_unity": "Text label = GetComponent<Text>();\nlabel.text = \"Score: 100\";",
+    "example_python": "label = self.get_component(Text)\nlabel.text = 'Score: 100'",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Unity Text uses rich text markup; Python version is plain text only",
+      "Font selection not implemented (uses pygame default)"
+    ]
+  },
+  {
+    "unity_class": "Image",
+    "unity_namespace": "UnityEngine.UI",
+    "python_class": "Image",
+    "python_module": "src.engine.ui",
+    "category": "ui",
+    "notes": "UI image/panel component with color and sprite properties.",
+    "example_unity": "Image img = GetComponent<Image>();\nimg.color = Color.red;",
+    "example_python": "img = self.get_component(Image)\nimg.color = (255, 0, 0)",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "No image type (Simple, Sliced, Tiled, Filled)",
+      "No fill amount or ray cast target"
+    ]
+  },
+  {
+    "unity_class": "Button",
+    "unity_namespace": "UnityEngine.UI",
+    "python_class": "Button",
+    "python_module": "src.engine.ui",
+    "category": "ui",
+    "notes": "UI button with click callback and interactable toggle.",
+    "example_unity": "Button btn = GetComponent<Button>();\nbtn.onClick.AddListener(() => Debug.Log(\"Clicked\"));",
+    "example_python": "btn = self.get_component(Button)\nbtn.on_click = lambda: Debug.log('Clicked')",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Unity Button uses UnityEvent; Python uses a simple callable",
+      "No transition animations (color tint, sprite swap)"
+    ]
+  },
+  {
+    "unity_class": "SceneManager",
+    "unity_namespace": "UnityEngine.SceneManagement",
+    "python_class": "SceneManager",
+    "python_module": "src.engine.scene",
+    "category": "core",
+    "notes": "Scene loading and management. Register scenes with setup callables, load by name or index.",
+    "example_unity": "SceneManager.LoadScene(\"GameScene\");",
+    "example_python": "SceneManager.load_scene('GameScene')",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Unity loads scenes from build settings; Python uses registered callables",
+      "No async scene loading (LoadSceneAsync)",
+      "No additive scene loading"
+    ]
   }
 ]

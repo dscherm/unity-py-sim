@@ -78,6 +78,14 @@ class LifecycleManager:
         for comp in list(self._update_list):
             if comp.enabled:
                 comp.update()
+        # Tick coroutines after Update (Unity order)
+        self._tick_coroutines()
+
+    def _tick_coroutines(self) -> None:
+        """Advance all active coroutines."""
+        from src.engine.time_manager import Time
+        if hasattr(MonoBehaviour, '_coroutine_manager'):
+            MonoBehaviour._coroutine_manager.tick(Time.delta_time)
 
     def run_late_update(self) -> None:
         """Run LateUpdate on all registered MonoBehaviours."""

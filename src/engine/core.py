@@ -27,6 +27,12 @@ def _clear_registry() -> None:
     _name_index.clear()
     _tag_index.clear()
     _next_instance_id = 0
+    # Reset coroutine manager (MonoBehaviour defined later in this module)
+    try:
+        if hasattr(MonoBehaviour, '_coroutine_manager'):
+            del MonoBehaviour._coroutine_manager
+    except NameError:
+        pass
 
 
 class Component:
@@ -62,6 +68,23 @@ class Component:
 class MonoBehaviour(Component):
     """Base class for Unity scripts. Provides lifecycle methods."""
 
+    def start_coroutine(self, generator):
+        """Start a coroutine on this MonoBehaviour."""
+        from src.engine.coroutine import CoroutineManager
+        if not hasattr(MonoBehaviour, '_coroutine_manager'):
+            MonoBehaviour._coroutine_manager = CoroutineManager()
+        return MonoBehaviour._coroutine_manager.start_coroutine(self, generator)
+
+    def stop_coroutine(self, coroutine) -> None:
+        """Stop a specific coroutine."""
+        if hasattr(MonoBehaviour, '_coroutine_manager'):
+            MonoBehaviour._coroutine_manager.stop_coroutine(coroutine)
+
+    def stop_all_coroutines(self) -> None:
+        """Stop all coroutines owned by this MonoBehaviour."""
+        if hasattr(MonoBehaviour, '_coroutine_manager'):
+            MonoBehaviour._coroutine_manager.stop_all_coroutines(self)
+
     def update(self) -> None:
         pass
 
@@ -86,7 +109,13 @@ class MonoBehaviour(Component):
     def on_trigger_enter_2d(self, other: object) -> None:
         pass
 
+    def on_collision_stay_2d(self, collision: object) -> None:
+        pass
+
     def on_trigger_exit_2d(self, other: object) -> None:
+        pass
+
+    def on_trigger_stay_2d(self, other: object) -> None:
         pass
 
 

@@ -73,10 +73,10 @@
     "pattern_id": "coroutine_basic",
     "name": "Basic Coroutine with WaitForSeconds",
     "category": "coroutine",
-    "difficulty": "hard",
+    "difficulty": "easy",
     "unity_pattern": "IEnumerator SpawnEnemies() {\n    while (true) {\n        SpawnEnemy();\n        yield return new WaitForSeconds(2f);\n    }\n}\nvoid Start() { StartCoroutine(SpawnEnemies()); }",
-    "python_pattern": "# Coroutines not yet supported in simulator.\n# Workaround: use timer-based approach in update().\ndef start(self):\n    self._spawn_timer = 0.0\n\ndef update(self):\n    self._spawn_timer += Time.delta_time\n    if self._spawn_timer >= 2.0:\n        self.spawn_enemy()\n        self._spawn_timer = 0.0",
-    "translation_strategy": "IEnumerator + yield return WaitForSeconds -> timer accumulator in update(). StartCoroutine() removed. Each yield becomes a timer check.",
-    "notes": "Coroutine support is planned but not yet implemented. Timer workaround covers most cases."
+    "python_pattern": "def spawn_enemies(self):\n    while True:\n        self.spawn_enemy()\n        yield WaitForSeconds(2.0)\n\ndef start(self):\n    self.start_coroutine(self.spawn_enemies())",
+    "translation_strategy": "IEnumerator method -> Python generator function. yield return new WaitForSeconds(t) -> yield WaitForSeconds(t). StartCoroutine() -> self.start_coroutine(). StopCoroutine() -> self.stop_coroutine().",
+    "notes": "Coroutines now supported via Python generators. WaitForSeconds, WaitUntil, WaitWhile, WaitForEndOfFrame, WaitForFixedUpdate, nested coroutines all supported."
   }
 ]
