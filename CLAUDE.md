@@ -48,27 +48,12 @@ python tools/playtest.py fsm_platformer  # visual
 python tools/playtest.py breakout --headless --frames 300  # headless
 ```
 
-## Lessons (READ BEFORE BUILDING)
+## Lessons
 
-Before creating or modifying examples, read these:
-
-**Engine gotchas** (`data/lessons/gotchas.md`):
-- `GameObject._registry` doesn't exist — use `GameObject.find()` and `GameObject.find_game_objects_with_tag()`
-- Unity 6 uses `linearVelocity` not `velocity`
-- Python engine Input API is legacy-style; Unity projects may use new Input System
-- Animator controllers, scene objects, prefabs are Unity assets — not translatable by code
-
-**Translation patterns** (`data/lessons/patterns.md`):
-- Easy: class inheritance, field declarations, lifecycle methods
-- Medium: for loops, list operations, property accessors (translator produces rough output)
-- Hard: Input System, Physics2D.OverlapCircle, animator wiring, SerializeField
-
-**Cross-project lessons** (`D:/Projects/ralph-universal/lessons/`):
-- `unity-asset-runtime-mismatch` — modify .controller assets via MCP, not Editor scripts
-- `scene-object-pixel-values` — verify world-space transforms after automated setup
-- `credit-exhaustion-phantom-passes` — API credit errors create phantom "pass" iterations
-- `bootstrap-overwrites-config` — bootstrap.py overwrites existing ralph.config.json
-- `small-iterations-succeed` — keep changes to 1-5 files per task
+Before creating or modifying examples, read the relevant lesson files:
+- `data/lessons/gotchas.md` — engine API pitfalls and behavioral differences
+- `data/lessons/patterns.md` — what translates well vs poorly
+- `D:/Projects/ralph-universal/lessons/` — cross-project lessons (filtered by `applies-to: gamedev`)
 
 ## Cross-Machine Workflow
 

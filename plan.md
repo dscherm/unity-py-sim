@@ -128,3 +128,221 @@ See git history and activity.md for details.
   "note": "structural gate needs tree_sitter_c_sharp (not installed); quality checks passed manually"
 }
 ```
+
+---
+
+## Phase: Engine API Expansion
+
+Goal: Expand Unity API coverage from ~15-20% to cover the most-used 2D subsystems.
+Priority order based on real bugs hit during Breakout/FSM ports and common Unity usage patterns.
+
+### Task 1: PhysicsMaterial2D and collider properties
+
+```json
+{
+  "category": "feature",
+  "priority": 1,
+  "description": "Add PhysicsMaterial2D with bounciness/friction, assign to Collider2D base class",
+  "steps": [
+    "Create PhysicsMaterial2D class in src/engine/physics.py with bounciness (default 0) and friction (default 0.4) properties",
+    "Add shared_material and material properties to Collider2D base class",
+    "Wire PhysicsMaterial2D into pymunk shape restitution and friction on collider build()",
+    "Add Collider2D.bounds property returning an AABB from the pymunk shape",
+    "Add Collider2D.is_touching(other) method using pymunk arbiter queries",
+    "Add tests in tests/engine/test_physics.py for material bounciness and friction",
+    "Update src/reference/mappings/classes.json with PhysicsMaterial2D entry",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 2: Physics2D static queries (Raycast, Overlap)
+
+```json
+{
+  "category": "feature",
+  "priority": 2,
+  "description": "Add Physics2D static class with Raycast, OverlapCircle, OverlapBox query methods",
+  "steps": [
+    "Create Physics2D static class in src/engine/physics.py",
+    "Implement Physics2D.raycast(origin, direction, distance, layer_mask) using pymunk segment query",
+    "Implement Physics2D.overlap_circle(point, radius, layer_mask) using pymunk point/shape query",
+    "Implement Physics2D.overlap_box(point, size, angle, layer_mask) using pymunk BB query",
+    "Create RaycastHit2D data class (point, normal, distance, collider, rigidbody, transform)",
+    "Add LayerMask support to PhysicsManager for filtering",
+    "Add tests for each query type in tests/engine/test_physics.py",
+    "Update src/reference/mappings/classes.json and methods.json",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 3: OnCollisionStay/OnTriggerStay callbacks
+
+```json
+{
+  "category": "feature",
+  "priority": 3,
+  "description": "Add Stay callbacks for collision and trigger events",
+  "steps": [
+    "Add on_collision_stay_2d() and on_trigger_stay_2d() to MonoBehaviour",
+    "Track active contacts in PhysicsManager per-frame using pymunk arbiters",
+    "Dispatch Stay callbacks each physics step for ongoing contacts",
+    "Add tests verifying Stay fires every step while objects overlap",
+    "Update src/reference/mappings/lifecycle.json",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 4: Coroutine system
+
+```json
+{
+  "category": "feature",
+  "priority": 4,
+  "description": "Add coroutine support using Python generators to match Unity's StartCoroutine/yield pattern",
+  "steps": [
+    "Add start_coroutine(generator) and stop_coroutine(handle) to MonoBehaviour",
+    "Add stop_all_coroutines() to MonoBehaviour",
+    "Create yield instruction classes: WaitForSeconds, WaitForEndOfFrame, WaitForFixedUpdate, WaitUntil, WaitWhile",
+    "Wire coroutine ticking into LifecycleManager after Update (matching Unity order)",
+    "Handle nested coroutines (yield return StartCoroutine(...))",
+    "Add tests for each yield type and coroutine lifecycle",
+    "Update src/reference/mappings/patterns.json to mark coroutines as supported",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 5: Debug utilities
+
+```json
+{
+  "category": "feature",
+  "priority": 5,
+  "description": "Add Debug static class with Log, LogWarning, LogError, DrawLine, DrawRay",
+  "steps": [
+    "Create Debug static class in src/engine/debug.py",
+    "Implement Debug.log(), Debug.log_warning(), Debug.log_error() with formatted output",
+    "Implement Debug.draw_line(start, end, color, duration) rendering into pygame overlay",
+    "Implement Debug.draw_ray(start, direction, color, duration)",
+    "Wire debug line rendering into RenderManager after sprite rendering",
+    "Add tests for log output capture and draw line registration",
+    "Update src/reference/mappings/classes.json",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 6: Audio system basics
+
+```json
+{
+  "category": "feature",
+  "priority": 6,
+  "description": "Add AudioSource and AudioClip components using pygame.mixer",
+  "steps": [
+    "Create AudioClip class wrapping pygame.mixer.Sound in src/engine/audio.py",
+    "Create AudioSource component with play(), stop(), pause(), clip, volume, loop, pitch properties",
+    "Add AudioSource.play_one_shot(clip, volume) for fire-and-forget sounds",
+    "Add AudioListener component (attach to camera, singleton)",
+    "Wire AudioSource lifecycle into component system (stop on destroy)",
+    "Add tests for audio component properties and lifecycle",
+    "Update src/reference/mappings/classes.json",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 7: UI system foundation
+
+```json
+{
+  "category": "feature",
+  "priority": 7,
+  "description": "Add basic UI components: Canvas, Text, Image, Button with pygame rendering",
+  "steps": [
+    "Create Canvas component in src/engine/ui.py with screen-space overlay rendering",
+    "Create RectTransform extending Transform with anchors, pivot, sizeDelta",
+    "Create UI.Text component with text, font_size, color, alignment properties",
+    "Create UI.Image component with color, sprite properties",
+    "Create UI.Button component with on_click callback and interactable property",
+    "Wire UI rendering into RenderManager after world rendering (overlay)",
+    "Add mouse hit-testing for Button click detection via Input",
+    "Add tests for UI layout, text rendering, button clicks",
+    "Update src/reference/mappings/classes.json",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 8: Scene management
+
+```json
+{
+  "category": "feature",
+  "priority": 8,
+  "description": "Add SceneManager.load_scene and DontDestroyOnLoad support",
+  "steps": [
+    "Extend SceneManager with load_scene(name_or_index) using registered scene setup callables",
+    "Add SceneManager.register_scene(name, setup_callable) for scene registration",
+    "Add SceneManager.get_active_scene() returning scene name",
+    "Implement dont_destroy_on_load(game_object) to persist across scene loads",
+    "Clear all non-persistent GameObjects on scene load",
+    "Add tests for scene switching, object persistence, cleanup",
+    "Update src/reference/mappings/classes.json and methods.json",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 9: Sync reference mappings with engine
+
+```json
+{
+  "category": "docs",
+  "priority": 9,
+  "description": "Audit all implemented engine features and update reference JSON mappings to match",
+  "steps": [
+    "Scan all src/engine/*.py for public classes and methods",
+    "Compare against src/reference/mappings/*.json entries",
+    "Add missing entries for already-implemented features (AddTorque, GetComponentsInChildren, etc.)",
+    "Update completeness fields on existing class entries",
+    "Add new enum entries for any new enums added in this phase",
+    "Verify all behavioral_differences notes are still accurate",
+    "Run test_mapping tests to validate JSON structure",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 10: Integration example — enhanced Breakout with new features
+
+```json
+{
+  "category": "validation",
+  "priority": 10,
+  "description": "Enhance Breakout example to use PhysicsMaterial2D, coroutines, audio, UI, and Debug",
+  "steps": [
+    "Add PhysicsMaterial2D(bounciness=1, friction=0) to all Breakout colliders",
+    "Replace timer-based powerup durations with coroutines (WaitForSeconds)",
+    "Add UI.Text for score and lives display (replace window title hack)",
+    "Add Debug.draw_line for ball trajectory visualization (optional toggle)",
+    "Add sound effects via AudioSource for ball hit, brick break, powerup collect",
+    "Run playtest: python tools/playtest.py breakout",
+    "Run headless: python tools/playtest.py breakout --headless --frames 500",
+    "Verify no regressions in test suite"
+  ],
+  "passes": false
+}
+```
