@@ -5,6 +5,11 @@ Behavioral differences discovered during C# <-> Python translation.
 ---
 
 ## Physics API
+- **Unity requires explicit PhysicsMaterial2D for bouncing** — Python pymunk preserves energy by default (coefficient of restitution = 1.0), but Unity's default 2D physics material has bounciness=0 and friction=0.4. A ball game without a `PhysicsMaterial2D(friction=0, bounciness=1)` assigned to ALL colliders (ball, walls, paddle, bricks) will lose energy on every collision — the ball slows down and drifts sideways. This is invisible in the Python simulation because pymunk handles it differently.
+- **Discovered in**: Breakout Unity port — ball launched correctly but slowed to a crawl after 2-3 bounces. Fix: create `BouncyBall.physicsMaterial2D` and assign to every collider in the scene.
+- **Also set `collisionDetectionMode = Continuous`** on fast-moving balls to prevent tunneling through thin colliders.
+- **Don't manually reflect velocity AND use a bouncy physics material** — this causes double-bounce. If you assign `PhysicsMaterial2D(bounciness=1)`, the physics engine already reflects the ball. Adding manual `velocity = new Vector2(vel.x, -vel.y)` in `OnCollisionEnter2D` flips it AGAIN, sending the ball through objects or reversing direction randomly. Let the material handle wall/brick bounces; only override for paddle (custom angle control).
+- **Discovered in**: Breakout — ball passed through multiple bricks and changed direction mid-flight because both physics material AND code were reflecting velocity.
 - **Unity 6 uses `linearVelocity`** not `velocity` on Rigidbody2D (renamed in Unity 6000.x)
 - **Python engine gravity** is set via `PhysicsManager.instance().gravity = Vector2(0, -9.81)`, Unity uses project Physics2D settings
 - **Ground check**: Python uses Y-position comparison (`transform.position.y <= ground_y + threshold`), Unity uses `Physics2D.OverlapCircle` with LayerMask — fundamentally different approaches
