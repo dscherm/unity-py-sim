@@ -41,7 +41,8 @@
       "Read(//d/Projects/ralph-universal/**)",
       "Read(//d/Projects/**)",
       "Bash(export RALPH_HOME=\"/d/Projects/ralph-universal\")",
-      "Bash(bash /d/Projects/ralph-universal/ralph.sh --dry-run)"
+      "Bash(bash /d/Projects/ralph-universal/ralph.sh --dry-run)",
+      "Bash(bash /d/Projects/ralph-universal/ralph.sh 10)"
     ]
   }
 }
