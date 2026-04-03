@@ -93,6 +93,9 @@ class TestBreakoutManifest:
             f"Expected 80 brick objects, got {len(brick_info.game_objects)}"
         )
 
-    def test_no_audio_refs(self, manifest):
-        """Breakout example has no audio sources with clip_ref."""
-        assert len(manifest.audio) == 0
+    def test_audio_refs(self, manifest):
+        """Breakout example has audio for ball hit and brick break."""
+        assert len(manifest.audio) > 0
+        audio_refs = set(manifest.audio.keys())
+        assert "ball_hit" in audio_refs
+        assert "brick_break" in audio_refs

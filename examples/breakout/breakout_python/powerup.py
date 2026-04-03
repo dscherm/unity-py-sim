@@ -6,6 +6,8 @@ from src.engine.core import MonoBehaviour, GameObject
 from src.engine.math.vector import Vector2
 from src.engine.time_manager import Time
 from src.engine.rendering.renderer import SpriteRenderer
+from src.engine.coroutine import WaitForSeconds
+from src.engine.audio import AudioSource
 
 
 class PowerupType:
@@ -57,17 +59,26 @@ class Powerup(MonoBehaviour):
     def _apply(self, paddle):
         from breakout_python.game_manager import GameManager
 
+        # Play collect sound
+        audio = paddle.get_component(AudioSource)
+        if audio:
+            audio.clip_ref = "powerup_collect"
+
         if self.powerup_type == PowerupType.EXTRA_LIFE:
             GameManager.lives += 1
             GameManager._update_display()
 
         elif self.powerup_type == PowerupType.WIDE_PADDLE:
-            # Widen paddle renderer
             sr = paddle.get_component(SpriteRenderer)
             if sr:
+                original_size = Vector2(sr.size.x, sr.size.y)
+                original_color = sr.color
                 sr.size = Vector2(3.0, 0.4)
                 sr.color = POWERUP_COLORS[PowerupType.WIDE_PADDLE]
-            # Reset after duration handled by PowerupTimer
+                # Revert after 10 seconds via coroutine
+                gm = GameManager._get_instance()
+                if gm:
+                    gm.start_coroutine(self._revert_paddle(sr, original_size, original_color))
 
         elif self.powerup_type == PowerupType.SPEED_BALL:
             ball = GameObject.find("Ball")
@@ -75,7 +86,23 @@ class Powerup(MonoBehaviour):
                 from breakout_python.ball_controller import BallController
                 bc = ball.get_component(BallController)
                 if bc:
+                    original_speed = bc.speed
                     bc.speed = min(bc.speed * 1.3, bc.max_speed)
+                    # Revert after 8 seconds via coroutine
+                    gm = GameManager._get_instance()
+                    if gm:
+                        gm.start_coroutine(self._revert_speed(bc, original_speed))
+
+    def _revert_paddle(self, sr, original_size, original_color):
+        yield WaitForSeconds(10.0)
+        if sr and sr.game_object and sr.game_object.active:
+            sr.size = original_size
+            sr.color = original_color
+
+    def _revert_speed(self, bc, original_speed):
+        yield WaitForSeconds(8.0)
+        if bc and bc.game_object and bc.game_object.active:
+            bc.speed = original_speed
 
 
 def maybe_spawn_powerup(position: Vector2, lifecycle_manager) -> None:

@@ -6,6 +6,8 @@ import math
 from src.engine.core import MonoBehaviour, GameObject
 from src.engine.math.vector import Vector2
 from src.engine.physics.rigidbody import Rigidbody2D
+from src.engine.debug import Debug
+from src.engine.audio import AudioSource
 
 
 class BallController(MonoBehaviour):
@@ -16,6 +18,7 @@ class BallController(MonoBehaviour):
         self.max_speed: float = 12.0
         self.attached: bool = True
         self.paddle_offset: Vector2 = Vector2(0, 0.6)
+        self.show_trajectory: bool = True
 
     def start(self):
         self.rb = self.get_component(Rigidbody2D)
@@ -61,9 +64,23 @@ class BallController(MonoBehaviour):
             from breakout_python.game_manager import GameManager
             GameManager.on_ball_lost()
             self.reset()
+            return
+
+        # Debug trajectory visualization
+        if self.show_trajectory and not self.attached:
+            vel = self.rb.velocity
+            if vel.sqr_magnitude > 0.01:
+                start = self.transform.position
+                end = Vector2(start.x + vel.x * 0.3, start.y + vel.y * 0.3)
+                Debug.draw_line(start, end, color=(255, 255, 0), duration=0)
 
     def on_collision_enter_2d(self, collision):
+        # Play hit sound
+        audio = self.get_component(AudioSource)
+
         if collision.game_object.tag == "Paddle":
+            if audio:
+                audio.clip_ref = "paddle_hit"
             # Angle based on hit position
             paddle_pos = collision.game_object.transform.position
             hit_x = self.transform.position.x - paddle_pos.x
@@ -75,6 +92,8 @@ class BallController(MonoBehaviour):
             self.rb.velocity = direction * self.speed
 
         elif collision.game_object.tag == "Brick":
+            if audio:
+                audio.clip_ref = "brick_hit"
             # Reflect off brick
             vel = self.rb.velocity
             # Simple: reflect Y

@@ -17,9 +17,11 @@ from src.engine.rendering.camera import Camera
 from src.engine.rendering.renderer import SpriteRenderer
 from src.engine.physics.physics_manager import PhysicsManager
 from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
-from src.engine.physics.collider import BoxCollider2D, CircleCollider2D
+from src.engine.physics.collider import BoxCollider2D, CircleCollider2D, PhysicsMaterial2D
 from src.engine.math.vector import Vector2
 from src.engine.input_manager import Input
+from src.engine.audio import AudioSource
+from src.engine.debug import Debug
 from src.engine.app import run
 
 from breakout_python.paddle_controller import PaddleController
@@ -62,6 +64,9 @@ def setup_scene():
     cam.background_color = (15, 15, 25)
     lm.register_component(cam)
 
+    # Shared physics material — perfect bounce, no friction
+    bounce_mat = PhysicsMaterial2D(bounciness=1.0, friction=0.0)
+
     # Paddle
     paddle = GameObject("Paddle", tag="Paddle")
     paddle.transform.position = Vector2(0, -5)
@@ -69,6 +74,7 @@ def setup_scene():
     rb_p.body_type = RigidbodyType2D.KINEMATIC
     col_p = paddle.add_component(BoxCollider2D)
     col_p.size = Vector2(2.0, 0.4)
+    col_p.material = bounce_mat
     col_p.build()
     sr_p = paddle.add_component(SpriteRenderer)
     sr_p.color = (200, 200, 220)
@@ -84,11 +90,14 @@ def setup_scene():
     rb_b.mass = 0.1
     col_b = ball.add_component(CircleCollider2D)
     col_b.radius = 0.2
+    col_b.material = bounce_mat
     col_b.build()
     sr_b = ball.add_component(SpriteRenderer)
     sr_b.color = (255, 255, 100)
     sr_b.size = Vector2(0.4, 0.4)
     sr_b.asset_ref = "ball"
+    ball_audio = ball.add_component(AudioSource)
+    ball_audio.clip_ref = "ball_hit"
     bc = ball.add_component(BallController)
     lm.register_component(bc)
 
@@ -105,6 +114,7 @@ def setup_scene():
         rb_w._body.position = (pos.x, pos.y)
         col_w = wall.add_component(BoxCollider2D)
         col_w.size = size
+        col_w.material = bounce_mat
         col_w.build()
 
     # Brick grid
@@ -131,12 +141,16 @@ def setup_scene():
 
             col_brick = brick_go.add_component(BoxCollider2D)
             col_brick.size = Vector2(brick_w, brick_h)
+            col_brick.material = bounce_mat
             col_brick.build()
 
             sr_brick = brick_go.add_component(SpriteRenderer)
             sr_brick.color = ROW_COLORS[row]
             sr_brick.size = Vector2(brick_w, brick_h)
             sr_brick.asset_ref = "brick"
+
+            brick_audio = brick_go.add_component(AudioSource)
+            brick_audio.clip_ref = "brick_break"
 
             brick_comp = brick_go.add_component(Brick)
             brick_comp.points = ROW_POINTS[row]
