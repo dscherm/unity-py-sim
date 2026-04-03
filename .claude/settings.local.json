@@ -75,7 +75,9 @@
       "Bash(sed -n '8023,8040p' /tmp/AngryBirdsRef/Assets/Scenes/game.unity)",
       "mcp__coplay-mcp__get_game_object_info",
       "Bash(D:/Projects/ralph-universal/ralph.sh --dry-run)",
-      "Bash(D:/Projects/ralph-universal/ralph.sh 12)"
+      "Bash(D:/Projects/ralph-universal/ralph.sh 12)",
+      "Bash(dotnet:*)",
+      "Bash(sed:*)"
     ]
   }
 }
