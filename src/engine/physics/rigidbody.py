@@ -81,9 +81,20 @@ class Rigidbody2D(Component):
 
     @body_type.setter
     def body_type(self, value: RigidbodyType2D) -> None:
+        import math
+        # Save finite mass before type change — pymunk uses inf for KINEMATIC/STATIC
+        current_mass = self._body.mass
+        if 0 < current_mass < math.inf:
+            self._saved_mass = current_mass
         self._body_type = value
         if value == RigidbodyType2D.DYNAMIC:
             self._body.body_type = pymunk.Body.DYNAMIC
+            # Restore mass/moment — pymunk may have zeroed them
+            restore_mass = getattr(self, '_saved_mass', 1.0)
+            if not (0 < self._body.mass < math.inf):
+                self._body.mass = restore_mass if restore_mass > 0 else 1.0
+            if not (0 < self._body.moment < math.inf):
+                self._body.moment = pymunk.moment_for_circle(self._body.mass, 0, 1)
         elif value == RigidbodyType2D.KINEMATIC:
             self._body.body_type = pymunk.Body.KINEMATIC
         elif value == RigidbodyType2D.STATIC:
