@@ -109,10 +109,15 @@ class PhysicsManager:
 
     def step(self, dt: float) -> None:
         """Step the physics simulation."""
+        # Sync kinematic/static body positions from transforms before stepping
+        # (Unity moves kinematic bodies via transform, physics reads their position)
+        for rb in self._body_map.values():
+            if rb._body.body_type in (pymunk.Body.KINEMATIC, pymunk.Body.STATIC):
+                rb._sync_from_transform()
         self._space.step(dt)
         # Dispatch Stay callbacks for active contacts
         self._dispatch_stay_callbacks()
-        # Sync positions back to transforms
+        # Sync dynamic body positions back to transforms
         for rb in self._body_map.values():
             if rb._body.body_type == pymunk.Body.DYNAMIC:
                 rb._sync_to_transform()
