@@ -35,6 +35,15 @@ Behavioral differences discovered during C# <-> Python translation.
 - **Discovered in**: Breakout `game_manager.py` — `on_brick_destroyed()` tried to iterate `GameObject._registry.values()` to count remaining bricks, caused `AttributeError` at runtime during collision callbacks. Fix: use `GameObject.find_game_objects_with_tag("Brick")`.
 - **Rule**: Always use public `GameObject` class methods, never assume internal storage attributes.
 
+## Body Type Switching
+- **KINEMATIC->DYNAMIC loses mass in pymunk** — When switching `Rigidbody2D.body_type` from KINEMATIC to DYNAMIC, pymunk zeroes out `mass` and `moment`. The engine must save/restore mass across the transition. Without this fix, `Space.step()` crashes with "dynamic bodies must have mass > 0".
+- **Discovered in**: Angry Birds — bird starts kinematic (on slingshot), switches to dynamic on throw. Independent validator caught this before runtime testing.
+- **Unity equivalent**: `isKinematic = false` preserves mass automatically. Python engine now handles this in the `body_type` setter.
+
+## Unity 6 API Changes
+- **Unity 6 uses `linearVelocity`** not `velocity` on Rigidbody2D (renamed in Unity 6000.x). C# reference files use `linearVelocity`.
+- **`CompareTag("Bird")` preferred over `tag == "Bird"`** in Unity for performance, but both work.
+
 ## Behavioral Differences
 - **FSMState.Act()** in Python takes `MonoBehaviour` base type; original Unity C# used `EnemyBehaviour` — generalization required
 - **MonoBehaviour cast**: Python duck-types (`player = owner`), C# requires explicit cast (`var player = (PlayerInputHandler)owner`)

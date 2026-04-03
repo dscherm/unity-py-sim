@@ -555,7 +555,7 @@ Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.
     "Document any new translation gotchas in data/lessons/gotchas.md",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
