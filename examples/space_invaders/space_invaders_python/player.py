@@ -1,10 +1,10 @@
 """Player — horizontal movement, fires one laser at a time.
 
-Maps to: zigurous/Player.cs
+Line-by-line port of: zigurous/Player.cs
 """
 
 from src.engine.core import MonoBehaviour, GameObject
-from src.engine.math.vector import Vector2
+from src.engine.math.vector import Vector2, Vector3
 from src.engine.input_manager import Input
 from src.engine.time_manager import Time
 from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
@@ -13,7 +13,7 @@ from src.engine.rendering.renderer import SpriteRenderer
 from src.engine.lifecycle import LifecycleManager
 
 
-# Layer constants (matching Unity LayerMask)
+# Layer constants matching Unity LayerMask.NameToLayer
 LAYER_LASER = 8
 LAYER_MISSILE = 9
 LAYER_INVADER = 10
@@ -21,35 +21,46 @@ LAYER_BOUNDARY = 11
 
 
 class Player(MonoBehaviour):
+    """[RequireComponent(typeof(Rigidbody2D))]
+    [RequireComponent(typeof(BoxCollider2D))]"""
 
     def __init__(self):
         super().__init__()
         self.speed: float = 5.0
-        self.screen_bound_x: float = 6.5
-        self._laser: GameObject | None = None
+        # public Projectile laserPrefab — we instantiate directly instead
+        self.laser_prefab = None  # prefab reference (not used — we build inline)
+        self._laser: GameObject | None = None  # private Projectile laser
 
     def update(self):
-        pos = self.transform.position
+        # Vector3 position = transform.position
+        position = self.transform.position
 
-        # Movement
+        # if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
         if Input.get_key("a") or Input.get_key("left"):
-            pos = Vector2(pos.x - self.speed * Time.delta_time, pos.y)
+            position = Vector2(position.x - self.speed * Time.delta_time, position.y)
         elif Input.get_key("d") or Input.get_key("right"):
-            pos = Vector2(pos.x + self.speed * Time.delta_time, pos.y)
+            position = Vector2(position.x + self.speed * Time.delta_time, position.y)
 
-        # Clamp to screen
-        pos = Vector2(
-            max(-self.screen_bound_x, min(self.screen_bound_x, pos.x)),
-            pos.y,
+        # Clamp: position.x = Mathf.Clamp(position.x, leftEdge.x, rightEdge.x)
+        # ViewportToWorldPoint approximated by screen bounds
+        left_edge = -6.5
+        right_edge = 6.5
+        position = Vector2(
+            max(left_edge, min(right_edge, position.x)),
+            position.y,
         )
-        self.transform.position = pos
 
-        # Fire — only one laser active at a time
-        if self._laser is None or not self._laser.active:
-            if Input.get_key_down("space") or Input.get_mouse_button_down(0):
-                self._fire_laser()
+        # transform.position = position
+        self.transform.position = position
 
-    def _fire_laser(self):
+        # if (laser == null && (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0)))
+        if (self._laser is None or not self._laser.active) and \
+           (Input.get_key_down("space") or Input.get_mouse_button_down(0)):
+            # laser = Instantiate(laserPrefab, transform.position, Quaternion.identity)
+            self._laser = self._instantiate_laser()
+
+    def _instantiate_laser(self) -> GameObject:
+        """Equivalent of Instantiate(laserPrefab, transform.position, Quaternion.identity)."""
         from space_invaders_python.projectile import Projectile
 
         laser = GameObject("Laser", tag="Laser")
@@ -73,14 +84,17 @@ class Player(MonoBehaviour):
         sr.sorting_order = 5
 
         proj = laser.add_component(Projectile)
-        proj.direction = Vector2(0, 1)
+        proj.direction = Vector3(0, 1, 0)  # Vector3.up
         proj.speed = 20.0
 
         LifecycleManager.instance().register_component(proj)
-        self._laser = laser
+        return laser
 
     def on_trigger_enter_2d(self, other):
-        if other.layer in (LAYER_MISSILE, LAYER_INVADER):
+        # if (other.gameObject.layer == LayerMask.NameToLayer("Missile") ||
+        #     other.gameObject.layer == LayerMask.NameToLayer("Invader"))
+        if other.layer == LAYER_MISSILE or other.layer == LAYER_INVADER:
+            # GameManager.Instance.OnPlayerKilled(this)
             from space_invaders_python.game_manager import GameManager
-            if GameManager._instance:
-                GameManager._instance.on_player_killed()
+            if GameManager.instance is not None:
+                GameManager.instance.on_player_killed(self)
