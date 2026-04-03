@@ -32,6 +32,7 @@ class PyMethod:
     body_source: str = ""
     is_static: bool = False
     is_lifecycle: bool = False
+    is_coroutine: bool = False
     decorators: list[str] = field(default_factory=list)
 
 @dataclass
@@ -177,14 +178,26 @@ def _parse_method(func: ast.FunctionDef, source_lines: list[str]) -> PyMethod:
         body_lines.append(_get_source_segment(source_lines, stmt))
     body_source = "\n".join(body_lines)
 
+    # Detect coroutines — methods containing yield statements
+    is_coroutine = _has_yield(func)
+
     return PyMethod(
         name=func.name,
         parameters=params,
         body_source=body_source,
         is_static=is_static,
         is_lifecycle=func.name in _LIFECYCLE_METHODS,
+        is_coroutine=is_coroutine,
         decorators=decorators,
     )
+
+
+def _has_yield(func: ast.FunctionDef) -> bool:
+    """Check if a function contains yield statements (making it a coroutine)."""
+    for node in ast.walk(func):
+        if isinstance(node, (ast.Yield, ast.YieldFrom)):
+            return True
+    return False
 
 
 def parse_python(source: str) -> PyFile:

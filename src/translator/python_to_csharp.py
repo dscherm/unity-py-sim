@@ -133,7 +133,7 @@ def _translate_method(method: PyMethod) -> dict:
         access = "public"
 
     # Return type
-    return_type = "void"
+    return_type = "IEnumerator" if method.is_coroutine else "void"
 
     # Parameters
     params = []
@@ -243,6 +243,16 @@ def _translate_py_statement(line: str) -> str:
     if line.startswith("for ") and line.endswith(":"):
         return f"// TODO: translate for loop: {line}"
 
+    # Yield (coroutine)
+    if line.startswith("yield "):
+        value = line[6:].strip()
+        if value == "None" or value == "":
+            return "yield return null;"
+        value = _translate_py_expression(value)
+        return f"yield return new {value};"
+    if line == "yield":
+        return "yield return null;"
+
     # Return
     if line.startswith("return "):
         value = line[7:].strip()
@@ -279,6 +289,9 @@ def _translate_py_statement(line: str) -> str:
 def _translate_py_expression(expr: str) -> str:
     """Translate a Python expression to C#."""
     expr = expr.strip()
+
+    # self.start_coroutine(method(args)) -> StartCoroutine(method(args))
+    expr = re.sub(r"self\.start_coroutine\(", "StartCoroutine(", expr)
 
     # self.get_component(T) -> GetComponent<T>()
     expr = re.sub(r"self\.get_component\((\w+)\)", r"GetComponent<\1>()", expr)
@@ -419,6 +432,10 @@ def _infer_using_directives(cls: PyClass, parsed: PyFile) -> list[str]:
     all_text += " ".join(m.body_source for m in cls.methods)
 
     if "System.Collections" in all_text or "IEnumerator" in all_text:
+        extra.add("System.Collections")
+
+    # Add System.Collections if any method is a coroutine
+    if any(m.is_coroutine for m in cls.methods):
         extra.add("System.Collections")
     if "random" in " ".join(parsed.imports):
         # No extra using needed — Random is in UnityEngine
