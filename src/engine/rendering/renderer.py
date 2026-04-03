@@ -17,6 +17,7 @@ class SpriteRenderer(Component):
         self.color: tuple[int, int, int] = (255, 255, 255)
         self.sprite: Any = None  # pygame.Surface or None
         self.sorting_order: int = 0
+        self.sorting_layer_name: str = "Default"
         self.size: Vector2 = Vector2(1, 1)  # Size in world units (for shape fallback)
         self.asset_ref: str | None = None  # Symbolic asset name for Unity export (e.g. "bird_red")
 
@@ -60,6 +61,7 @@ class RenderManager:
                     if comp.enabled:
                         renderers.append(comp)
 
-        renderers.sort(key=lambda r: r.sorting_order)
+        from src.engine.rendering.sorting import SortingLayer
+        renderers.sort(key=lambda r: (SortingLayer.get_layer_value(r.sorting_layer_name), r.sorting_order))
         for renderer in renderers:
             renderer.render(surface, camera, screen_width, screen_height)

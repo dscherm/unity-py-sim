@@ -223,3 +223,60 @@ class CircleCollider2D(Collider2D):
         body = self._get_or_create_body()
         shape = pymunk.Circle(body, self._radius, offset=(self._offset.x, self._offset.y))
         self._register_shape(shape)
+
+
+class PolygonCollider2D(Collider2D):
+    """Polygon-shaped 2D collider defined by vertex points."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._points: list[Vector2] = []
+
+    @property
+    def points(self) -> list[Vector2]:
+        return list(self._points)
+
+    @points.setter
+    def points(self, value: list[Vector2]) -> None:
+        self._points = list(value)
+
+    def build(self) -> None:
+        """Build the pymunk polygon shape from points."""
+        if len(self._points) < 3:
+            return
+        body = self._get_or_create_body()
+        vertices = [(p.x + self._offset.x, p.y + self._offset.y) for p in self._points]
+        shape = pymunk.Poly(body, vertices)
+        self._register_shape(shape)
+
+
+class EdgeCollider2D(Collider2D):
+    """Edge chain collider — connected line segments."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._points: list[Vector2] = []
+
+    @property
+    def points(self) -> list[Vector2]:
+        return list(self._points)
+
+    @points.setter
+    def points(self, value: list[Vector2]) -> None:
+        self._points = list(value)
+
+    def build(self) -> None:
+        """Build pymunk segment shapes for each edge."""
+        if len(self._points) < 2:
+            return
+        body = self._get_or_create_body()
+        for i in range(len(self._points) - 1):
+            a = self._points[i]
+            b = self._points[i + 1]
+            segment = pymunk.Segment(
+                body,
+                (a.x + self._offset.x, a.y + self._offset.y),
+                (b.x + self._offset.x, b.y + self._offset.y),
+                radius=0.01,
+            )
+            self._register_shape(segment)

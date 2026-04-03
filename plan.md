@@ -1018,7 +1018,7 @@ and proper sorting layers.
     "Add tests: line positions, trail recording, trail fade, sorting order",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1040,7 +1040,7 @@ and proper sorting layers.
     "Update src/reference/mappings/classes.json",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1061,7 +1061,7 @@ and proper sorting layers.
     "Add tests: layer ordering, same-layer sorting, unknown layer fallback",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
