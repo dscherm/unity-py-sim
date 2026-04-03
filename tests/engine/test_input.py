@@ -84,6 +84,39 @@ class TestInput:
         Input._set_mouse_button(0, True)
         assert Input.get_mouse_button_down(0) is True
 
+    def test_mouse_button_up(self):
+        Input._set_mouse_button(0, True)
+        Input._begin_frame()
+        Input._set_mouse_button(0, False)
+        assert Input.get_mouse_button_up(0) is True
+
+    def test_mouse_button_up_not_when_held(self):
+        Input._set_mouse_button(0, True)
+        Input._begin_frame()
+        assert Input.get_mouse_button_up(0) is False
+
+    def test_mouse_drag_cycle(self):
+        """Simulate full mouse drag: press -> hold -> release."""
+        # Frame 1: press
+        Input._begin_frame()
+        Input._set_mouse_button(0, True)
+        assert Input.get_mouse_button_down(0) is True
+        assert Input.get_mouse_button(0) is True
+        assert Input.get_mouse_button_up(0) is False
+
+        # Frame 2: hold
+        Input._begin_frame()
+        assert Input.get_mouse_button_down(0) is False
+        assert Input.get_mouse_button(0) is True
+        assert Input.get_mouse_button_up(0) is False
+
+        # Frame 3: release
+        Input._begin_frame()
+        Input._set_mouse_button(0, False)
+        assert Input.get_mouse_button_down(0) is False
+        assert Input.get_mouse_button(0) is False
+        assert Input.get_mouse_button_up(0) is True
+
     def test_reset(self):
         Input._set_key_state("w", True)
         Input._set_mouse_button(0, True)

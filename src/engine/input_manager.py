@@ -74,6 +74,11 @@ class Input:
         return button in Input._current_mouse_buttons and button not in Input._previous_mouse_buttons
 
     @staticmethod
+    def get_mouse_button_up(button: int) -> bool:
+        """Returns true on the frame the mouse button was released."""
+        return button not in Input._current_mouse_buttons and button in Input._previous_mouse_buttons
+
+    @staticmethod
     def _begin_frame() -> None:
         """Called at the start of each frame to snapshot previous state."""
         Input._previous_keys = set(Input._current_keys)
