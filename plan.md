@@ -1218,7 +1218,7 @@ Bunker.cs (destructible shields), MysteryShip.cs, GameManager.cs.
     "Run headless 120 frames, verify player moves and laser fires",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1239,7 +1239,7 @@ Bunker.cs (destructible shields), MysteryShip.cs, GameManager.cs.
     "Run headless 200 frames, verify grid moves and reverses",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1258,7 +1258,7 @@ Bunker.cs (destructible shields), MysteryShip.cs, GameManager.cs.
     "Run headless 200 frames, verify missiles spawn and fall",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1277,7 +1277,7 @@ Bunker.cs (destructible shields), MysteryShip.cs, GameManager.cs.
     "Run headless 300 frames, verify kill detection",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1297,7 +1297,7 @@ Bunker.cs (destructible shields), MysteryShip.cs, GameManager.cs.
     "Run headless 300 frames, verify bunkers take damage",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1317,7 +1317,7 @@ Bunker.cs (destructible shields), MysteryShip.cs, GameManager.cs.
     "Run headless 500 frames, verify mystery ship appears",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1338,7 +1338,7 @@ Bunker.cs (destructible shields), MysteryShip.cs, GameManager.cs.
     "Run headless 500 frames, verify full game flow",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1357,6 +1357,6 @@ Bunker.cs (destructible shields), MysteryShip.cs, GameManager.cs.
     "Compare accuracy to reference — target 85%+",
     "Run playtest: python tools/playtest.py space_invaders --headless --frames 500"
   ],
-  "passes": false
+  "passes": true
 }
 ```
