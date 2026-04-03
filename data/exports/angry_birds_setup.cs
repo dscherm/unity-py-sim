@@ -61,7 +61,7 @@ public class GeneratedSceneSetup
         // --- Slingshot ---
         var go_Slingshot = new GameObject("Slingshot");
         go_Slingshot.transform.position = new Vector3(-5.0f, -3.5f, 0.0f);
-        go_Slingshot.AddComponent<AngryBirds.Slingshot>();
+        go_Slingshot.AddComponent<Slingshot>();
         // Slingshot.throwSpeed = 5.0
         var go_Slingshot_sr = go_Slingshot.AddComponent<SpriteRenderer>();
         if (sprite_slingshot != null) go_Slingshot_sr.sprite = sprite_slingshot;
@@ -76,7 +76,7 @@ public class GeneratedSceneSetup
         var go_Destroyer_Bottom_bc = go_Destroyer_Bottom.AddComponent<BoxCollider2D>();
         go_Destroyer_Bottom_bc.size = new Vector2(40.0f, 2.0f);
         go_Destroyer_Bottom_bc.isTrigger = true;
-        go_Destroyer_Bottom.AddComponent<AngryBirds.Destroyer>();
+        go_Destroyer_Bottom.AddComponent<Destroyer>();
         EditorUtility.SetDirty(go_Destroyer_Bottom);
 
         // --- Destroyer_Left ---
@@ -87,7 +87,7 @@ public class GeneratedSceneSetup
         var go_Destroyer_Left_bc = go_Destroyer_Left.AddComponent<BoxCollider2D>();
         go_Destroyer_Left_bc.size = new Vector2(2.0f, 30.0f);
         go_Destroyer_Left_bc.isTrigger = true;
-        go_Destroyer_Left.AddComponent<AngryBirds.Destroyer>();
+        go_Destroyer_Left.AddComponent<Destroyer>();
         EditorUtility.SetDirty(go_Destroyer_Left);
 
         // --- Destroyer_Right ---
@@ -98,7 +98,7 @@ public class GeneratedSceneSetup
         var go_Destroyer_Right_bc = go_Destroyer_Right.AddComponent<BoxCollider2D>();
         go_Destroyer_Right_bc.size = new Vector2(2.0f, 30.0f);
         go_Destroyer_Right_bc.isTrigger = true;
-        go_Destroyer_Right.AddComponent<AngryBirds.Destroyer>();
+        go_Destroyer_Right.AddComponent<Destroyer>();
         EditorUtility.SetDirty(go_Destroyer_Right);
 
         // --- Bird_1 ---
@@ -112,7 +112,7 @@ public class GeneratedSceneSetup
         if (sprite_bird_red != null) go_Bird_1_sr.sprite = sprite_bird_red;
         if (unlitMat != null) go_Bird_1_sr.sharedMaterial = unlitMat;
         go_Bird_1.AddComponent<AudioSource>();
-        go_Bird_1.AddComponent<AngryBirds.Bird>();
+        go_Bird_1.AddComponent<Bird>();
         EditorUtility.SetDirty(go_Bird_1);
 
         // --- Bird_2 ---
@@ -126,7 +126,7 @@ public class GeneratedSceneSetup
         if (sprite_bird_red != null) go_Bird_2_sr.sprite = sprite_bird_red;
         if (unlitMat != null) go_Bird_2_sr.sharedMaterial = unlitMat;
         go_Bird_2.AddComponent<AudioSource>();
-        go_Bird_2.AddComponent<AngryBirds.Bird>();
+        go_Bird_2.AddComponent<Bird>();
         EditorUtility.SetDirty(go_Bird_2);
 
         // --- Bird_3 ---
@@ -140,7 +140,7 @@ public class GeneratedSceneSetup
         if (sprite_bird_red != null) go_Bird_3_sr.sprite = sprite_bird_red;
         if (unlitMat != null) go_Bird_3_sr.sharedMaterial = unlitMat;
         go_Bird_3.AddComponent<AudioSource>();
-        go_Bird_3.AddComponent<AngryBirds.Bird>();
+        go_Bird_3.AddComponent<Bird>();
         EditorUtility.SetDirty(go_Bird_3);
 
         // --- B_pL ---
@@ -155,7 +155,7 @@ public class GeneratedSceneSetup
         if (sprite_brick_wood != null) go_B_pL_sr.sprite = sprite_brick_wood;
         if (unlitMat != null) go_B_pL_sr.sharedMaterial = unlitMat;
         go_B_pL.AddComponent<AudioSource>();
-        go_B_pL.AddComponent<AngryBirds.Brick>();
+        go_B_pL.AddComponent<Brick>();
         // Brick.health = 70
         // Brick.maxHealth = 70
         EditorUtility.SetDirty(go_B_pL);
@@ -172,7 +172,7 @@ public class GeneratedSceneSetup
         if (sprite_brick_wood != null) go_B_pR_sr.sprite = sprite_brick_wood;
         if (unlitMat != null) go_B_pR_sr.sharedMaterial = unlitMat;
         go_B_pR.AddComponent<AudioSource>();
-        go_B_pR.AddComponent<AngryBirds.Brick>();
+        go_B_pR.AddComponent<Brick>();
         // Brick.health = 70
         // Brick.maxHealth = 70
         EditorUtility.SetDirty(go_B_pR);
@@ -189,7 +189,7 @@ public class GeneratedSceneSetup
         if (sprite_brick_wood != null) go_B_b1_sr.sprite = sprite_brick_wood;
         if (unlitMat != null) go_B_b1_sr.sharedMaterial = unlitMat;
         go_B_b1.AddComponent<AudioSource>();
-        go_B_b1.AddComponent<AngryBirds.Brick>();
+        go_B_b1.AddComponent<Brick>();
         // Brick.health = 50
         // Brick.maxHealth = 50
         EditorUtility.SetDirty(go_B_b1);
@@ -206,7 +206,7 @@ public class GeneratedSceneSetup
         if (sprite_brick_wood != null) go_B_uL_sr.sprite = sprite_brick_wood;
         if (unlitMat != null) go_B_uL_sr.sharedMaterial = unlitMat;
         go_B_uL.AddComponent<AudioSource>();
-        go_B_uL.AddComponent<AngryBirds.Brick>();
+        go_B_uL.AddComponent<Brick>();
         // Brick.health = 40
         // Brick.maxHealth = 40
         EditorUtility.SetDirty(go_B_uL);
@@ -223,7 +223,7 @@ public class GeneratedSceneSetup
         if (sprite_brick_wood != null) go_B_uR_sr.sprite = sprite_brick_wood;
         if (unlitMat != null) go_B_uR_sr.sharedMaterial = unlitMat;
         go_B_uR.AddComponent<AudioSource>();
-        go_B_uR.AddComponent<AngryBirds.Brick>();
+        go_B_uR.AddComponent<Brick>();
         // Brick.health = 40
         // Brick.maxHealth = 40
         EditorUtility.SetDirty(go_B_uR);
@@ -240,7 +240,7 @@ public class GeneratedSceneSetup
         if (sprite_brick_wood != null) go_B_cap_sr.sprite = sprite_brick_wood;
         if (unlitMat != null) go_B_cap_sr.sharedMaterial = unlitMat;
         go_B_cap.AddComponent<AudioSource>();
-        go_B_cap.AddComponent<AngryBirds.Brick>();
+        go_B_cap.AddComponent<Brick>();
         // Brick.health = 90
         // Brick.maxHealth = 90
         EditorUtility.SetDirty(go_B_cap);
@@ -257,7 +257,7 @@ public class GeneratedSceneSetup
         if (sprite_pig_normal != null) go_Pig_1_sr.sprite = sprite_pig_normal;
         if (unlitMat != null) go_Pig_1_sr.sharedMaterial = unlitMat;
         go_Pig_1.AddComponent<AudioSource>();
-        go_Pig_1.AddComponent<AngryBirds.Pig>();
+        go_Pig_1.AddComponent<Pig>();
         // Pig.health = 150.0
         EditorUtility.SetDirty(go_Pig_1);
 
@@ -273,110 +273,110 @@ public class GeneratedSceneSetup
         if (sprite_pig_normal != null) go_Pig_2_sr.sprite = sprite_pig_normal;
         if (unlitMat != null) go_Pig_2_sr.sharedMaterial = unlitMat;
         go_Pig_2.AddComponent<AudioSource>();
-        go_Pig_2.AddComponent<AngryBirds.Pig>();
+        go_Pig_2.AddComponent<Pig>();
         // Pig.health = 150.0
         EditorUtility.SetDirty(go_Pig_2);
 
         // --- GameManager ---
         var go_GameManager = new GameObject("GameManager");
         go_GameManager.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
-        go_GameManager.AddComponent<AngryBirds.GameManager>();
+        go_GameManager.AddComponent<GameManager>();
         EditorUtility.SetDirty(go_GameManager);
 
         // --- QuitHandler ---
         var go_QuitHandler = new GameObject("QuitHandler");
         go_QuitHandler.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
-        go_QuitHandler.AddComponent<AngryBirds.QuitHandler>();
+        go_QuitHandler.AddComponent<QuitHandler>();
         EditorUtility.SetDirty(go_QuitHandler);
 
         // === WIRE CROSS-REFERENCES ===
         {
-            var so = new SerializedObject(go_Slingshot.GetComponent<AngryBirds.Slingshot>());
+            var so = new SerializedObject(go_Slingshot.GetComponent<Slingshot>());
             var prop = so.FindProperty("birdToThrow");
             if (prop != null) { prop.objectReferenceValue = go_Bird_1; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_Slingshot.GetComponent<AngryBirds.Slingshot>());
+            var so = new SerializedObject(go_Slingshot.GetComponent<Slingshot>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_Slingshot; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_Destroyer_Bottom.GetComponent<AngryBirds.Destroyer>());
+            var so = new SerializedObject(go_Destroyer_Bottom.GetComponent<Destroyer>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_Destroyer_Bottom; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_Destroyer_Left.GetComponent<AngryBirds.Destroyer>());
+            var so = new SerializedObject(go_Destroyer_Left.GetComponent<Destroyer>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_Destroyer_Left; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_Destroyer_Right.GetComponent<AngryBirds.Destroyer>());
+            var so = new SerializedObject(go_Destroyer_Right.GetComponent<Destroyer>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_Destroyer_Right; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_Bird_1.GetComponent<AngryBirds.Bird>());
+            var so = new SerializedObject(go_Bird_1.GetComponent<Bird>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_Bird_1; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_Bird_2.GetComponent<AngryBirds.Bird>());
+            var so = new SerializedObject(go_Bird_2.GetComponent<Bird>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_Bird_2; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_Bird_3.GetComponent<AngryBirds.Bird>());
+            var so = new SerializedObject(go_Bird_3.GetComponent<Bird>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_Bird_3; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_B_pL.GetComponent<AngryBirds.Brick>());
+            var so = new SerializedObject(go_B_pL.GetComponent<Brick>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_B_pL; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_B_pR.GetComponent<AngryBirds.Brick>());
+            var so = new SerializedObject(go_B_pR.GetComponent<Brick>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_B_pR; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_B_b1.GetComponent<AngryBirds.Brick>());
+            var so = new SerializedObject(go_B_b1.GetComponent<Brick>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_B_b1; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_B_uL.GetComponent<AngryBirds.Brick>());
+            var so = new SerializedObject(go_B_uL.GetComponent<Brick>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_B_uL; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_B_uR.GetComponent<AngryBirds.Brick>());
+            var so = new SerializedObject(go_B_uR.GetComponent<Brick>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_B_uR; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_B_cap.GetComponent<AngryBirds.Brick>());
+            var so = new SerializedObject(go_B_cap.GetComponent<Brick>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_B_cap; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_Pig_1.GetComponent<AngryBirds.Pig>());
+            var so = new SerializedObject(go_Pig_1.GetComponent<Pig>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_Pig_1; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_Pig_2.GetComponent<AngryBirds.Pig>());
+            var so = new SerializedObject(go_Pig_2.GetComponent<Pig>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_Pig_2; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_GameManager.GetComponent<AngryBirds.GameManager>());
+            var so = new SerializedObject(go_GameManager.GetComponent<GameManager>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_GameManager; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_QuitHandler.GetComponent<AngryBirds.QuitHandler>());
+            var so = new SerializedObject(go_QuitHandler.GetComponent<QuitHandler>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_QuitHandler; so.ApplyModifiedProperties(); }
         }
