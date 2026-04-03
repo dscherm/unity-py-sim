@@ -27,6 +27,7 @@ Follow these phases in order. ONE task per iteration.
 - Read recent activity to understand what was just completed.
 - Read memories for cross-iteration context.
 - **If gate_failure.md is non-empty, FIX THE GATE FAILURE before starting any new task.**
+- If `.ralph/remote_gate_result.md` exists with status: fail, treat it as a gate failure.
 - If human_note.md has content, follow those instructions.
 
 ### Phase 2: Search
