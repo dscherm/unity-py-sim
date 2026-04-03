@@ -29,24 +29,77 @@ def translate_file(path: str | Path) -> str:
     return translate(parsed)
 
 
-def translate(parsed: PyFile) -> str:
-    """Translate a PyFile IR to C# source code."""
+def translate(parsed: PyFile, namespace: str | None = None) -> str:
+    """Translate a PyFile IR to C# source code.
+
+    Args:
+        parsed: The parsed Python IR.
+        namespace: Optional C# namespace to wrap the output in.
+    """
     results = []
     for cls in parsed.classes:
         results.append(_translate_class(cls, parsed))
-    return "\n".join(results).rstrip() + "\n"
+    code = "\n".join(results).rstrip() + "\n"
+
+    if namespace:
+        # Indent all lines inside the namespace
+        indented = "\n".join(
+            ("    " + line if line.strip() else line)
+            for line in code.split("\n")
+        )
+        code = f"namespace {namespace}\n{{\n{indented}}}\n"
+
+    return code
 
 
 def _translate_class(cls: PyClass, parsed: PyFile) -> str:
     """Translate a PyClass to C# source."""
+    if cls.is_enum:
+        return _translate_enum(cls)
     if cls.is_monobehaviour:
         return _translate_monobehaviour(cls, parsed)
     return _translate_plain_class(cls, parsed)
 
 
+def _upper_snake_to_pascal(name: str) -> str:
+    """Convert UPPER_SNAKE_CASE to PascalCase (e.g. BEFORE_THROWN -> BeforeThrown)."""
+    return "".join(word.capitalize() for word in name.lower().split("_"))
+
+
+def _translate_enum(cls: PyClass) -> str:
+    """Translate a Python Enum class to a C# enum."""
+    lines = ["public enum " + cls.name, "{"]
+    members = []
+    for f in cls.fields:
+        if f.is_class_level and f.name.isupper():
+            pascal_name = _upper_snake_to_pascal(f.name)
+            members.append(f"    {pascal_name}")
+        elif f.is_class_level:
+            members.append(f"    {snake_to_pascal(f.name)}")
+    lines.append(",\n".join(members))
+    lines.append("}")
+    return "\n".join(lines)
+
+
+def _infer_attributes(cls: PyClass) -> list[str]:
+    """Infer C# class-level attributes from usage patterns."""
+    attrs = []
+    # Detect RequireComponent from get_component() calls in start/awake
+    required_components: set[str] = set()
+    for method in cls.methods:
+        if method.name in ("start", "awake"):
+            for match in re.finditer(r"get_component\((\w+)\)", method.body_source):
+                comp_type = match.group(1)
+                required_components.add(comp_type)
+    for comp in sorted(required_components):
+        attrs.append(f"[RequireComponent(typeof({comp}))]")
+    return attrs
+
+
 def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     """Translate a MonoBehaviour subclass using the Jinja2 template."""
     extra_using = _infer_using_directives(cls, parsed)
+    attributes = _infer_attributes(cls)
 
     serialized_fields = []
     private_fields = []
@@ -78,6 +131,7 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     return template.render(
         class_name=cls.name,
         extra_using=extra_using,
+        attributes=attributes,
         serialized_fields=serialized_fields,
         private_fields=private_fields,
         static_fields=static_fields,

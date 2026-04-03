@@ -1,7 +1,8 @@
 using UnityEngine;
 {% for ns in extra_using %}using {{ ns }};
-{% endfor %}
-public class {{ class_name }} : MonoBehaviour
+{% endfor %}{% for attr in attributes %}
+{{ attr }}
+{% endfor %}public class {{ class_name }} : MonoBehaviour
 {
 {% for field in serialized_fields %}
     [SerializeField] private {{ field.csharp_type }} {{ field.csharp_name }}{% if field.default %} = {{ field.default }}{% endif %};

@@ -335,3 +335,125 @@ class TestAngryBirdsTranslation:
         result = translate_file(ANGRY_BIRDS_DIR / "slingshot.py")
         assert "// TODO: translate for loop" not in result
         assert "for (int i = 0;" in result
+
+
+class TestEnumTranslation:
+    def test_simple_enum(self):
+        parsed = parse_python(
+            "from enum import Enum\n"
+            "class Color(Enum):\n"
+            "    RED = 'red'\n"
+            "    GREEN = 'green'\n"
+            "    BLUE = 'blue'\n"
+        )
+        result = translate(parsed)
+        assert "public enum Color" in result
+        assert "Red" in result
+        assert "Green" in result
+        assert "Blue" in result
+        # Should not have class/MonoBehaviour keywords
+        assert "class" not in result
+        assert "MonoBehaviour" not in result
+
+    def test_upper_snake_to_pascal(self):
+        parsed = parse_python(
+            "from enum import Enum\n"
+            "class State(Enum):\n"
+            "    BEFORE_THROWN = 'before_thrown'\n"
+            "    BIRD_FLYING = 'bird_flying'\n"
+        )
+        result = translate(parsed)
+        assert "BeforeThrown" in result
+        assert "BirdFlying" in result
+
+    def test_angry_birds_enums(self):
+        result = translate_file(ANGRY_BIRDS_DIR / "enums.py")
+        assert "public enum SlingshotState" in result
+        assert "public enum GameState" in result
+        assert "public enum BirdState" in result
+        assert "Idle" in result
+        assert "UserPulling" in result
+        assert "BirdFlying" in result
+        assert "BeforeThrown" in result
+        assert "BirdMovingToSlingshot" in result
+
+    def test_enum_comma_separated(self):
+        parsed = parse_python(
+            "from enum import Enum\n"
+            "class Dir(Enum):\n"
+            "    UP = 0\n"
+            "    DOWN = 1\n"
+        )
+        result = translate(parsed)
+        # Members should be comma-separated
+        assert "Up,\n" in result or "Up," in result
+
+
+class TestNamespaceWrapping:
+    def test_namespace_wraps_output(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def start(self):\n"
+            "        pass\n"
+        )
+        result = translate(parsed, namespace="MyGame")
+        assert "namespace MyGame" in result
+        assert "{" in result
+        # Class should be indented inside namespace
+        assert "    public class Foo : MonoBehaviour" in result
+
+    def test_no_namespace_by_default(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def start(self):\n"
+            "        pass\n"
+        )
+        result = translate(parsed)
+        assert "namespace" not in result
+
+
+class TestAttributeInference:
+    def test_require_component_from_start(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def start(self):\n"
+            "        self.rb = self.get_component(Rigidbody2D)\n"
+        )
+        result = translate(parsed)
+        assert "[RequireComponent(typeof(Rigidbody2D))]" in result
+
+    def test_require_component_from_awake(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def awake(self):\n"
+            "        self.sr = self.get_component(SpriteRenderer)\n"
+        )
+        result = translate(parsed)
+        assert "[RequireComponent(typeof(SpriteRenderer))]" in result
+
+    def test_multiple_require_components(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def start(self):\n"
+            "        self.rb = self.get_component(Rigidbody2D)\n"
+            "        self.sr = self.get_component(SpriteRenderer)\n"
+        )
+        result = translate(parsed)
+        assert "[RequireComponent(typeof(Rigidbody2D))]" in result
+        assert "[RequireComponent(typeof(SpriteRenderer))]" in result
+
+    def test_no_require_for_update_get_component(self):
+        """get_component in update() should NOT generate RequireComponent."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        rb = self.get_component(Rigidbody2D)\n"
+        )
+        result = translate(parsed)
+        assert "RequireComponent" not in result

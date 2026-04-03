@@ -40,6 +40,7 @@ class PyClass:
     name: str
     base_classes: list[str] = field(default_factory=list)
     is_monobehaviour: bool = False
+    is_enum: bool = False
     fields: list[PyField] = field(default_factory=list)
     methods: list[PyMethod] = field(default_factory=list)
 
@@ -224,6 +225,7 @@ def _parse_class_node(cls_node: ast.ClassDef, source_lines: list[str]) -> PyClas
         base_classes.append(ast.unparse(base))
 
     is_mono = "MonoBehaviour" in base_classes
+    is_enum = "Enum" in base_classes or "IntEnum" in base_classes
 
     # Class-level fields
     class_fields = _parse_class_fields(cls_node)
@@ -243,6 +245,7 @@ def _parse_class_node(cls_node: ast.ClassDef, source_lines: list[str]) -> PyClas
         name=cls_node.name,
         base_classes=base_classes,
         is_monobehaviour=is_mono,
+        is_enum=is_enum,
         fields=class_fields + instance_fields,
         methods=methods,
     )
