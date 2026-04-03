@@ -11,9 +11,13 @@ from .enums import GameState, SlingshotState
 from .slingshot import Slingshot
 
 
+LEVEL_NAMES = ["level_1", "level_2"]
+
+
 class GameManager(MonoBehaviour):
 
     _instance = None
+    current_level_index = 0
 
     def __init__(self):
         super().__init__()
@@ -67,7 +71,14 @@ class GameManager(MonoBehaviour):
         yield WaitForSeconds(1.0)
 
         if self._all_pigs_destroyed():
-            self.game_state = GameState.WON
+            self.score += 1000
+            GameManager.current_level_index += 1
+            if GameManager.current_level_index < len(LEVEL_NAMES):
+                # Load next level
+                from src.engine.scene import SceneManager
+                SceneManager.load_scene(LEVEL_NAMES[GameManager.current_level_index])
+            else:
+                self.game_state = GameState.WON
             return
 
         self.current_bird_index += 1
