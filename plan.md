@@ -812,7 +812,8 @@ Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.
     "Identify the 5 worst-scoring pairs and document why in data/lessons/patterns.md",
     "This establishes the baseline to measure translator improvements against"
   ],
-  "passes": false
+  "passes": true,
+  "note": "37 pairs indexed, forward-scoring baseline 0.771 avg. Roundtrip gate needs tree_sitter_c_sharp."
 }
 ```
 
