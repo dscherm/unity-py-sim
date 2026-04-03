@@ -832,6 +832,7 @@ Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.
     "Integrate into gate pipeline (structural -> convention -> compilation -> roundtrip)",
     "Run on all corpus pairs and record results"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Syntax gate: 16/37 pass (43%). dotnet build path ready for home machine. Main gaps: inline imports, docstrings."
 }
 ```

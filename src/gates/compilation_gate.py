@@ -50,8 +50,8 @@ _PYTHON_ARTIFACTS = [
     (r"^\s*except\s+", "Python 'except' keyword"),
     (r"^\s*elif\s+", "Python 'elif' keyword"),
     (r"^\s*try:\s*$", "Python 'try:' keyword"),
-    (r"\bTrue\b(?!\s*;)", "Python 'True' literal (should be 'true')"),
-    (r"\bFalse\b(?!\s*;)", "Python 'False' literal (should be 'false')"),
+    (r"\bTrue\b", "Python 'True' literal (should be 'true')"),
+    (r"\bFalse\b", "Python 'False' literal (should be 'false')"),
     (r"\bNone\b", "Python 'None' literal (should be 'null')"),
 ]
 
