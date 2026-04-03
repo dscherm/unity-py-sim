@@ -4,16 +4,21 @@ Hard-won lessons about testing the unity-py-sim engine.
 
 ---
 
-## Worktree / Agent Isolation Staleness
+## HIGH PRIORITY: Do NOT Use Worktree Isolation for Validation Agents
 
-**Problem**: When spawning agents in isolated worktrees (e.g. for independent test validation), the worktree may be created from a stale branch or commit that doesn't include recent work. The agent then writes tests against old code and reports features as "missing" when they actually exist.
+**Problem**: Worktree isolation (`isolation: "worktree"`) consistently creates worktrees from stale commits in this project. This has happened THREE times:
 
-**How it happened**: An independent test validation agent was launched in a worktree. The worktree branched from a commit 15+ commits behind HEAD. The agent reported that coroutines, PhysicsMaterial2D, Stay callbacks, Debug, Audio, UI, and Scene loading "do not exist" — but they had all been implemented on the main branch.
+1. **First validator**: Worktree branched 15+ commits behind HEAD. Agent reported 9 new subsystems as "missing."
+2. **Second validator**: Same stale branch issue. Agent had to manually `cp` files from the main repo into its worktree, burning time and defeating the purpose of isolation.
+3. **Third validator**: Again stale. Agent spent its entire setup phase copying files instead of writing tests.
 
-**Prevention**:
-- Before launching an agent in a worktree, ensure the worktree is based on the latest commit (`git log --oneline -1` in the worktree should match the main branch)
-- If an agent reports features as missing that you know exist, check the worktree's commit hash first
-- For validation agents that need to test NEW code, prefer running them in the main working directory rather than an isolated worktree, or explicitly verify the worktree is up-to-date
+**Root cause**: The worktree feature branches from whatever commit it picks, which in this repo is consistently far behind HEAD. The "isolation" benefit is outweighed by the staleness cost.
+
+**RULE: Never use `isolation: "worktree"` for validation agents in this project.** Instead, use these two safeguards together:
+1. **Run the agent in the main working directory** (no isolation parameter) so it sees current code
+2. **Instruct the agent to NOT read existing test files** (`tests/`) — only read source code in `src/` and `examples/`, and derive expectations from Unity documentation
+
+This gives you both benefits: current code (no staleness) AND independent judgment (no test contamination).
 
 ## Unit Tests Are Not Validation
 

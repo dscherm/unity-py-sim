@@ -36,8 +36,10 @@ After completing any feature or engine task, you MUST spawn a **separate agent**
 
 **Process:**
 1. Implement the feature, commit it
-2. Spawn a new agent (do NOT use worktree isolation — it may get stale code) with instructions to:
-   - Read the source files that were changed
+2. Spawn a new agent with these rules:
+   - **NEVER use `isolation: "worktree"`** — worktrees in this project consistently land on stale commits (see `data/lessons/testing.md`). Run in the main working directory instead.
+   - **NEVER read existing test files** in `tests/` — they were written by the implementing agent and will bias assumptions. Only read `src/` and `examples/` source code.
+   - Derive contract tests from **Unity documentation**, not from what the code does
    - Write **integration tests** (run through `app.run()` game loop)
    - Write **contract tests** (verify Unity behavioral specs, not implementation details)
    - Write **mutation tests** (monkeypatch breakage, prove tests catch it)
