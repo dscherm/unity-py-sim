@@ -18,6 +18,7 @@ class SpriteRenderer(Component):
         self.sprite: Any = None  # pygame.Surface or None
         self.sorting_order: int = 0
         self.size: Vector2 = Vector2(1, 1)  # Size in world units (for shape fallback)
+        self.asset_ref: str | None = None  # Symbolic asset name for Unity export (e.g. "bird_red")
 
     def render(self, surface: Any, camera: Camera, screen_width: int, screen_height: int) -> None:
         """Render this sprite to the given surface."""

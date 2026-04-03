@@ -39,7 +39,9 @@ def _make_bird(name, pos, lm):
     sr = bird_go.add_component(SpriteRenderer)
     sr.color = (220, 50, 50)
     sr.size = Vector2(0.6, 0.6)
-    bird_go.add_component(AudioSource)  # throw sound
+    sr.asset_ref = "bird_red"
+    audio = bird_go.add_component(AudioSource)  # throw sound
+    audio.clip_ref = "bird_launch_sfx"
     bird_comp = bird_go.add_component(Bird)
     lm.register_component(bird_comp)
     return bird_go
@@ -58,7 +60,9 @@ def _make_brick(name, pos, size, health, brick_mat, lm):
     sr = brick_go.add_component(SpriteRenderer)
     sr.color = (180, 130, 70)
     sr.size = size
-    brick_go.add_component(AudioSource)  # impact sound
+    sr.asset_ref = "brick_wood"
+    audio = brick_go.add_component(AudioSource)  # impact sound
+    audio.clip_ref = "brick_break_sfx"
     brick_comp = brick_go.add_component(Brick)
     brick_comp.health = health
     brick_comp.max_health = health
@@ -79,7 +83,9 @@ def _make_pig(name, pos, lm):
     sr = pig_go.add_component(SpriteRenderer)
     sr.color = (100, 200, 80)
     sr.size = Vector2(0.6, 0.6)
-    pig_go.add_component(AudioSource)  # collision sound
+    sr.asset_ref = "pig_normal"
+    audio = pig_go.add_component(AudioSource)  # collision sound
+    audio.clip_ref = "pig_hit_sfx"
     pig_comp = pig_go.add_component(Pig)
     lm.register_component(pig_comp)
     return pig_go
@@ -124,6 +130,7 @@ def _setup_shared(lm):
     sr_g = ground.add_component(SpriteRenderer)
     sr_g.color = (80, 160, 60)
     sr_g.size = Vector2(30, 1)
+    sr_g.asset_ref = "ground_grass"
 
     slingshot_go = GameObject("Slingshot")
     slingshot_go.transform.position = Vector2(-5, -3.5)
@@ -132,6 +139,7 @@ def _setup_shared(lm):
     sr_s = slingshot_go.add_component(SpriteRenderer)
     sr_s.color = (120, 80, 40)
     sr_s.size = Vector2(0.3, 1.5)
+    sr_s.asset_ref = "slingshot"
 
     _make_destroyer("Destroyer_Bottom", Vector2(0, -10), Vector2(40, 2), lm)
     _make_destroyer("Destroyer_Left", Vector2(-18, 0), Vector2(2, 30), lm)

@@ -73,6 +73,7 @@ def setup_scene():
     sr_p = paddle.add_component(SpriteRenderer)
     sr_p.color = (200, 200, 220)
     sr_p.size = Vector2(2.0, 0.4)
+    sr_p.asset_ref = "paddle"
     pc = paddle.add_component(PaddleController)
     lm.register_component(pc)
 
@@ -87,6 +88,7 @@ def setup_scene():
     sr_b = ball.add_component(SpriteRenderer)
     sr_b.color = (255, 255, 100)
     sr_b.size = Vector2(0.4, 0.4)
+    sr_b.asset_ref = "ball"
     bc = ball.add_component(BallController)
     lm.register_component(bc)
 
@@ -134,6 +136,7 @@ def setup_scene():
             sr_brick = brick_go.add_component(SpriteRenderer)
             sr_brick.color = ROW_COLORS[row]
             sr_brick.size = Vector2(brick_w, brick_h)
+            sr_brick.asset_ref = "brick"
 
             brick_comp = brick_go.add_component(Brick)
             brick_comp.points = ROW_POINTS[row]

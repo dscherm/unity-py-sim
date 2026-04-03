@@ -46,6 +46,7 @@ class AudioSource(Component):
         self._loop: bool = False
         self._playing: bool = False
         self._channel = None  # pygame.mixer.Channel
+        self.clip_ref: str | None = None  # Symbolic asset name for Unity export (e.g. "bird_launch_sfx")
 
     @property
     def clip(self) -> AudioClip | None:
