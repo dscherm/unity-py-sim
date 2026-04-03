@@ -11,6 +11,7 @@ from src.engine.physics.physics_manager import PhysicsManager
 from src.engine.rendering.camera import Camera
 from src.engine.rendering.display import DisplayManager
 from src.engine.rendering.renderer import RenderManager
+from src.engine.tweening import TweenManager
 
 
 def run(
@@ -44,6 +45,7 @@ def run(
 
     Time._reset()
     Input._reset()
+    TweenManager.reset()
 
     # User sets up the scene
     scene_setup()
@@ -83,8 +85,9 @@ def run(
             physics.step(fixed_dt)
             accumulator -= fixed_dt
 
-        # Update + LateUpdate
+        # Update + Tweens + LateUpdate
         lifecycle.run_update()
+        TweenManager.tick(dt)
         lifecycle.run_late_update()
 
         # Render

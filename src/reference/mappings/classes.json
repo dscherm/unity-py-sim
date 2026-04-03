@@ -359,5 +359,21 @@
       "No async scene loading (LoadSceneAsync)",
       "No additive scene loading"
     ]
+  },
+  {
+    "unity_class": "DOTween (Tween)",
+    "unity_namespace": "DG.Tweening",
+    "python_class": "Tween",
+    "python_module": "src.engine.tweening",
+    "category": "animation",
+    "notes": "Property animation system. Tween.to() animates to target, supports easing, looping, sequences.",
+    "example_unity": "transform.DOMove(new Vector3(5, 0, 0), 1f).SetEase(Ease.OutBounce);",
+    "example_python": "Tween.to(transform, 'position', Vector2(5, 0), 1.0).set_ease(Ease.OUT_BOUNCE)",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "DOTween uses extension methods on Transform/Material; Python uses Tween.to(target, property, ...)",
+      "No DOVirtual, DOPath, or shader property tweening yet",
+      "Sequence API matches DOTween: append, join, on_complete"
+    ]
   }
 ]
