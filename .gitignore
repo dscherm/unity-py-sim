@@ -24,6 +24,7 @@ env/
 .ralph/lock
 .ralph/pending_tasks.md
 .ralph/recent_activity.md
+.ralph/observations.jsonl
 
 # OS
 .DS_Store
