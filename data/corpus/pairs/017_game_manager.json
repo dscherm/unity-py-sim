@@ -1,0 +1,6 @@
+{
+  "id": "017_game_manager",
+  "unity_file": "examples/angry_birds/angry_birds_unity/GameManager.cs",
+  "python_file": "examples/angry_birds/angry_birds_python/game_manager.py",
+  "game": "angry_birds"
+}

@@ -2,12 +2,5 @@
   "id": "002_ball_controller",
   "unity_file": "examples/pong/pong_unity/BallController.cs",
   "python_file": "examples/pong/pong_python/ball_controller.py",
-  "game": "pong",
-  "unity_apis_used": [
-    "MonoBehaviour", "Rigidbody2D", "Vector2", "Random.value", "Random.Range",
-    "OnCollisionEnter2D", "Collision2D", "Transform.position", "SerializeField"
-  ],
-  "patterns_used": ["getcomponent", "collision_callback", "velocity_movement", "serialized_field"],
-  "translation_notes": "Random.value -> random.random(), Random.Range -> random.uniform(). Collision callback signature differs (collision.transform vs collision.game_object.transform).",
-  "manual_fixes_needed": false
+  "game": "pong"
 }

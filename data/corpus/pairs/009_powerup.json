@@ -1,0 +1,6 @@
+{
+  "id": "009_powerup",
+  "unity_file": "examples/breakout/breakout_unity/Powerup.cs",
+  "python_file": "examples/breakout/breakout_python/powerup.py",
+  "game": "breakout"
+}

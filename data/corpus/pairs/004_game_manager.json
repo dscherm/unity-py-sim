@@ -2,12 +2,5 @@
   "id": "004_game_manager",
   "unity_file": "examples/pong/pong_unity/GameManager.cs",
   "python_file": "examples/pong/pong_python/game_manager.py",
-  "game": "pong",
-  "unity_apis_used": [
-    "MonoBehaviour", "GameObject.Find", "GetComponent", "Time.deltaTime",
-    "SerializeField"
-  ],
-  "patterns_used": ["find_gameobject", "getcomponent", "serialized_field"],
-  "translation_notes": "Clean translation. Timer pattern (resetDelay/resetTimer) maps directly. The coroutine alternative (Invoke/StartCoroutine) was avoided in C# version intentionally.",
-  "manual_fixes_needed": false
+  "game": "pong"
 }

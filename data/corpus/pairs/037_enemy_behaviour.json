@@ -1,0 +1,6 @@
+{
+  "id": "037_enemy_behaviour",
+  "unity_file": "examples/fsm_platformer/fsm_platformer_unity/EnemyBehaviour.cs",
+  "python_file": "examples/fsm_platformer/fsm_platformer_python/enemy_behaviour.py",
+  "game": "fsm_platformer"
+}

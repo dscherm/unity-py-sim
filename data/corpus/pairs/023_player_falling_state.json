@@ -1,0 +1,6 @@
+{
+  "id": "023_player_falling_state",
+  "unity_file": "examples/fsm_platformer/fsm_platformer_unity/PlayerFallingState.cs",
+  "python_file": "examples/fsm_platformer/fsm_platformer_python/player_falling_state.py",
+  "game": "fsm_platformer"
+}

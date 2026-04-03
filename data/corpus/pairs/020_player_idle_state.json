@@ -1,0 +1,6 @@
+{
+  "id": "020_player_idle_state",
+  "unity_file": "examples/fsm_platformer/fsm_platformer_unity/PlayerIdleState.cs",
+  "python_file": "examples/fsm_platformer/fsm_platformer_python/player_idle_state.py",
+  "game": "fsm_platformer"
+}

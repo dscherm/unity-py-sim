@@ -1,0 +1,6 @@
+{
+  "id": "031_jump_command",
+  "unity_file": "examples/fsm_platformer/fsm_platformer_unity/JumpCommand.cs",
+  "python_file": "examples/fsm_platformer/fsm_platformer_python/jump_command.py",
+  "game": "fsm_platformer"
+}

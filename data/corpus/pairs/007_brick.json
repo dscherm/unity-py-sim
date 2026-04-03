@@ -1,0 +1,6 @@
+{
+  "id": "007_brick",
+  "unity_file": "examples/breakout/breakout_unity/Brick.cs",
+  "python_file": "examples/breakout/breakout_python/brick.py",
+  "game": "breakout"
+}

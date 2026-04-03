@@ -1,0 +1,6 @@
+{
+  "id": "032_walk_command",
+  "unity_file": "examples/fsm_platformer/fsm_platformer_unity/WalkCommand.cs",
+  "python_file": "examples/fsm_platformer/fsm_platformer_python/walk_command.py",
+  "game": "fsm_platformer"
+}

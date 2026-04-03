@@ -1,0 +1,6 @@
+{
+  "id": "029_grounded_transition",
+  "unity_file": "examples/fsm_platformer/fsm_platformer_unity/GroundedTransition.cs",
+  "python_file": "examples/fsm_platformer/fsm_platformer_python/grounded_transition.py",
+  "game": "fsm_platformer"
+}

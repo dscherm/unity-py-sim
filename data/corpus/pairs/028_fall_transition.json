@@ -1,0 +1,6 @@
+{
+  "id": "028_fall_transition",
+  "unity_file": "examples/fsm_platformer/fsm_platformer_unity/FallTransition.cs",
+  "python_file": "examples/fsm_platformer/fsm_platformer_python/fall_transition.py",
+  "game": "fsm_platformer"
+}

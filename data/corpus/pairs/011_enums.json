@@ -1,0 +1,6 @@
+{
+  "id": "011_enums",
+  "unity_file": "examples/angry_birds/angry_birds_unity/Enums.cs",
+  "python_file": "examples/angry_birds/angry_birds_python/enums.py",
+  "game": "angry_birds"
+}

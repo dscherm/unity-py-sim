@@ -1,0 +1,6 @@
+{
+  "id": "030_landing_timer_transition",
+  "unity_file": "examples/fsm_platformer/fsm_platformer_unity/LandingTimerTransition.cs",
+  "python_file": "examples/fsm_platformer/fsm_platformer_python/landing_timer_transition.py",
+  "game": "fsm_platformer"
+}

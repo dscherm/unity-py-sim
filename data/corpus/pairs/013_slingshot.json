@@ -1,0 +1,6 @@
+{
+  "id": "013_slingshot",
+  "unity_file": "examples/angry_birds/angry_birds_unity/SlingShot.cs",
+  "python_file": "examples/angry_birds/angry_birds_python/slingshot.py",
+  "game": "angry_birds"
+}

@@ -1,6 +1,187 @@
 [
-  {"id": "001_paddle_controller", "game": "pong", "file": "pairs/001_paddle_controller.json"},
-  {"id": "002_ball_controller", "game": "pong", "file": "pairs/002_ball_controller.json"},
-  {"id": "003_score_manager", "game": "pong", "file": "pairs/003_score_manager.json"},
-  {"id": "004_game_manager", "game": "pong", "file": "pairs/004_game_manager.json"}
+  {
+    "id": "001_paddle_controller",
+    "game": "pong",
+    "file": "pairs/001_paddle_controller.json"
+  },
+  {
+    "id": "002_ball_controller",
+    "game": "pong",
+    "file": "pairs/002_ball_controller.json"
+  },
+  {
+    "id": "003_score_manager",
+    "game": "pong",
+    "file": "pairs/003_score_manager.json"
+  },
+  {
+    "id": "004_game_manager",
+    "game": "pong",
+    "file": "pairs/004_game_manager.json"
+  },
+  {
+    "id": "005_paddle_controller",
+    "game": "breakout",
+    "file": "pairs/005_paddle_controller.json"
+  },
+  {
+    "id": "006_ball_controller",
+    "game": "breakout",
+    "file": "pairs/006_ball_controller.json"
+  },
+  {
+    "id": "007_brick",
+    "game": "breakout",
+    "file": "pairs/007_brick.json"
+  },
+  {
+    "id": "008_game_manager",
+    "game": "breakout",
+    "file": "pairs/008_game_manager.json"
+  },
+  {
+    "id": "009_powerup",
+    "game": "breakout",
+    "file": "pairs/009_powerup.json"
+  },
+  {
+    "id": "010_constants",
+    "game": "angry_birds",
+    "file": "pairs/010_constants.json"
+  },
+  {
+    "id": "011_enums",
+    "game": "angry_birds",
+    "file": "pairs/011_enums.json"
+  },
+  {
+    "id": "012_bird",
+    "game": "angry_birds",
+    "file": "pairs/012_bird.json"
+  },
+  {
+    "id": "013_slingshot",
+    "game": "angry_birds",
+    "file": "pairs/013_slingshot.json"
+  },
+  {
+    "id": "014_brick",
+    "game": "angry_birds",
+    "file": "pairs/014_brick.json"
+  },
+  {
+    "id": "015_pig",
+    "game": "angry_birds",
+    "file": "pairs/015_pig.json"
+  },
+  {
+    "id": "016_destroyer",
+    "game": "angry_birds",
+    "file": "pairs/016_destroyer.json"
+  },
+  {
+    "id": "017_game_manager",
+    "game": "angry_birds",
+    "file": "pairs/017_game_manager.json"
+  },
+  {
+    "id": "018_fsm",
+    "game": "fsm_platformer",
+    "file": "pairs/018_fsm.json"
+  },
+  {
+    "id": "019_command",
+    "game": "fsm_platformer",
+    "file": "pairs/019_command.json"
+  },
+  {
+    "id": "020_player_idle_state",
+    "game": "fsm_platformer",
+    "file": "pairs/020_player_idle_state.json"
+  },
+  {
+    "id": "021_player_running_state",
+    "game": "fsm_platformer",
+    "file": "pairs/021_player_running_state.json"
+  },
+  {
+    "id": "022_player_jumping_state",
+    "game": "fsm_platformer",
+    "file": "pairs/022_player_jumping_state.json"
+  },
+  {
+    "id": "023_player_falling_state",
+    "game": "fsm_platformer",
+    "file": "pairs/023_player_falling_state.json"
+  },
+  {
+    "id": "024_player_landing_state",
+    "game": "fsm_platformer",
+    "file": "pairs/024_player_landing_state.json"
+  },
+  {
+    "id": "025_input_transition",
+    "game": "fsm_platformer",
+    "file": "pairs/025_input_transition.json"
+  },
+  {
+    "id": "026_no_input_transition",
+    "game": "fsm_platformer",
+    "file": "pairs/026_no_input_transition.json"
+  },
+  {
+    "id": "027_jump_transition",
+    "game": "fsm_platformer",
+    "file": "pairs/027_jump_transition.json"
+  },
+  {
+    "id": "028_fall_transition",
+    "game": "fsm_platformer",
+    "file": "pairs/028_fall_transition.json"
+  },
+  {
+    "id": "029_grounded_transition",
+    "game": "fsm_platformer",
+    "file": "pairs/029_grounded_transition.json"
+  },
+  {
+    "id": "030_landing_timer_transition",
+    "game": "fsm_platformer",
+    "file": "pairs/030_landing_timer_transition.json"
+  },
+  {
+    "id": "031_jump_command",
+    "game": "fsm_platformer",
+    "file": "pairs/031_jump_command.json"
+  },
+  {
+    "id": "032_walk_command",
+    "game": "fsm_platformer",
+    "file": "pairs/032_walk_command.json"
+  },
+  {
+    "id": "033_player_input_handler",
+    "game": "fsm_platformer",
+    "file": "pairs/033_player_input_handler.json"
+  },
+  {
+    "id": "034_enemy_idle_state",
+    "game": "fsm_platformer",
+    "file": "pairs/034_enemy_idle_state.json"
+  },
+  {
+    "id": "035_enemy_walk_state",
+    "game": "fsm_platformer",
+    "file": "pairs/035_enemy_walk_state.json"
+  },
+  {
+    "id": "036_time_transition",
+    "game": "fsm_platformer",
+    "file": "pairs/036_time_transition.json"
+  },
+  {
+    "id": "037_enemy_behaviour",
+    "game": "fsm_platformer",
+    "file": "pairs/037_enemy_behaviour.json"
+  }
 ]
