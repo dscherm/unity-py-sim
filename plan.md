@@ -836,3 +836,356 @@ Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.
   "note": "Syntax gate: 16/37 pass (43%). dotnet build path ready for home machine. Main gaps: inline imports, docstrings."
 }
 ```
+
+---
+
+## Phase: Engine Expansion P0 — Tweening, Pooling, Events
+
+Goal: Add the three highest-impact missing systems. Every game needs tweening,
+most need pooling, and events decouple architecture. All have clean C# translation targets.
+
+### Task 1: Tweening system (DOTween equivalent)
+
+```json
+{
+  "category": "feature",
+  "priority": 1,
+  "description": "Add a tweening engine with typed property animation, easing curves, and chaining — Python equivalent of DOTween",
+  "steps": [
+    "Create src/engine/tweening.py with Tween, Sequence, and TweenManager classes",
+    "Tween.to(target, property, end_value, duration) — animate any numeric property",
+    "Tween.from(target, property, start_value, duration) — animate from a value to current",
+    "Support Vector2 and Vector3 property tweens (position, scale, etc.)",
+    "Add easing functions: Linear, EaseInOut (Quad, Cubic, Sine, Elastic, Bounce, Back)",
+    "Add tween callbacks: on_start, on_update, on_complete",
+    "Add tween controls: kill(), pause(), resume(), set_loops(count, loop_type)",
+    "Add Sequence class: append(tween), join(tween), insert(time, tween) for chaining",
+    "Wire TweenManager.tick(dt) into LifecycleManager after Update",
+    "Add tests for each easing type, callbacks, sequences, Vector2/3 tweens",
+    "Update src/reference/mappings/classes.json with DOTween equivalents",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 2: Object pooling system
+
+```json
+{
+  "category": "feature",
+  "priority": 2,
+  "description": "Add ObjectPool matching Unity's UnityEngine.Pool.ObjectPool<T> pattern",
+  "steps": [
+    "Create src/engine/pool.py with ObjectPool class",
+    "ObjectPool(create_func, on_get, on_release, on_destroy, max_size) constructor",
+    "pool.get() -> returns pooled object or creates new, calls on_get",
+    "pool.release(obj) -> returns to pool, calls on_release, deactivates GameObject",
+    "pool.clear() -> destroy all pooled objects",
+    "Add GameObjectPool convenience subclass: pre-instantiate from a template GameObject",
+    "Wire with GameObject.active = False for pooled objects, True on get",
+    "Add tests: get/release cycle, max size enforcement, callback firing",
+    "Update src/reference/mappings/classes.json",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 3: Event bus / message system
+
+```json
+{
+  "category": "feature",
+  "priority": 3,
+  "description": "Add typed event bus for decoupled inter-component messaging, maps to C# events/UnityEvents",
+  "steps": [
+    "Create src/engine/events.py with EventBus static class",
+    "EventBus.subscribe(event_type, handler) — register callback for event class",
+    "EventBus.unsubscribe(event_type, handler) — remove callback",
+    "EventBus.publish(event) — dispatch to all subscribers of that event type",
+    "Events are plain dataclasses: @dataclass class BrickDestroyedEvent: brick: GameObject, points: int",
+    "Add UnityEvent class matching Unity's inspector-wirable event pattern",
+    "UnityEvent() with add_listener(callback), remove_listener(callback), invoke(*args)",
+    "Add tests: subscribe/publish, unsubscribe, multiple subscribers, UnityEvent",
+    "Update angry_birds example to use EventBus for score/game state changes",
+    "Update src/reference/mappings/classes.json",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+---
+
+## Phase: Engine Expansion P1 — Animation, Camera, Joints
+
+Goal: Sprite animation, camera follow system, and 2D joints. These are the next tier
+of features needed for any non-trivial game.
+
+### Task 4: Sprite animation system
+
+```json
+{
+  "category": "feature",
+  "priority": 4,
+  "description": "Add frame-based sprite animation with SpriteAnimator component",
+  "steps": [
+    "Create src/engine/animation.py with AnimationClip and SpriteAnimator classes",
+    "AnimationClip: list of frame colors/asset_refs, fps, loop mode (Once, Loop, PingPong)",
+    "SpriteAnimator component: play(clip_name), stop(), current_clip, is_playing",
+    "Support multiple named clips per animator (idle, walk, attack, etc.)",
+    "Tick animation in Update — advance frame index based on Time.delta_time and fps",
+    "Update SpriteRenderer.color or SpriteRenderer.asset_ref on frame change",
+    "Add animation events: on_frame(frame_index, callback) for triggering logic at specific frames",
+    "Add tests: frame advancement, loop modes, play/stop, clip switching",
+    "Update src/reference/mappings/classes.json",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 5: Camera follow system (Cinemachine-lite)
+
+```json
+{
+  "category": "feature",
+  "priority": 5,
+  "description": "Add CameraFollow2D component with damping, dead zone, look-ahead, and camera shake",
+  "steps": [
+    "Create src/engine/camera_follow.py with CameraFollow2D component",
+    "Properties: target (Transform), follow_offset, damping (0-1), dead_zone (Vector2)",
+    "Look-ahead: offset camera in direction of target velocity",
+    "Confine: optional bounds (min/max Vector2) to clamp camera position",
+    "Wire into LateUpdate (after all movement is done)",
+    "Add CameraShake class: trigger(intensity, duration, frequency) using Perlin noise",
+    "CameraShake applies additive offset to camera position, decays over duration",
+    "Add tests: follow tracking, damping behavior, dead zone, bounds clamping, shake decay",
+    "Update angry_birds camera follow to use CameraFollow2D instead of manual lerp",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 6: 2D Joint system
+
+```json
+{
+  "category": "feature",
+  "priority": 6,
+  "description": "Expose pymunk joints as Unity-style 2D joint components",
+  "steps": [
+    "Create src/engine/physics/joints.py",
+    "HingeJoint2D: connected_body, anchor, limits (min/max angle), motor (speed, max_torque)",
+    "SpringJoint2D: connected_body, distance, frequency, damping_ratio",
+    "DistanceJoint2D: connected_body, distance, max_distance_only",
+    "FixedJoint2D: connected_body (rigid connection)",
+    "Wire all joints to pymunk constraint types in PhysicsManager",
+    "Auto-create/destroy pymunk constraints on component add/remove",
+    "Add tests for each joint type: creation, constraint behavior, limits",
+    "Update src/reference/mappings/classes.json",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+---
+
+## Phase: Engine Expansion P2 — Renderers, Colliders, Sorting
+
+Goal: Fill rendering and physics gaps — LineRenderer, TrailRenderer, PolygonCollider2D,
+and proper sorting layers.
+
+### Task 7: LineRenderer and TrailRenderer
+
+```json
+{
+  "category": "feature",
+  "priority": 7,
+  "description": "Add persistent LineRenderer and TrailRenderer components",
+  "steps": [
+    "Create LineRenderer component in src/engine/rendering/line_renderer.py",
+    "Properties: positions (list[Vector2]), width_start, width_end, color_start, color_end, sorting_order",
+    "set_positions(points) and set_position(index, point) methods",
+    "Render as connected line segments in pygame via RenderManager",
+    "Create TrailRenderer component: follows transform, fades over time",
+    "Properties: trail_time, width_start, width_end, color_gradient, min_vertex_distance",
+    "TrailRenderer auto-records positions each frame, removes old ones past trail_time",
+    "Wire both into RenderManager rendering pass",
+    "Add tests: line positions, trail recording, trail fade, sorting order",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 8: PolygonCollider2D and EdgeCollider2D
+
+```json
+{
+  "category": "feature",
+  "priority": 8,
+  "description": "Add polygon and edge colliders using pymunk Poly and Segment shapes",
+  "steps": [
+    "Add PolygonCollider2D to src/engine/physics/collider.py",
+    "Properties: points (list[Vector2]) defining the polygon vertices",
+    "build() creates pymunk.Poly from points, applies material, registers with PhysicsManager",
+    "Add EdgeCollider2D: points (list[Vector2]) defining connected line segments",
+    "build() creates multiple pymunk.Segment shapes for each edge",
+    "Support material (PhysicsMaterial2D) and is_trigger on both",
+    "Add tests: polygon creation, edge chain, collision detection, trigger events",
+    "Update src/reference/mappings/classes.json",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 9: Sorting layers system
+
+```json
+{
+  "category": "feature",
+  "priority": 9,
+  "description": "Add named sorting layers matching Unity's sorting layer system",
+  "steps": [
+    "Create SortingLayer registry in src/engine/rendering/sorting.py",
+    "SortingLayer.add(name, order) — register named layers (Default=0, Background=-100, Foreground=100)",
+    "Add sorting_layer_name property to SpriteRenderer (defaults to 'Default')",
+    "RenderManager sorts by: sorting_layer order first, then sorting_order within layer",
+    "Add SortingLayer.get_layer_value(name) for lookup",
+    "Pre-register Default, Background, Foreground, UI layers",
+    "Add tests: layer ordering, same-layer sorting, unknown layer fallback",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+---
+
+## Phase: Engine Expansion P3 — Particles, Tilemap, CharacterController
+
+Goal: The heavy-lift features. Particle system enables visual polish, tilemap enables
+level design, CharacterController2D replaces raw physics for platformers.
+
+### Task 10: 2D Particle system
+
+```json
+{
+  "category": "feature",
+  "priority": 10,
+  "description": "Add ParticleSystem component with emission, lifetime, velocity, and color over lifetime",
+  "steps": [
+    "Create src/engine/particles.py with ParticleSystem and Particle classes",
+    "Particle: position, velocity, lifetime, age, color, size — updated each frame",
+    "ParticleSystem component: emission_rate, start_lifetime, start_speed, start_size, start_color",
+    "Emission shapes: point, circle, box (random position within shape)",
+    "Color over lifetime: lerp between start_color and end_color based on age/lifetime",
+    "Size over lifetime: lerp between start_size and end_size",
+    "Gravity modifier: apply scaled gravity to particle velocity",
+    "play(), stop(), pause() controls; is_playing, particle_count properties",
+    "Render particles as colored rectangles via RenderManager (after sprites, before UI)",
+    "Max particles cap (default 100) — stop emitting when full",
+    "Add tests: emission rate, lifetime expiry, color/size over lifetime, gravity",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 11: 2D Tilemap system
+
+```json
+{
+  "category": "feature",
+  "priority": 11,
+  "description": "Add Tilemap, TilemapRenderer, and Tile for grid-based level building",
+  "steps": [
+    "Create src/engine/tilemap.py with Tile, Tilemap, and TilemapRenderer classes",
+    "Tile: color, asset_ref, collider_type (None, Full, Custom), is_walkable flag",
+    "Tilemap component: grid-based storage, cell_size (Vector2), set_tile(x, y, tile), get_tile(x, y)",
+    "TilemapRenderer: renders all set tiles as colored rectangles at grid positions",
+    "TilemapCollider2D: auto-generates BoxCollider2D for tiles with collider_type=Full",
+    "Support tilemap bounds (min/max cell coordinates) for iteration",
+    "Wire TilemapRenderer into RenderManager with sorting layer support",
+    "Add tests: set/get tiles, rendering positions, collider generation, bounds",
+    "Update src/reference/mappings/classes.json",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 12: CharacterController2D
+
+```json
+{
+  "category": "feature",
+  "priority": 12,
+  "description": "Add CharacterController2D with ground detection, slopes, and one-way platforms",
+  "steps": [
+    "Create src/engine/character_controller.py with CharacterController2D component",
+    "Properties: skin_width, slope_limit, step_offset, is_grounded, velocity",
+    "move(motion: Vector2) — move with collision detection using raycasts",
+    "Ground check: downward raycast(s) from collider bottom, set is_grounded",
+    "Horizontal collision: side raycasts for wall detection",
+    "Slope handling: detect slope angle via raycast normal, slide along surface up to slope_limit",
+    "One-way platforms: check platform tag, allow upward pass-through, collide from above",
+    "Callbacks: on_controller_collider_hit(hit) for collision response",
+    "Add tests: ground detection, wall collision, slope climbing, one-way platform",
+    "Update FSM platformer to optionally use CharacterController2D",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+---
+
+## Phase: Engine Expansion P3+ — Visual Polish
+
+Goal: Remaining visual systems for completeness.
+
+### Task 13: Sprite atlas and sub-sprite extraction
+
+```json
+{
+  "category": "feature",
+  "priority": 13,
+  "description": "Add SpriteAtlas for extracting sub-sprites from sprite sheets",
+  "steps": [
+    "Create src/engine/rendering/sprite_atlas.py with SpriteAtlas class",
+    "SpriteAtlas: load from image path, define sub-sprites by name + rect (x, y, w, h)",
+    "sprite_atlas.get_sprite(name) -> returns sub-region for SpriteRenderer",
+    "Support uniform grid slicing: slice_grid(cols, rows) auto-names sprites",
+    "Integration with SpriteAnimator: animation clips reference atlas sprite names",
+    "Add tests: grid slicing, named sprite lookup, integration with animator",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 14: TextMeshPro-lite (rich text)
+
+```json
+{
+  "category": "feature",
+  "priority": 14,
+  "description": "Enhance Text component with basic rich text tags and text effects",
+  "steps": [
+    "Extend Text in src/engine/ui.py with rich_text: bool flag",
+    "Support basic tags: <color=#FF0000>red</color>, <b>bold</b>, <size=24>big</size>",
+    "Parse tags into styled runs, render each run with appropriate color/size",
+    "Add character-by-character reveal effect: reveal_speed (chars per second)",
+    "Add typewriter callback: on_character_revealed(index)",
+    "Add tests: tag parsing, multi-color rendering, reveal animation",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
