@@ -1093,7 +1093,7 @@ level design, CharacterController2D replaces raw physics for platformers.
     "Add tests: emission rate, lifetime expiry, color/size over lifetime, gravity",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1116,7 +1116,7 @@ level design, CharacterController2D replaces raw physics for platformers.
     "Update src/reference/mappings/classes.json",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1140,7 +1140,7 @@ level design, CharacterController2D replaces raw physics for platformers.
     "Update FSM platformer to optionally use CharacterController2D",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1166,7 +1166,7 @@ Goal: Remaining visual systems for completeness.
     "Add tests: grid slicing, named sprite lookup, integration with animator",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1186,6 +1186,6 @@ Goal: Remaining visual systems for completeness.
     "Add tests: tag parsing, multi-color rendering, reveal animation",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```

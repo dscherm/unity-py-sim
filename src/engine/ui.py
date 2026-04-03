@@ -169,6 +169,113 @@ class Text(Component):
     def alignment(self, value: TextAnchor) -> None:
         self._alignment = value
 
+    # ── Rich text support ──
+
+    rich_text: bool = False
+
+    def get_visible_text(self) -> str:
+        """Get text with rich text tags stripped (for length calculations)."""
+        if not self.rich_text:
+            return self._text
+        import re
+        return re.sub(r"<[^>]+>", "", self._text)
+
+    def parse_rich_text(self) -> list[dict]:
+        """Parse rich text into styled runs: [{'text': ..., 'color': ..., 'size': ...}].
+
+        Supported tags: <color=#RRGGBB>text</color>, <b>bold</b>, <size=N>text</size>
+        """
+        if not self.rich_text:
+            return [{"text": self._text, "color": self._color, "size": self._font_size, "bold": False}]
+
+        import re
+        runs = []
+        color_stack = [self._color]
+        size_stack = [self._font_size]
+        bold_stack = [False]
+
+        # Tokenize: split into text and tags
+        parts = re.split(r"(<[^>]+>)", self._text)
+        for part in parts:
+            if not part:
+                continue
+            if part.startswith("<"):
+                tag = part[1:-1].strip()
+                if tag.startswith("color="):
+                    hex_color = tag.split("=", 1)[1].strip("#\"'")
+                    try:
+                        r = int(hex_color[0:2], 16)
+                        g = int(hex_color[2:4], 16)
+                        b = int(hex_color[4:6], 16)
+                        color_stack.append((r, g, b))
+                    except (ValueError, IndexError):
+                        pass
+                elif tag == "/color":
+                    if len(color_stack) > 1:
+                        color_stack.pop()
+                elif tag.startswith("size="):
+                    try:
+                        size_stack.append(int(tag.split("=", 1)[1]))
+                    except ValueError:
+                        pass
+                elif tag == "/size":
+                    if len(size_stack) > 1:
+                        size_stack.pop()
+                elif tag == "b":
+                    bold_stack.append(True)
+                elif tag == "/b":
+                    if len(bold_stack) > 1:
+                        bold_stack.pop()
+            else:
+                runs.append({
+                    "text": part,
+                    "color": color_stack[-1],
+                    "size": size_stack[-1],
+                    "bold": bold_stack[-1],
+                })
+        return runs
+
+    # ── Typewriter effect ──
+
+    reveal_speed: float = 0.0  # chars per second; 0 = instant
+    _revealed_count: int = -1  # -1 = all revealed
+    _reveal_timer: float = 0.0
+    on_character_revealed: list = []  # callbacks(index)
+
+    def start_reveal(self, speed: float = 30.0) -> None:
+        """Start character-by-character reveal."""
+        self.reveal_speed = speed
+        self._revealed_count = 0
+        self._reveal_timer = 0.0
+
+    def get_revealed_text(self) -> str:
+        """Get text up to current reveal position."""
+        if self._revealed_count < 0:
+            return self._text
+        visible = self.get_visible_text()
+        return visible[:self._revealed_count]
+
+    @property
+    def is_revealing(self) -> bool:
+        if self._revealed_count < 0:
+            return False
+        return self._revealed_count < len(self.get_visible_text())
+
+    def update_reveal(self, dt: float) -> None:
+        """Advance reveal timer. Call from update() or LifecycleManager."""
+        if self._revealed_count < 0 or self.reveal_speed <= 0:
+            return
+        visible_len = len(self.get_visible_text())
+        self._reveal_timer += dt
+        chars_per_tick = self._reveal_timer * self.reveal_speed
+        new_count = min(visible_len, int(self._revealed_count + chars_per_tick))
+        if new_count > self._revealed_count:
+            for i in range(self._revealed_count, new_count):
+                for cb in self.on_character_revealed:
+                    cb(i)
+            self._revealed_count = new_count
+            self._reveal_timer = 0.0
+
 
 class Image(Component):
     """UI image/panel component."""
