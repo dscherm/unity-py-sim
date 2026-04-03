@@ -30,6 +30,22 @@ python -m pytest tests/engine/ -v       # engine only
 python -m pytest tests/translator/ -v   # translator only
 ```
 
+### Post-Task Independent Validation (MANDATORY)
+
+After completing any feature or engine task, you MUST spawn a **separate agent** to write tests for it. The implementing agent must NOT write its own validation tests. This rule exists because the agent that wrote the code has blind spots about its own assumptions (see `data/lessons/testing.md`).
+
+**Process:**
+1. Implement the feature, commit it
+2. Spawn a new agent (do NOT use worktree isolation — it may get stale code) with instructions to:
+   - Read the source files that were changed
+   - Write **integration tests** (run through `app.run()` game loop)
+   - Write **contract tests** (verify Unity behavioral specs, not implementation details)
+   - Write **mutation tests** (monkeypatch breakage, prove tests catch it)
+   - Place tests in `tests/integration/`, `tests/contracts/`, `tests/mutation/`
+   - Run the full test suite to verify no regressions
+3. The validation agent must NOT modify any `src/` files — tests only
+4. Review the agent's findings before proceeding to the next task
+
 ## Ralph Loop
 
 ```bash

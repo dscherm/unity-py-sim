@@ -51,7 +51,12 @@
       "csharp_parser.py": ["tests/translator/test_csharp_parser.py"],
       "csharp_to_python.py": ["tests/translator/test_csharp_to_python.py"],
       "python_to_csharp.py": ["tests/translator/test_python_to_csharp.py"],
-      "type_mapper.py": ["tests/translator/test_csharp_to_python.py", "tests/translator/test_python_to_csharp.py"]
+      "type_mapper.py": ["tests/translator/test_csharp_to_python.py", "tests/translator/test_python_to_csharp.py"],
+      "coroutine.py": ["tests/engine/test_coroutine.py"],
+      "debug.py": ["tests/engine/test_debug.py"],
+      "audio.py": ["tests/engine/test_audio.py"],
+      "ui.py": ["tests/engine/test_ui.py"],
+      "scene.py": ["tests/engine/test_scene.py"]
     },
     "shared_files": [
       "src/translator/rules/translation_rules.json",
@@ -120,5 +125,14 @@
   "observations": {
     "enabled": true,
     "sync_to_global": true
+  },
+  "post_task": {
+    "independent_validation": {
+      "enabled": true,
+      "rule": "After completing any feature or engine task, spawn a SEPARATE agent to write integration, contract, and mutation tests. The implementing agent must NOT write its own validation tests.",
+      "agent_instructions": "Read the changed source files. Write tests in tests/integration/, tests/contracts/, tests/mutation/. Do NOT modify src/ files. Do NOT use worktree isolation (risk of stale code). Run full test suite to verify.",
+      "test_types": ["integration", "contract", "mutation"],
+      "reference": "data/lessons/testing.md"
+    }
   }
 }
