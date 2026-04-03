@@ -602,7 +602,7 @@ Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.
     "Update breakout example similarly",
     "Run all tests to verify no regressions"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -621,7 +621,7 @@ Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.
     "Generate manifest for angry_birds and breakout examples",
     "Write tests for manifest extraction"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -639,7 +639,7 @@ Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.
     "Validation: warn on unmapped asset_refs, warn on missing Unity paths",
     "Write tests"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -663,7 +663,7 @@ Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.
     "Test on angry_birds scene — verify JSON round-trips all scene data",
     "CLI: python -m src.exporter.scene_serializer examples/angry_birds/run_angry_birds.py --output data/exports/angry_birds_scene.json"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -683,7 +683,7 @@ Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.
     "Test by generating the AngryBirds scene setup and comparing to what we built manually",
     "The generated script should be runnable via CoPlay execute_script"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -703,7 +703,8 @@ Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.
     "Document any manual steps still needed",
     "Record accuracy metrics in data/metrics/"
   ],
-  "passes": false
+  "passes": false,
+  "note": "Requires Unity Editor — deferred to next interactive Unity session"
 }
 ```
 
@@ -727,7 +728,7 @@ Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.
     "Test on Bird.cs DestroyAfter and GameManager.cs NextTurn",
     "Run roundtrip gate and record scores"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -747,7 +748,7 @@ Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.
     "Test on GameManager.cs (uses Concat, All, Count with predicates)",
     "Run roundtrip gate and record scores"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -767,7 +768,7 @@ Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.
     "Test on all angry_birds files",
     "Run roundtrip gate and record scores"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -788,7 +789,7 @@ Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.
     "Test by translating SlingShot.py and GameManager.py, compare to hand-written Unity 6 versions",
     "Run roundtrip gate and record scores"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
