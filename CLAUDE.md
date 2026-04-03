@@ -53,6 +53,7 @@ python tools/playtest.py breakout --headless --frames 300  # headless
 Before creating or modifying examples, read the relevant lesson files:
 - `data/lessons/gotchas.md` — engine API pitfalls and behavioral differences
 - `data/lessons/patterns.md` — what translates well vs poorly
+- `data/lessons/testing.md` — testing strategy lessons (worktree staleness, unit vs integration, contract design)
 - `D:/Projects/ralph-universal/lessons/` — cross-project lessons (filtered by `applies-to: gamedev`)
 
 ## Cross-Machine Workflow
