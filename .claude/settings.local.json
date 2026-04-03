@@ -31,18 +31,7 @@
       "Glob",
       "Grep",
       "Read",
-      "Write",
-      "Bash(sed 's/.*def //')",
-      "Bash(sed 's/\\(.*$//')",
-      "Bash(xargs grep:*)",
-      "Bash(xargs wc:*)",
-      "Skill(ralph-loop:ralph-loop)",
-      "Read(//c/Users/scher/ralph-universal/**)",
-      "Read(//d/Projects/ralph-universal/**)",
-      "Read(//d/Projects/**)",
-      "Bash(export RALPH_HOME=\"/d/Projects/ralph-universal\")",
-      "Bash(bash /d/Projects/ralph-universal/ralph.sh --dry-run)",
-      "Bash(bash /d/Projects/ralph-universal/ralph.sh 10)"
+      "Write"
     ]
   }
 }
