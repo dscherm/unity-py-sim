@@ -34,13 +34,15 @@ python -m pytest tests/engine/ -v       # engine only
 python -m pytest tests/translator/ -v   # translator only
 ```
 
-### Post-Task Independent Validation (MANDATORY)
+### Post-Task Independent Validation (MANDATORY — DO NOT SKIP)
 
-After completing any feature or engine task, you MUST spawn a **separate agent** to write tests for it. The implementing agent must NOT write its own validation tests. This rule exists because the agent that wrote the code has blind spots about its own assumptions (see `data/lessons/testing.md`).
+> **BLOCKING REQUIREMENT:** After completing ANY feature or engine task, you MUST spawn a separate validation agent BEFORE marking the task as complete or moving to the next task. This is NOT optional. If you find yourself about to start the next task without having spawned a validation agent, STOP and spawn one first. The implementing agent must NEVER write its own validation tests.
+
+This rule exists because the agent that wrote the code has blind spots about its own assumptions (see `data/lessons/testing.md`). This has been reinforced by the user — never skip this step.
 
 **Process:**
 1. Implement the feature, commit it
-2. Spawn a new agent with these rules:
+2. **IMMEDIATELY** spawn a new agent (do not proceed to any other work) with these rules:
    - **NEVER use `isolation: "worktree"`** — worktrees in this project consistently land on stale commits (see `data/lessons/testing.md`). Run in the main working directory instead.
    - **NEVER read existing test files** in `tests/` — they were written by the implementing agent and will bias assumptions. Only read `src/` and `examples/` source code.
    - Derive contract tests from **Unity documentation**, not from what the code does
@@ -51,6 +53,7 @@ After completing any feature or engine task, you MUST spawn a **separate agent**
    - Run the full test suite to verify no regressions
 3. The validation agent must NOT modify any `src/` files — tests only
 4. Review the agent's findings before proceeding to the next task
+5. **If the validation agent finds bugs, fix them before moving on**
 
 ## Ralph Loop
 
