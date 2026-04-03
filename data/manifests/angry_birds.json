@@ -1,0 +1,126 @@
+{
+  "sprites": {
+    "ground_grass": {
+      "asset_ref": "ground_grass",
+      "color_hint": [
+        80,
+        160,
+        60
+      ],
+      "size": [
+        30.0,
+        1.0
+      ],
+      "sorting_order": 0,
+      "game_objects": [
+        "Ground"
+      ]
+    },
+    "slingshot": {
+      "asset_ref": "slingshot",
+      "color_hint": [
+        120,
+        80,
+        40
+      ],
+      "size": [
+        0.3,
+        1.5
+      ],
+      "sorting_order": 0,
+      "game_objects": [
+        "Slingshot"
+      ]
+    },
+    "bird_red": {
+      "asset_ref": "bird_red",
+      "color_hint": [
+        220,
+        50,
+        50
+      ],
+      "size": [
+        0.6,
+        0.6
+      ],
+      "sorting_order": 0,
+      "game_objects": [
+        "Bird_1",
+        "Bird_2",
+        "Bird_3"
+      ]
+    },
+    "brick_wood": {
+      "asset_ref": "brick_wood",
+      "color_hint": [
+        180,
+        130,
+        70
+      ],
+      "size": [
+        0.4,
+        1.0
+      ],
+      "sorting_order": 0,
+      "game_objects": [
+        "B_pL",
+        "B_pR",
+        "B_b1",
+        "B_uL",
+        "B_uR",
+        "B_cap"
+      ]
+    },
+    "pig_normal": {
+      "asset_ref": "pig_normal",
+      "color_hint": [
+        100,
+        200,
+        80
+      ],
+      "size": [
+        0.6,
+        0.6
+      ],
+      "sorting_order": 0,
+      "game_objects": [
+        "Pig_1",
+        "Pig_2"
+      ]
+    }
+  },
+  "audio": {
+    "bird_launch_sfx": {
+      "clip_ref": "bird_launch_sfx",
+      "game_objects": [
+        "Bird_1",
+        "Bird_2",
+        "Bird_3"
+      ]
+    },
+    "brick_break_sfx": {
+      "clip_ref": "brick_break_sfx",
+      "game_objects": [
+        "B_pL",
+        "B_pR",
+        "B_b1",
+        "B_uL",
+        "B_uR",
+        "B_cap"
+      ]
+    },
+    "pig_hit_sfx": {
+      "clip_ref": "pig_hit_sfx",
+      "game_objects": [
+        "Pig_1",
+        "Pig_2"
+      ]
+    }
+  },
+  "tags_used": [
+    "Bird",
+    "Brick",
+    "Ground",
+    "Pig"
+  ]
+}

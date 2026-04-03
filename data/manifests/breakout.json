@@ -1,0 +1,138 @@
+{
+  "sprites": {
+    "paddle": {
+      "asset_ref": "paddle",
+      "color_hint": [
+        200,
+        200,
+        220
+      ],
+      "size": [
+        2.0,
+        0.4
+      ],
+      "sorting_order": 0,
+      "game_objects": [
+        "Paddle"
+      ]
+    },
+    "ball": {
+      "asset_ref": "ball",
+      "color_hint": [
+        255,
+        255,
+        100
+      ],
+      "size": [
+        0.4,
+        0.4
+      ],
+      "sorting_order": 0,
+      "game_objects": [
+        "Ball"
+      ]
+    },
+    "brick": {
+      "asset_ref": "brick",
+      "color_hint": [
+        220,
+        50,
+        50
+      ],
+      "size": [
+        1.3,
+        0.5
+      ],
+      "sorting_order": 0,
+      "game_objects": [
+        "Brick_0_0",
+        "Brick_0_1",
+        "Brick_0_2",
+        "Brick_0_3",
+        "Brick_0_4",
+        "Brick_0_5",
+        "Brick_0_6",
+        "Brick_0_7",
+        "Brick_0_8",
+        "Brick_0_9",
+        "Brick_1_0",
+        "Brick_1_1",
+        "Brick_1_2",
+        "Brick_1_3",
+        "Brick_1_4",
+        "Brick_1_5",
+        "Brick_1_6",
+        "Brick_1_7",
+        "Brick_1_8",
+        "Brick_1_9",
+        "Brick_2_0",
+        "Brick_2_1",
+        "Brick_2_2",
+        "Brick_2_3",
+        "Brick_2_4",
+        "Brick_2_5",
+        "Brick_2_6",
+        "Brick_2_7",
+        "Brick_2_8",
+        "Brick_2_9",
+        "Brick_3_0",
+        "Brick_3_1",
+        "Brick_3_2",
+        "Brick_3_3",
+        "Brick_3_4",
+        "Brick_3_5",
+        "Brick_3_6",
+        "Brick_3_7",
+        "Brick_3_8",
+        "Brick_3_9",
+        "Brick_4_0",
+        "Brick_4_1",
+        "Brick_4_2",
+        "Brick_4_3",
+        "Brick_4_4",
+        "Brick_4_5",
+        "Brick_4_6",
+        "Brick_4_7",
+        "Brick_4_8",
+        "Brick_4_9",
+        "Brick_5_0",
+        "Brick_5_1",
+        "Brick_5_2",
+        "Brick_5_3",
+        "Brick_5_4",
+        "Brick_5_5",
+        "Brick_5_6",
+        "Brick_5_7",
+        "Brick_5_8",
+        "Brick_5_9",
+        "Brick_6_0",
+        "Brick_6_1",
+        "Brick_6_2",
+        "Brick_6_3",
+        "Brick_6_4",
+        "Brick_6_5",
+        "Brick_6_6",
+        "Brick_6_7",
+        "Brick_6_8",
+        "Brick_6_9",
+        "Brick_7_0",
+        "Brick_7_1",
+        "Brick_7_2",
+        "Brick_7_3",
+        "Brick_7_4",
+        "Brick_7_5",
+        "Brick_7_6",
+        "Brick_7_7",
+        "Brick_7_8",
+        "Brick_7_9"
+      ]
+    }
+  },
+  "audio": {},
+  "tags_used": [
+    "Ball",
+    "Brick",
+    "Paddle",
+    "Wall"
+  ]
+}
