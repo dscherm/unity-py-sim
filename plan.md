@@ -581,3 +581,255 @@ Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.
   "passes": true
 }
 ```
+
+---
+
+## Phase: Asset Pipeline (P0)
+
+### Task 1: Asset reference system for SpriteRenderer and AudioSource
+
+```json
+{
+  "category": "feature",
+  "priority": 1,
+  "description": "Add asset_ref field to SpriteRenderer and AudioSource so Python code can declare intended assets by name instead of just colored rectangles",
+  "steps": [
+    "Add optional asset_ref: str field to SpriteRenderer in src/engine/rendering/renderer.py",
+    "Add optional clip_ref: str field to AudioSource in src/engine/audio.py",
+    "Asset refs are symbolic names (e.g. bird_red, brick_wood, slingshot_left) not file paths",
+    "Existing color-based rendering continues to work — asset_ref is metadata for export only",
+    "Update angry_birds example to set asset_ref on all SpriteRenderers and AudioSources",
+    "Update breakout example similarly",
+    "Run all tests to verify no regressions"
+  ],
+  "passes": false
+}
+```
+
+### Task 2: Asset manifest generator
+
+```json
+{
+  "category": "feature",
+  "priority": 2,
+  "description": "Build src/assets/manifest.py that extracts all asset_ref values from a running scene and generates an asset_manifest.json",
+  "steps": [
+    "Create src/assets/__init__.py and src/assets/manifest.py",
+    "AssetManifest.from_scene(scene) scans all GameObjects for SpriteRenderer.asset_ref and AudioSource.clip_ref",
+    "Output JSON with sprites, audio, color_hints, sizes, sorting orders",
+    "Add CLI: python -m src.assets.manifest examples/angry_birds/run_angry_birds.py --output data/manifests/angry_birds.json",
+    "Generate manifest for angry_birds and breakout examples",
+    "Write tests for manifest extraction"
+  ],
+  "passes": false
+}
+```
+
+### Task 3: Asset manifest to Unity mapping file
+
+```json
+{
+  "category": "feature",
+  "priority": 3,
+  "description": "Create a mapping file format that links asset_ref names to actual Unity asset paths, and a tool to validate mappings exist",
+  "steps": [
+    "Define mapping format linking asset_ref to unity_path, sprite_name, ppu, material",
+    "Create src/assets/mapping.py with AssetMapping class that loads and validates mapping files",
+    "Create data/mappings/angry_birds_mapping.json with actual Unity paths from the AngryBirds project",
+    "Validation: warn on unmapped asset_refs, warn on missing Unity paths",
+    "Write tests"
+  ],
+  "passes": false
+}
+```
+
+---
+
+## Phase: CoPlay MCP Scene Exporter (P0)
+
+### Task 4: Scene serializer — capture running Python scene to JSON
+
+```json
+{
+  "category": "feature",
+  "priority": 4,
+  "description": "Build src/exporter/scene_serializer.py that captures a running Python scene into a portable JSON format with all GameObjects, components, transforms, and references",
+  "steps": [
+    "Create src/exporter/__init__.py and src/exporter/scene_serializer.py",
+    "SceneSerializer.serialize(app) walks the scene graph and outputs JSON",
+    "Capture per-GameObject: name, tag, layer, transform, active state, parent-child hierarchy",
+    "Capture per-Component: type name, all serializable fields including asset_refs",
+    "Capture cross-references: e.g. GameManager.slingshot -> Slingshot (by path)",
+    "Test on angry_birds scene — verify JSON round-trips all scene data",
+    "CLI: python -m src.exporter.scene_serializer examples/angry_birds/run_angry_birds.py --output data/exports/angry_birds_scene.json"
+  ],
+  "passes": false
+}
+```
+
+### Task 5: CoPlay MCP script generator
+
+```json
+{
+  "category": "feature",
+  "priority": 5,
+  "description": "Build src/exporter/coplay_generator.py that reads scene JSON + asset mapping and generates a C# editor script to reconstruct the scene in Unity",
+  "steps": [
+    "Create src/exporter/coplay_generator.py",
+    "Read scene JSON from Task 4 and asset mapping from Task 3",
+    "Generate a C# editor script (Assets/Editor/GeneratedSceneSetup.cs) that creates all GameObjects, adds components, sets properties, assigns sprites, wires SerializedObject references",
+    "Handle tags (create_if_not_exists), sorting orders, physics settings",
+    "Handle special cases like two-sprite slingshot via asset mapping metadata",
+    "Test by generating the AngryBirds scene setup and comparing to what we built manually",
+    "The generated script should be runnable via CoPlay execute_script"
+  ],
+  "passes": false
+}
+```
+
+### Task 6: End-to-end test — regenerate AngryBirds Unity scene from Python
+
+```json
+{
+  "category": "validation",
+  "priority": 6,
+  "description": "Validate the full pipeline by regenerating the AngryBirds Unity project scene from the Python simulation, compare to manually-built version",
+  "steps": [
+    "Run scene serializer on angry_birds Python example",
+    "Run CoPlay generator with angry_birds asset mapping",
+    "Execute generated script in Unity via CoPlay MCP on a clean scene",
+    "Compare: all GameObjects present, correct positions, correct sprites assigned",
+    "Compare: physics works (structure stands, birds launch, pigs destructible)",
+    "Document any manual steps still needed",
+    "Record accuracy metrics in data/metrics/"
+  ],
+  "passes": false
+}
+```
+
+---
+
+## Phase: Translator Robustness (P1)
+
+### Task 7: Coroutine translation
+
+```json
+{
+  "category": "feature",
+  "priority": 7,
+  "description": "Translate Python generator-based coroutines to C# IEnumerator coroutines",
+  "steps": [
+    "Detect methods containing yield statements in python_parser.py",
+    "Mark them as coroutines in the IR (PyMethod.is_coroutine = True)",
+    "In python_to_csharp.py: emit IEnumerator return type, yield return syntax",
+    "Translate start_coroutine(method) to StartCoroutine(method())",
+    "Add using System.Collections when coroutines are present",
+    "Test on Bird.cs DestroyAfter and GameManager.cs NextTurn",
+    "Run roundtrip gate and record scores"
+  ],
+  "passes": false
+}
+```
+
+### Task 8: For-loop and collection translation
+
+```json
+{
+  "category": "feature",
+  "priority": 8,
+  "description": "Translate Python for-loops to C# foreach, and list operations to C# equivalents",
+  "steps": [
+    "Translate for x in collection to foreach (var x in collection)",
+    "Translate for i in range(n) to for (int i = 0; i < n; i++)",
+    "Translate list.append(x) to list.Add(x), len(list) to list.Count",
+    "Translate list comprehensions to LINQ Select/Where where simple",
+    "Add using System.Linq when LINQ operations are emitted",
+    "Test on GameManager.cs (uses Concat, All, Count with predicates)",
+    "Run roundtrip gate and record scores"
+  ],
+  "passes": false
+}
+```
+
+### Task 9: Enum, namespace, and attribute generation
+
+```json
+{
+  "category": "feature",
+  "priority": 9,
+  "description": "Add enum detection, namespace wrapping, and C# attribute inference to translator",
+  "steps": [
+    "Detect class X(Enum) in python_parser.py, emit C# enum with PascalCase members",
+    "Convert UPPER_SNAKE enum values to PascalCase (BEFORE_THROWN -> BeforeThrown)",
+    "Add --namespace flag to translator, wrap output in namespace block",
+    "Infer [RequireComponent(typeof(T))] from get_component(T) calls in start/awake",
+    "Infer [SerializeField] on private fields assigned in inspector pattern",
+    "Test on all angry_birds files",
+    "Run roundtrip gate and record scores"
+  ],
+  "passes": false
+}
+```
+
+### Task 10: Unity 6 API mappings and new Input System
+
+```json
+{
+  "category": "feature",
+  "priority": 10,
+  "description": "Update translator API mappings for Unity 6 (linearVelocity, new Input System) and add target version flag",
+  "steps": [
+    "Add --unity-version flag (default: 6) to translator",
+    "Map rb.velocity to rb.linearVelocity for Unity 6+",
+    "Add --input-system flag (legacy|new, default: new)",
+    "When new: translate Input.get_mouse_button to Mouse.current.leftButton patterns",
+    "When new: translate Input.get_key to Keyboard.current patterns",
+    "When new: add using UnityEngine.InputSystem import",
+    "Test by translating SlingShot.py and GameManager.py, compare to hand-written Unity 6 versions",
+    "Run roundtrip gate and record scores"
+  ],
+  "passes": false
+}
+```
+
+---
+
+## Phase: Corpus and Metrics (P2)
+
+### Task 11: Index all translation pairs and baseline metrics
+
+```json
+{
+  "category": "infrastructure",
+  "priority": 11,
+  "description": "Index all existing Python/C# pairs in the corpus and run roundtrip gate to establish baseline accuracy scores",
+  "steps": [
+    "Add all angry_birds pairs (8 files) to data/corpus/corpus_index.json",
+    "Add all breakout and fsm_platformer pairs to corpus_index.json",
+    "Run roundtrip gate on every pair, record scores in data/metrics/baseline.json",
+    "Create data/metrics/README.md summarizing pair count, avg scores per category",
+    "Identify the 5 worst-scoring pairs and document why in data/lessons/patterns.md",
+    "This establishes the baseline to measure translator improvements against"
+  ],
+  "passes": false
+}
+```
+
+### Task 12: Compilation gate
+
+```json
+{
+  "category": "infrastructure",
+  "priority": 12,
+  "description": "Add a compilation gate that verifies generated C# compiles, using dotnet build or Unity CoPlay check_compile_errors",
+  "steps": [
+    "Create src/gates/compilation_gate.py",
+    "Option 1: Generate a minimal .csproj referencing UnityEngine stubs, run dotnet build",
+    "Option 2: Copy generated .cs to AngryBirds Unity project, use CoPlay check_compile_errors",
+    "Record pass/fail and error messages",
+    "Integrate into gate pipeline (structural -> convention -> compilation -> roundtrip)",
+    "Run on all corpus pairs and record results"
+  ],
+  "passes": false
+}
+```

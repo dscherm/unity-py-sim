@@ -15,7 +15,9 @@ Develop games in Python on the work machine, validate C# output on the home mach
 - **Reference** (`src/reference/`): JSON mapping files (classes, methods, patterns) that are both human-readable learning resources and machine-readable translation tables.
 - **Translator** (`src/translator/`): AST-based bidirectional C# <-> Python translator using tree-sitter (C#) and stdlib ast (Python). Deterministic — no LLM in the translation pipeline.
 - **Gates** (`src/gates/`): Custom validation gates — structural (C# parses), convention (Unity patterns), roundtrip (C# -> Py -> C# equivalence scoring).
-- **Data** (`data/`): Translation corpus, accuracy metrics, lessons learned.
+- **Assets** (`src/assets/`): Asset manifest system — maps Python asset_ref names to Unity asset paths. Bridges the gap between colored rectangles in Python and real sprites in Unity.
+- **Exporter** (`src/exporter/`): Scene serializer and CoPlay MCP script generator — captures running Python scenes to JSON and generates Unity editor scripts for scene reconstruction via CoPlay MCP.
+- **Data** (`data/`): Translation corpus, accuracy metrics, asset manifests, asset mappings, lessons learned.
 
 ## Key Conventions
 
