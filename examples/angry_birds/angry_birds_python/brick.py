@@ -1,6 +1,7 @@
 """Destructible brick/block — takes velocity-based damage on collision."""
 
 from src.engine.core import GameObject, MonoBehaviour
+from src.engine.audio import AudioSource
 from src.engine.physics.rigidbody import Rigidbody2D
 
 
@@ -19,6 +20,11 @@ class Brick(MonoBehaviour):
         damage = collision.relative_velocity.magnitude * 10
         if damage < 5:
             return  # Ignore tiny bumps
+
+        if damage >= 10:
+            audio = self.get_component(AudioSource)
+            if audio:
+                audio.play()
 
         self.health -= damage
 

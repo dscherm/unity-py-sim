@@ -12,6 +12,8 @@ from src.engine.input_manager import Input
 from src.engine.debug import Debug
 from src.engine.scene import SceneManager
 
+from src.engine.audio import AudioSource
+
 from .bird import Bird
 from .brick import Brick
 from .pig import Pig
@@ -37,6 +39,7 @@ def _make_bird(name, pos, lm):
     sr = bird_go.add_component(SpriteRenderer)
     sr.color = (220, 50, 50)
     sr.size = Vector2(0.6, 0.6)
+    bird_go.add_component(AudioSource)  # throw sound
     bird_comp = bird_go.add_component(Bird)
     lm.register_component(bird_comp)
     return bird_go
@@ -55,6 +58,7 @@ def _make_brick(name, pos, size, health, brick_mat, lm):
     sr = brick_go.add_component(SpriteRenderer)
     sr.color = (180, 130, 70)
     sr.size = size
+    brick_go.add_component(AudioSource)  # impact sound
     brick_comp = brick_go.add_component(Brick)
     brick_comp.health = health
     brick_comp.max_health = health
@@ -75,6 +79,7 @@ def _make_pig(name, pos, lm):
     sr = pig_go.add_component(SpriteRenderer)
     sr.color = (100, 200, 80)
     sr.size = Vector2(0.6, 0.6)
+    pig_go.add_component(AudioSource)  # collision sound
     pig_comp = pig_go.add_component(Pig)
     lm.register_component(pig_comp)
     return pig_go

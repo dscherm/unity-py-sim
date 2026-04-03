@@ -535,7 +535,7 @@ Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.
     "Run headless: python tools/playtest.py angry_birds --headless --frames 500",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
