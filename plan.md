@@ -1189,3 +1189,174 @@ Goal: Remaining visual systems for completeness.
   "passes": true
 }
 ```
+
+---
+
+## Phase: Space Invaders Clone
+
+Goal: Reverse-engineer zigurous/unity-space-invaders-tutorial (7 C# scripts) into the
+Python simulator, then translate back to C# and compare. Reference cloned to
+D:/Projects/space-invaders-ref/Assets/Scripts/.
+
+Reference scripts: Player.cs, Invader.cs, Invaders.cs (grid+AI), Projectile.cs,
+Bunker.cs (destructible shields), MysteryShip.cs, GameManager.cs.
+
+### Task 1: Player controller and projectile
+
+```json
+{
+  "category": "feature",
+  "priority": 1,
+  "description": "Create player ship with A/D movement, screen-clamped, and laser projectile (one at a time)",
+  "steps": [
+    "Create examples/space_invaders/ directory (space_invaders_python/, space_invaders_unity/, run_space_invaders.py)",
+    "Create player.py — MonoBehaviour: speed=5, A/D or Left/Right movement clamped to screen edges",
+    "Create projectile.py — MonoBehaviour: direction (up/down), speed=20, moves via transform, destroyed on trigger",
+    "Player fires laser on Space/mouse click — only one active laser at a time (check if previous destroyed)",
+    "Add boundary trigger zones (top/bottom) that destroy projectiles",
+    "Create run_space_invaders.py — minimal scene: camera, player, boundary zones",
+    "Run headless 120 frames, verify player moves and laser fires",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 2: Invader grid with movement and animation
+
+```json
+{
+  "category": "feature",
+  "priority": 2,
+  "description": "Create 5x11 invader grid that moves side-to-side, advances down on edge hit, with frame animation",
+  "steps": [
+    "Create invader.py — MonoBehaviour: score value, 2-frame color animation via timer",
+    "Create invaders.py — MonoBehaviour: creates 5x11 grid as child GameObjects, moves entire grid",
+    "Grid movement: move right until rightmost invader hits screen edge, then drop 1 row and reverse",
+    "Speed increases as invaders are killed: speed = base_speed * curve(percent_killed)",
+    "get_alive_count() checks active children, reset_invaders() reactivates all",
+    "Add invaders to scene in run_space_invaders.py",
+    "Run headless 200 frames, verify grid moves and reverses",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 3: Missile attacks from invaders
+
+```json
+{
+  "category": "feature",
+  "priority": 3,
+  "description": "Invaders randomly fire missiles downward, probability based on alive count",
+  "steps": [
+    "In invaders.py: missile_attack() on timer (every 1s via coroutine)",
+    "Each alive invader has 1/alive_count chance to fire",
+    "Missile is a Projectile with direction=down, different layer than laser",
+    "Use layer system to distinguish laser from missile",
+    "Run headless 200 frames, verify missiles spawn and fall",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 4: Collision — laser kills invaders, missile kills player
+
+```json
+{
+  "category": "feature",
+  "priority": 4,
+  "description": "Wire trigger collisions: laser destroys invaders, missiles destroy player, invaders reaching bottom kills player",
+  "steps": [
+    "Player on_trigger_enter_2d: if missile or invader layer, call GameManager.on_player_killed()",
+    "Invader on_trigger_enter_2d: if laser layer, call GameManager.on_invader_killed(). If boundary, call on_boundary_reached()",
+    "Projectile on_trigger_enter_2d: destroy self on collision",
+    "Implement layer-based collision filtering using game_object.layer",
+    "Run headless 300 frames, verify kill detection",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 5: Bunker shields with destructible state
+
+```json
+{
+  "category": "feature",
+  "priority": 5,
+  "description": "Add 4 bunker shields that take damage from lasers and missiles via cell grid",
+  "steps": [
+    "Create bunker.py — health grid (8x6 cells), projectiles damage cells near impact",
+    "Visual: render as grid of small colored rectangles, destroyed cells transparent",
+    "Invaders touching bunker destroy entire bunker",
+    "reset_bunker() restores all cells for new round",
+    "Place 4 bunkers evenly spaced in scene",
+    "Run headless 300 frames, verify bunkers take damage",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 6: Mystery ship
+
+```json
+{
+  "category": "feature",
+  "priority": 6,
+  "description": "Add mystery ship that spawns every 30s, flies across top, worth 300 points",
+  "steps": [
+    "Create mystery_ship.py — speed=5, cycle_time=30, score=300",
+    "Spawns off-screen, flies across, despawns at other side",
+    "Alternates direction each spawn",
+    "on_trigger_enter_2d: if laser, despawn and award points",
+    "Add to scene in run_space_invaders.py",
+    "Run headless 500 frames, verify mystery ship appears",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 7: GameManager — score, lives, rounds, game over
+
+```json
+{
+  "category": "feature",
+  "priority": 7,
+  "description": "Add GameManager singleton with score, lives, round progression, UI, and game over",
+  "steps": [
+    "Create game_manager.py — singleton with score/lives tracking",
+    "UI: Canvas with score Text (top-left) and lives Text (top-right)",
+    "on_player_killed: decrement lives, respawn after 1s, or game over at 0",
+    "on_invader_killed: deactivate, add score, new round when all dead",
+    "on_boundary_reached: invaders hit bottom — kill player",
+    "Game over text, Enter to restart",
+    "Run headless 500 frames, verify full game flow",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 8: Write C# reference and run translator comparison
+
+```json
+{
+  "category": "translation",
+  "priority": 8,
+  "description": "Copy reference C# to space_invaders_unity/, translate Python, compare scores, target 85%+",
+  "steps": [
+    "Copy reference C# files to examples/space_invaders/space_invaders_unity/",
+    "Add all 7 pairs to data/corpus/corpus_index.json",
+    "Translate each Python file via translator",
+    "Run forward-scoring and compilation gate on generated C#",
+    "Compare accuracy to reference — target 85%+",
+    "Run playtest: python tools/playtest.py space_invaders --headless --frames 500"
+  ],
+  "passes": false
+}
+```
