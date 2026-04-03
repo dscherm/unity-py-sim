@@ -1,0 +1,73 @@
+{
+  "sprites": {
+    "player_ship": {
+      "unity_path": "Assets/Sprites/Player.png",
+      "sprite_name": "Player",
+      "ppu": 16
+    },
+    "laser": {
+      "unity_path": "Assets/Sprites/Laser.png",
+      "sprite_name": "Laser",
+      "ppu": 16
+    },
+    "missile": {
+      "unity_path": "Assets/Sprites/Missile.png",
+      "sprite_name": "Missile",
+      "ppu": 16
+    },
+    "mystery_ship": {
+      "unity_path": "Assets/Sprites/MysteryShip.png",
+      "sprite_name": "MysteryShip",
+      "ppu": 16
+    },
+    "bunker": {
+      "unity_path": "Assets/Sprites/Bunker.png",
+      "sprite_name": "Bunker",
+      "ppu": 16
+    },
+    "splat": {
+      "unity_path": "Assets/Sprites/Splat.png",
+      "sprite_name": "Splat",
+      "ppu": 16
+    },
+    "invader_01_1": {
+      "unity_path": "Assets/Sprites/Invader_01-1.png",
+      "sprite_name": "Invader_01-1",
+      "ppu": 16
+    },
+    "invader_01_2": {
+      "unity_path": "Assets/Sprites/Invader_01-2.png",
+      "sprite_name": "Invader_01-2",
+      "ppu": 16
+    },
+    "invader_02_1": {
+      "unity_path": "Assets/Sprites/Invader_02-1.png",
+      "sprite_name": "Invader_02-1",
+      "ppu": 16
+    },
+    "invader_02_2": {
+      "unity_path": "Assets/Sprites/Invader_02-2.png",
+      "sprite_name": "Invader_02-2",
+      "ppu": 16
+    },
+    "invader_03_1": {
+      "unity_path": "Assets/Sprites/Invader_03-1.png",
+      "sprite_name": "Invader_03-1",
+      "ppu": 16
+    },
+    "invader_03_2": {
+      "unity_path": "Assets/Sprites/Invader_03-2.png",
+      "sprite_name": "Invader_03-2",
+      "ppu": 16
+    }
+  },
+  "prefabs": {
+    "Invader_01": "Assets/Prefabs/Invader_01.prefab",
+    "Invader_02": "Assets/Prefabs/Invader_02.prefab",
+    "Invader_03": "Assets/Prefabs/Invader_03.prefab",
+    "Invader_Base": "Assets/Prefabs/Invader_Base.prefab",
+    "Laser": "Assets/Prefabs/Laser.prefab",
+    "Missile": "Assets/Prefabs/Missile.prefab"
+  },
+  "scene": "Assets/Scenes/Space Invaders.unity"
+}
