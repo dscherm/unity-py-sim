@@ -1,5 +1,7 @@
 # unity-py-sim
 
+> **NEVER use `isolation: "worktree"` when spawning agents in this project.** Worktrees consistently land on stale commits (failed 3 out of 3 times). Always run agents in the main working directory. See `data/lessons/testing.md` for details.
+
 Python simulation of Unity's core game engine for bidirectional C# <-> Python translation.
 
 ## Purpose
