@@ -153,7 +153,7 @@ class Tween:
         self._start_value: Any = None
         self._ease: Ease = Ease.LINEAR
         self._elapsed: float = 0.0
-        self._is_playing: bool = False
+        self._is_playing: bool = True
         self._is_complete: bool = False
         self._is_killed: bool = False
         self._loops: int = 1
@@ -245,7 +245,7 @@ class Tween:
             return False
 
         if not self._is_playing:
-            self._is_playing = True
+            return False
 
         # Capture start value on first tick
         if not self._started:
@@ -305,6 +305,7 @@ class Sequence:
         self._is_killed: bool = False
         self._on_complete: Callable[[], None] | None = None
         self._active_joins: list[Tween] = []
+        self._joins_collected: bool = False
 
     def append(self, tween: Tween) -> Sequence:
         """Add a tween that plays after the previous one completes."""
@@ -339,6 +340,15 @@ class Sequence:
         if self._is_complete or self._is_killed:
             return True
 
+        # On first tick or after advancing, collect joins following current append
+        if not self._joins_collected:
+            self._joins_collected = True
+            # Skip the current append step (index), collect all subsequent joins
+            idx = self._current_index + 1
+            while idx < len(self._steps) and self._steps[idx].is_join:
+                self._active_joins.append(self._steps[idx].tween)
+                idx += 1
+
         # Tick active joins
         self._active_joins = [j for j in self._active_joins if not j._tick(dt)]
 
@@ -353,20 +363,20 @@ class Sequence:
 
         step = self._steps[self._current_index]
 
-        if step.is_join:
-            # Start this join tween and advance to find the next non-join
-            self._active_joins.append(step.tween)
-            self._current_index += 1
-            return self._tick(0)  # Process next step immediately
-
         # Non-join: tick this tween
         done = step.tween._tick(dt)
         if done:
+            # Skip past collected joins
             self._current_index += 1
-            # Check if next steps are joins — start them
             while self._current_index < len(self._steps) and self._steps[self._current_index].is_join:
-                self._active_joins.append(self._steps[self._current_index].tween)
                 self._current_index += 1
+            self._joins_collected = False  # Reset for next group
+            # Check if sequence is now complete
+            if self._current_index >= len(self._steps) and not self._active_joins:
+                self._is_complete = True
+                if self._on_complete:
+                    self._on_complete()
+                return True
 
         return False
 
