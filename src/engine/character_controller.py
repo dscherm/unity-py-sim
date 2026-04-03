@@ -111,9 +111,10 @@ class CharacterController2D(Component):
         hit = Physics2D.raycast(origin, direction, distance, self.ground_layer_mask)
         if hit:
             # One-way platform: only collide from above
-            if (direction.y < 0 and hit.game_object and
-                hasattr(hit.game_object, 'tag') and
-                hit.game_object.tag == self.one_way_platform_tag and dy > 0):
+            hit_go = hit.collider.game_object if hit.collider and hasattr(hit.collider, 'game_object') else None
+            if (direction.y < 0 and hit_go and
+                hasattr(hit_go, 'tag') and
+                hit_go.tag == self.one_way_platform_tag and dy > 0):
                 return Vector2(pos.x, pos.y + dy)
 
             actual_dist = hit.distance - self.skin_width
@@ -179,7 +180,7 @@ class CharacterController2D(Component):
             point=hit.point if hit.point else Vector2(0, 0),
             normal=hit.normal if hit.normal else Vector2(0, 0),
             move_direction=direction,
-            game_object=getattr(hit, 'game_object', None),
+            game_object=hit.collider.game_object if hit.collider and hasattr(hit.collider, 'game_object') else None,
         )
         for callback in self.on_controller_collider_hit:
             callback(hit_data)

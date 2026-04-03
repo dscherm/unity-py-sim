@@ -59,7 +59,7 @@ class TrailRenderer(Component):
 
     def update(self) -> None:
         """Record position and prune old points."""
-        if self.game_object is None:
+        if self._game_object is None:
             return
 
         pos = self.transform.position
