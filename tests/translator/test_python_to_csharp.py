@@ -61,7 +61,7 @@ class TestReverseTranslatorBasics:
             "    def update(self):\n"
             "        h = Input.get_axis('Horizontal')\n"
         )
-        result = translate(parsed)
+        result = translate(parsed, input_system="legacy")
         assert 'Input.GetAxis("Horizontal")' in result
 
     def test_time_api_reverse(self):
@@ -108,8 +108,10 @@ class TestReverseTranslatorBasics:
 
 
 class TestPongReverseTranslation:
+    """Pong tests use legacy Input API (Input.GetAxis)."""
+
     def test_translate_paddle_controller(self):
-        result = translate_file(PONG_DIR / "paddle_controller.py")
+        result = translate_file(PONG_DIR / "paddle_controller.py", input_system="legacy")
         assert "public class PaddleController : MonoBehaviour" in result
         assert "[SerializeField] private float speed = 10f;" in result
         assert "Start()" in result
@@ -117,7 +119,7 @@ class TestPongReverseTranslation:
         assert "Input.GetAxis(" in result
 
     def test_translate_ball_controller(self):
-        result = translate_file(PONG_DIR / "ball_controller.py")
+        result = translate_file(PONG_DIR / "ball_controller.py", input_system="legacy")
         assert "public class BallController : MonoBehaviour" in result
         assert "[SerializeField] private float initialSpeed = 6f;" in result
         assert "Start()" in result
@@ -126,14 +128,14 @@ class TestPongReverseTranslation:
         assert "OnCollisionEnter2D(Collision2D collision)" in result
 
     def test_translate_score_manager(self):
-        result = translate_file(PONG_DIR / "score_manager.py")
+        result = translate_file(PONG_DIR / "score_manager.py", input_system="legacy")
         assert "public class ScoreManager : MonoBehaviour" in result
         assert "public static int scoreLeft = 0;" in result
         assert "public static" in result
         assert "Debug.Log(" in result
 
     def test_translate_game_manager(self):
-        result = translate_file(PONG_DIR / "game_manager.py")
+        result = translate_file(PONG_DIR / "game_manager.py", input_system="legacy")
         assert "public class GameManager : MonoBehaviour" in result
         assert "Start()" in result
         assert "Update()" in result
@@ -145,7 +147,7 @@ class TestPongReverseTranslation:
         for py_file in PONG_DIR.glob("*.py"):
             if py_file.name.startswith("__"):
                 continue
-            result = translate_file(py_file)
+            result = translate_file(py_file, input_system="legacy")
             assert "using UnityEngine;" in result, f"{py_file.name} missing using UnityEngine"
 
 
@@ -457,3 +459,168 @@ class TestAttributeInference:
         )
         result = translate(parsed)
         assert "RequireComponent" not in result
+
+
+class TestUnity6ApiMappings:
+    """Test Unity 6 velocity → linearVelocity and new Input System mappings."""
+
+    def test_velocity_to_linear_velocity_unity6(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        self.rb.velocity = Vector2(1, 0)\n"
+        )
+        result = translate(parsed, unity_version=6)
+        assert "rb.linearVelocity" in result
+
+    def test_velocity_stays_velocity_unity5(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        self.rb.velocity = Vector2(1, 0)\n"
+        )
+        result = translate(parsed, unity_version=5, input_system="legacy")
+        assert "rb.velocity" in result
+        assert "linearVelocity" not in result
+
+    def test_new_input_mouse_button_down(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "from src.engine.input_manager import Input\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        if Input.get_mouse_button_down(0):\n"
+            "            pass\n"
+        )
+        result = translate(parsed, input_system="new")
+        assert "Mouse.current.leftButton.wasPressedThisFrame" in result
+
+    def test_new_input_mouse_button_up(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "from src.engine.input_manager import Input\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        if Input.get_mouse_button_up(0):\n"
+            "            pass\n"
+        )
+        result = translate(parsed, input_system="new")
+        assert "Mouse.current.leftButton.wasReleasedThisFrame" in result
+
+    def test_new_input_mouse_button_held(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "from src.engine.input_manager import Input\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        if Input.get_mouse_button(0):\n"
+            "            pass\n"
+        )
+        result = translate(parsed, input_system="new")
+        assert "Mouse.current.leftButton.isPressed" in result
+
+    def test_new_input_right_mouse_button(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "from src.engine.input_manager import Input\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        if Input.get_mouse_button_down(1):\n"
+            "            pass\n"
+        )
+        result = translate(parsed, input_system="new")
+        assert "Mouse.current.rightButton.wasPressedThisFrame" in result
+
+    def test_new_input_key_down(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "from src.engine.input_manager import Input\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        if Input.get_key_down('space'):\n"
+            "            pass\n"
+        )
+        result = translate(parsed, input_system="new")
+        assert "Keyboard.current.spaceKey.wasPressedThisFrame" in result
+
+    def test_new_input_key_pressed(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "from src.engine.input_manager import Input\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        if Input.get_key('escape'):\n"
+            "            pass\n"
+        )
+        result = translate(parsed, input_system="new")
+        assert "Keyboard.current.escapeKey.isPressed" in result
+
+    def test_new_input_axis_emits_todo(self):
+        """get_axis has no direct equivalent in new input system — emit TODO."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "from src.engine.input_manager import Input\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        h = Input.get_axis('Horizontal')\n"
+        )
+        result = translate(parsed, input_system="new")
+        assert "TODO" in result
+        assert "Horizontal" in result
+
+    def test_using_input_system_added(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "from src.engine.input_manager import Input\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        if Input.get_key_down('space'):\n"
+            "            pass\n"
+        )
+        result = translate(parsed, input_system="new")
+        assert "using UnityEngine.InputSystem;" in result
+
+    def test_no_input_system_using_in_legacy(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "from src.engine.input_manager import Input\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        if Input.get_key_down('space'):\n"
+            "            pass\n"
+        )
+        result = translate(parsed, input_system="legacy")
+        assert "UnityEngine.InputSystem" not in result
+        assert "Input.GetKeyDown" in result
+
+    def test_legacy_input_mouse_button(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "from src.engine.input_manager import Input\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        if Input.get_mouse_button_down(0):\n"
+            "            pass\n"
+        )
+        result = translate(parsed, input_system="legacy")
+        assert "Input.GetMouseButtonDown(0)" in result
+        assert "Mouse.current" not in result
+
+    def test_slingshot_unity6_new_input(self):
+        """Full file test: slingshot uses mouse input and velocity."""
+        result = translate_file(ANGRY_BIRDS_DIR / "slingshot.py")
+        assert "Mouse.current" in result
+        assert "linearVelocity" in result
+        assert "using UnityEngine.InputSystem;" in result
+
+    def test_slingshot_unity5_legacy(self):
+        result = translate_file(
+            ANGRY_BIRDS_DIR / "slingshot.py",
+            unity_version=5, input_system="legacy",
+        )
+        assert "Input.GetMouseButton" in result
+        assert ".velocity" in result
+        assert "linearVelocity" not in result
+        assert "Mouse.current" not in result

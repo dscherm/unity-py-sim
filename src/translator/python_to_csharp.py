@@ -23,19 +23,46 @@ _type_mapper = TypeMapper()
 _jinja_env = Environment(loader=FileSystemLoader(str(_TEMPLATE_DIR)), trim_blocks=True, lstrip_blocks=True)
 
 
-def translate_file(path: str | Path) -> str:
+# ── Translation config (set per-call) ─────────────────────────
+
+class _TranslationConfig:
+    """Per-translation configuration, set by translate()/translate_file()."""
+    unity_version: int = 6
+    input_system: str = "new"  # "legacy" or "new"
+
+_config = _TranslationConfig()
+
+
+def translate_file(
+    path: str | Path,
+    *,
+    namespace: str | None = None,
+    unity_version: int = 6,
+    input_system: str = "new",
+) -> str:
     """Translate a Python file to C# source code."""
     parsed = parse_python_file(path)
-    return translate(parsed)
+    return translate(parsed, namespace=namespace, unity_version=unity_version, input_system=input_system)
 
 
-def translate(parsed: PyFile, namespace: str | None = None) -> str:
+def translate(
+    parsed: PyFile,
+    namespace: str | None = None,
+    *,
+    unity_version: int = 6,
+    input_system: str = "new",
+) -> str:
     """Translate a PyFile IR to C# source code.
 
     Args:
         parsed: The parsed Python IR.
         namespace: Optional C# namespace to wrap the output in.
+        unity_version: Target Unity version (default 6). Affects API mappings.
+        input_system: "legacy" or "new" (default "new"). Controls Input API translation.
     """
+    _config.unity_version = unity_version
+    _config.input_system = input_system
+
     results = []
     for cls in parsed.classes:
         results.append(_translate_class(cls, parsed))
@@ -505,6 +532,90 @@ def _translate_list_comprehension(expr: str) -> str:
     return expr
 
 
+# ── New Input System key name mapping ──────────────────────────
+
+_KEY_NAME_MAP = {
+    "space": "spaceKey",
+    "escape": "escapeKey",
+    "left": "leftArrowKey",
+    "right": "rightArrowKey",
+    "up": "upArrowKey",
+    "down": "downArrowKey",
+    "return": "enterKey",
+    "tab": "tabKey",
+    "left_shift": "leftShiftKey",
+    "right_shift": "rightShiftKey",
+    "left_control": "leftCtrlKey",
+    "right_control": "rightCtrlKey",
+    "a": "aKey", "b": "bKey", "c": "cKey", "d": "dKey",
+    "e": "eKey", "f": "fKey", "g": "gKey", "h": "hKey",
+    "i": "iKey", "j": "jKey", "k": "kKey", "l": "lKey",
+    "m": "mKey", "n": "nKey", "o": "oKey", "p": "pKey",
+    "q": "qKey", "r": "rKey", "s": "sKey", "t": "tKey",
+    "u": "uKey", "v": "vKey", "w": "wKey", "x": "xKey",
+    "y": "yKey", "z": "zKey",
+}
+
+_MOUSE_BUTTON_MAP = {
+    "0": "leftButton",
+    "1": "rightButton",
+    "2": "middleButton",
+}
+
+
+def _translate_new_input_system(expr: str) -> str:
+    """Translate Input.get_* calls to Unity New Input System (Mouse/Keyboard)."""
+    # Input.get_mouse_button_down(0) -> Mouse.current.leftButton.wasPressedThisFrame
+    expr = re.sub(
+        r"Input\.get_mouse_button_down\((\d)\)",
+        lambda m: f"Mouse.current.{_MOUSE_BUTTON_MAP.get(m.group(1), 'leftButton')}.wasPressedThisFrame",
+        expr,
+    )
+    # Input.get_mouse_button_up(0) -> Mouse.current.leftButton.wasReleasedThisFrame
+    expr = re.sub(
+        r"Input\.get_mouse_button_up\((\d)\)",
+        lambda m: f"Mouse.current.{_MOUSE_BUTTON_MAP.get(m.group(1), 'leftButton')}.wasReleasedThisFrame",
+        expr,
+    )
+    # Input.get_mouse_button(0) -> Mouse.current.leftButton.isPressed
+    expr = re.sub(
+        r"Input\.get_mouse_button\((\d)\)",
+        lambda m: f"Mouse.current.{_MOUSE_BUTTON_MAP.get(m.group(1), 'leftButton')}.isPressed",
+        expr,
+    )
+    # Input.get_mouse_position() / Input.mouse_position -> Mouse.current.position.ReadValue()
+    expr = re.sub(r"Input\.get_mouse_position\(\)", "Mouse.current.position.ReadValue()", expr)
+    expr = re.sub(r"Input\.mouse_position", "Mouse.current.position.ReadValue()", expr)
+
+    # Input.get_key_down('space') -> Keyboard.current.spaceKey.wasPressedThisFrame
+    expr = re.sub(
+        r"Input\.get_key_down\(['\"](\w+)['\"]\)",
+        lambda m: f"Keyboard.current.{_KEY_NAME_MAP.get(m.group(1), m.group(1) + 'Key')}.wasPressedThisFrame",
+        expr,
+    )
+    # Input.get_key_up('space') -> Keyboard.current.spaceKey.wasReleasedThisFrame
+    expr = re.sub(
+        r"Input\.get_key_up\(['\"](\w+)['\"]\)",
+        lambda m: f"Keyboard.current.{_KEY_NAME_MAP.get(m.group(1), m.group(1) + 'Key')}.wasReleasedThisFrame",
+        expr,
+    )
+    # Input.get_key('space') -> Keyboard.current.spaceKey.isPressed
+    expr = re.sub(
+        r"Input\.get_key\(['\"](\w+)['\"]\)",
+        lambda m: f"Keyboard.current.{_KEY_NAME_MAP.get(m.group(1), m.group(1) + 'Key')}.isPressed",
+        expr,
+    )
+
+    # Input.get_axis('Horizontal') -> keep as comment/TODO since new input system uses Actions
+    expr = re.sub(
+        r"Input\.get_axis\(['\"](\w+)['\"]\)",
+        r'/* TODO: use InputAction for \1 axis */ 0f',
+        expr,
+    )
+
+    return expr
+
+
 def _translate_py_expression(expr: str) -> str:
     """Translate a Python expression to C#."""
     expr = expr.strip()
@@ -521,10 +632,21 @@ def _translate_py_expression(expr: str) -> str:
     expr = re.sub(r"GameObject\.find_game_objects_with_tag\(", "GameObject.FindGameObjectsWithTag(", expr)
     expr = re.sub(r"GameObject\.destroy\(", "Destroy(", expr)
 
-    # Input/Time API
-    expr = re.sub(r"Input\.get_axis\(", "Input.GetAxis(", expr)
-    expr = re.sub(r"Input\.get_key\(", "Input.GetKey(", expr)
-    expr = re.sub(r"Input\.get_key_down\(", "Input.GetKeyDown(", expr)
+    # Input API — version-dependent
+    if _config.input_system == "new":
+        expr = _translate_new_input_system(expr)
+    else:
+        expr = re.sub(r"Input\.get_axis\(", "Input.GetAxis(", expr)
+        expr = re.sub(r"Input\.get_key\(", "Input.GetKey(", expr)
+        expr = re.sub(r"Input\.get_key_down\(", "Input.GetKeyDown(", expr)
+        expr = re.sub(r"Input\.get_key_up\(", "Input.GetKeyUp(", expr)
+        expr = re.sub(r"Input\.get_mouse_button\(", "Input.GetMouseButton(", expr)
+        expr = re.sub(r"Input\.get_mouse_button_down\(", "Input.GetMouseButtonDown(", expr)
+        expr = re.sub(r"Input\.get_mouse_button_up\(", "Input.GetMouseButtonUp(", expr)
+        expr = re.sub(r"Input\.get_mouse_position\(\)", "Input.mousePosition", expr)
+        expr = re.sub(r"Input\.mouse_position", "Input.mousePosition", expr)
+
+    # Time API
     expr = expr.replace("Time.delta_time", "Time.deltaTime")
     expr = expr.replace("Time.fixed_delta_time", "Time.fixedDeltaTime")
 
@@ -569,14 +691,25 @@ def _translate_py_expression(expr: str) -> str:
     expr = re.sub(r"\blist\((.+)\)$", r"\1.ToList()", expr)
 
     # Property names: snake_case -> camelCase for known Unity properties
-    for py_prop, cs_prop in [
-        ("angular_velocity", "angularVelocity"),
+    _prop_map = [
         ("gravity_scale", "gravityScale"),
         ("body_type", "bodyType"),
         ("sorting_order", "sortingOrder"),
         ("orthographic_size", "orthographicSize"),
         ("background_color", "backgroundColor"),
-    ]:
+        ("sqr_magnitude", "sqrMagnitude"),
+        ("mouse_position", "mousePosition"),
+    ]
+
+    # Unity 6+: velocity -> linearVelocity, angularVelocity -> angularVelocity (same)
+    if _config.unity_version >= 6:
+        _prop_map.append(("velocity", "linearVelocity"))
+        _prop_map.append(("angular_velocity", "angularVelocity"))
+    else:
+        _prop_map.append(("angular_velocity", "angularVelocity"))
+        # velocity stays as velocity for Unity 5
+
+    for py_prop, cs_prop in _prop_map:
         expr = expr.replace(f".{py_prop}", f".{cs_prop}")
 
     # String quotes: '...' -> "..."
@@ -697,5 +830,11 @@ def _infer_using_directives(cls: PyClass, parsed: PyFile) -> list[str]:
     if "random" in " ".join(parsed.imports):
         # No extra using needed — Random is in UnityEngine
         pass
+
+    # Add UnityEngine.InputSystem when new input system is active and Input is used
+    if _config.input_system == "new":
+        import_text = " ".join(parsed.imports)
+        if "Input" in all_text or "Input" in import_text:
+            extra.add("UnityEngine.InputSystem")
 
     return sorted(extra)
