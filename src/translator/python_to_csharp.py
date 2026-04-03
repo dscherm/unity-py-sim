@@ -241,7 +241,7 @@ def _translate_py_statement(line: str) -> str:
         cond = _translate_py_condition(cond)
         return f"while ({cond})"
     if line.startswith("for ") and line.endswith(":"):
-        return f"// TODO: translate for loop: {line}"
+        return _translate_for_loop(line)
 
     # Yield (coroutine)
     if line.startswith("yield "):
@@ -286,6 +286,171 @@ def _translate_py_statement(line: str) -> str:
     return f"{expr};"
 
 
+def _translate_for_loop(line: str) -> str:
+    """Translate a Python for-loop to C# for/foreach."""
+    # Strip 'for ' prefix and ':' suffix
+    body = line[4:-1].strip()
+
+    # Match: var in range(...)
+    range_match = re.match(r"(\w+)\s+in\s+range\((.+)\)$", body)
+    if range_match:
+        var = range_match.group(1)
+        args_str = range_match.group(2)
+        args = _split_args(args_str)
+        cs_var = snake_to_camel(var)
+        if len(args) == 1:
+            # range(n) -> for (int var = 0; var < n; var++)
+            limit = _translate_py_expression(args[0])
+            return f"for (int {cs_var} = 0; {cs_var} < {limit}; {cs_var}++)"
+        elif len(args) == 2:
+            # range(start, end) -> for (int var = start; var < end; var++)
+            start = _translate_py_expression(args[0])
+            end = _translate_py_expression(args[1])
+            return f"for (int {cs_var} = {start}; {cs_var} < {end}; {cs_var}++)"
+        elif len(args) == 3:
+            # range(start, end, step) -> for (int var = start; var < end; var += step)
+            start = _translate_py_expression(args[0])
+            end = _translate_py_expression(args[1])
+            step = _translate_py_expression(args[2])
+            return f"for (int {cs_var} = {start}; {cs_var} < {end}; {cs_var} += {step})"
+
+    # Match: var in collection (foreach)
+    foreach_match = re.match(r"(\w+)\s+in\s+(.+)$", body)
+    if foreach_match:
+        var = foreach_match.group(1)
+        collection = foreach_match.group(2).strip()
+        cs_var = snake_to_camel(var)
+        cs_collection = _translate_py_expression(collection)
+        return f"foreach (var {cs_var} in {cs_collection})"
+
+    # Tuple unpacking: var1, var2 in collection — emit TODO
+    return f"// TODO: translate for loop: {line}"
+
+
+def _split_args(args_str: str) -> list[str]:
+    """Split comma-separated arguments respecting parentheses."""
+    result = []
+    depth = 0
+    current = ""
+    for ch in args_str:
+        if ch in "([{":
+            depth += 1
+            current += ch
+        elif ch in ")]}":
+            depth -= 1
+            current += ch
+        elif ch == "," and depth == 0:
+            result.append(current.strip())
+            current = ""
+        else:
+            current += ch
+    if current.strip():
+        result.append(current.strip())
+    return result
+
+
+def _translate_len_calls(expr: str) -> str:
+    """Translate len(x) to x.Count."""
+    # Find len( and match balanced parens
+    while True:
+        match = re.search(r"\blen\(", expr)
+        if not match:
+            break
+        start = match.start()
+        paren_start = match.end() - 1  # position of '('
+        depth = 1
+        pos = paren_start + 1
+        while pos < len(expr) and depth > 0:
+            if expr[pos] == "(":
+                depth += 1
+            elif expr[pos] == ")":
+                depth -= 1
+            pos += 1
+        if depth == 0:
+            inner = expr[paren_start + 1:pos - 1]
+            inner_translated = _translate_py_expression(inner)
+            expr = expr[:start] + f"{inner_translated}.Count" + expr[pos:]
+        else:
+            break
+    return expr
+
+
+def _translate_all_call(expr: str) -> str:
+    """Translate all(pred for x in coll) to coll.All(x => pred)."""
+    match = re.match(r"^all\((.+)\s+for\s+(\w+)\s+in\s+(.+)\)$", expr)
+    if match:
+        pred = match.group(1).strip()
+        var = match.group(2)
+        coll = match.group(3).strip()
+        cs_var = snake_to_camel(var)
+        cs_coll = _translate_py_expression(coll)
+        cs_pred = _translate_py_condition(pred.replace(var, cs_var))
+        return f"{cs_coll}.All({cs_var} => {cs_pred})"
+    return expr
+
+
+def _translate_any_call(expr: str) -> str:
+    """Translate any(pred for x in coll) to coll.Any(x => pred)."""
+    match = re.match(r"^any\((.+)\s+for\s+(\w+)\s+in\s+(.+)\)$", expr)
+    if match:
+        pred = match.group(1).strip()
+        var = match.group(2)
+        coll = match.group(3).strip()
+        cs_var = snake_to_camel(var)
+        cs_coll = _translate_py_expression(coll)
+        cs_pred = _translate_py_condition(pred.replace(var, cs_var))
+        return f"{cs_coll}.Any({cs_var} => {cs_pred})"
+    return expr
+
+
+def _translate_sum_count_call(expr: str) -> str:
+    """Translate sum(1 for x in coll if cond) to coll.Count(x => cond)."""
+    match = re.match(r"^sum\(1\s+for\s+(\w+)\s+in\s+(.+?)\s+if\s+(.+)\)$", expr)
+    if match:
+        var = match.group(1)
+        coll = match.group(2).strip()
+        cond = match.group(3).strip()
+        cs_var = snake_to_camel(var)
+        cs_coll = _translate_py_expression(coll)
+        cs_cond = _translate_py_condition(cond.replace(var, cs_var))
+        return f"{cs_coll}.Count({cs_var} => {cs_cond})"
+    return expr
+
+
+def _translate_list_comprehension(expr: str) -> str:
+    """Translate [expr for x in coll if cond] to LINQ."""
+    # Match [mapping for var in collection if condition]
+    match = re.match(r"^\[(.+?)\s+for\s+(\w+)\s+in\s+(.+?)\s+if\s+(.+)\]$", expr)
+    if match:
+        mapping = match.group(1).strip()
+        var = match.group(2)
+        coll = match.group(3).strip()
+        cond = match.group(4).strip()
+        cs_var = snake_to_camel(var)
+        cs_coll = _translate_py_expression(coll)
+        cs_cond = _translate_py_condition(cond.replace(var, cs_var))
+        cs_mapping = _translate_py_expression(mapping.replace(var, cs_var))
+        # If mapping is just the variable, skip Select
+        if cs_mapping == cs_var:
+            return f"{cs_coll}.Where({cs_var} => {cs_cond}).ToList()"
+        return f"{cs_coll}.Where({cs_var} => {cs_cond}).Select({cs_var} => {cs_mapping}).ToList()"
+
+    # Match [mapping for var in collection] (no filter)
+    match = re.match(r"^\[(.+?)\s+for\s+(\w+)\s+in\s+(.+)\]$", expr)
+    if match:
+        mapping = match.group(1).strip()
+        var = match.group(2)
+        coll = match.group(3).strip()
+        cs_var = snake_to_camel(var)
+        cs_coll = _translate_py_expression(coll)
+        cs_mapping = _translate_py_expression(mapping.replace(var, cs_var))
+        if cs_mapping == cs_var:
+            return f"{cs_coll}.ToList()"
+        return f"{cs_coll}.Select({cs_var} => {cs_mapping}).ToList()"
+
+    return expr
+
+
 def _translate_py_expression(expr: str) -> str:
     """Translate a Python expression to C#."""
     expr = expr.strip()
@@ -323,6 +488,31 @@ def _translate_py_expression(expr: str) -> str:
 
     # .game_object -> .gameObject
     expr = expr.replace(".game_object", ".gameObject")
+
+    # List operations: .append(x) -> .Add(x), .remove(x) -> .Remove(x)
+    expr = re.sub(r"\.append\(", ".Add(", expr)
+    expr = re.sub(r"\.remove\(", ".Remove(", expr)
+    expr = re.sub(r"\.extend\(", ".AddRange(", expr)
+    expr = re.sub(r"\.insert\(", ".Insert(", expr)
+
+    # len(x) -> x.Count (for lists) — handle nested parens
+    expr = _translate_len_calls(expr)
+
+    # all(pred for x in collection) -> collection.All(x => pred)
+    expr = _translate_all_call(expr)
+
+    # any(pred for x in collection) -> collection.Any(x => pred)
+    expr = _translate_any_call(expr)
+
+    # sum(1 for x in collection if cond) -> collection.Count(x => cond)
+    expr = _translate_sum_count_call(expr)
+
+    # List comprehensions: [expr for x in coll] -> coll.Select(x => expr).ToList()
+    # [expr for x in coll if cond] -> coll.Where(x => cond).Select(x => expr).ToList()
+    expr = _translate_list_comprehension(expr)
+
+    # list(...) wrapper -> .ToList()
+    expr = re.sub(r"\blist\((.+)\)$", r"\1.ToList()", expr)
 
     # Property names: snake_case -> camelCase for known Unity properties
     for py_prop, cs_prop in [
@@ -365,10 +555,11 @@ def _translate_py_expression(expr: str) -> str:
 
 def _translate_py_condition(cond: str) -> str:
     """Translate a Python condition to C#."""
+    # Handle 'is not None' / 'is None' before expression translation mangles them
+    cond = cond.replace(" is not None", " != null").replace(" is None", " == null")
     cond = _translate_py_expression(cond)
     cond = cond.replace(" and ", " && ").replace(" or ", " || ")
     cond = re.sub(r"\bnot\s+", "!", cond)
-    cond = cond.replace(" is null", " == null").replace(" is not null", " != null")
     return cond
 
 
@@ -437,6 +628,18 @@ def _infer_using_directives(cls: PyClass, parsed: PyFile) -> list[str]:
     # Add System.Collections if any method is a coroutine
     if any(m.is_coroutine for m in cls.methods):
         extra.add("System.Collections")
+
+    # Add System.Linq if LINQ operations are used (all(), any(), sum() with generators,
+    # list comprehensions, or .Where/.Select/.Count with lambdas)
+    _linq_indicators = ["all(", "any(", "sum(1 for", " for ", " if "]
+    if any(indicator in all_text for indicator in _linq_indicators):
+        # Check more specifically — look for generator expressions
+        if (re.search(r"\ball\(.+for\s+\w+\s+in\s+", all_text) or
+            re.search(r"\bany\(.+for\s+\w+\s+in\s+", all_text) or
+            re.search(r"\bsum\(1\s+for\s+", all_text) or
+            re.search(r"\[.+for\s+\w+\s+in\s+", all_text)):
+            extra.add("System.Linq")
+
     if "random" in " ".join(parsed.imports):
         # No extra using needed — Random is in UnityEngine
         pass
