@@ -346,3 +346,238 @@ Priority order based on real bugs hit during Breakout/FSM ports and common Unity
   "passes": false
 }
 ```
+
+---
+
+## Phase: Angry Birds Clone
+
+Goal: Build an Angry Birds-style game that exercises the new engine subsystems (PhysicsMaterial2D, Physics2D queries, coroutines, Debug, audio, UI, scene management) and drives implementation of missing features (mouse input drag, trajectory preview, velocity-based damage).
+
+Reference implementation: https://github.com/dgkanatsios/AngryBirdsStyleGame
+Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.cs, Constants.cs, Enums.cs
+
+### Task 1: Engine — mouse drag input and trajectory preview
+
+```json
+{
+  "category": "engine",
+  "priority": 1,
+  "description": "Add mouse drag tracking (press/hold/release) and Debug.draw_line trajectory preview to engine",
+  "steps": [
+    "Add Input.get_mouse_button_up(button) to src/engine/input_manager.py (complement to existing get_mouse_button_down)",
+    "Add Input.get_mouse_button(button) for continuous hold detection (may already exist — verify)",
+    "Add Camera.screen_to_world_point(screen_pos) method if not already present (SlingShot needs it)",
+    "Test mouse input: press down, hold, release cycle via _set_mouse_button and _begin_frame",
+    "Add trajectory preview helper: given launch velocity and gravity, compute N points using kinematic equations",
+    "Test trajectory math against known parabolic arc",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 2: Core game — slingshot, bird, and launch mechanics
+
+```json
+{
+  "category": "feature",
+  "priority": 2,
+  "description": "Create slingshot launcher with drag-to-aim and bird launch using velocity-based throwing",
+  "steps": [
+    "Create examples/angry_birds/ directory structure (angry_birds_python/, angry_birds_unity/, run_angry_birds.py)",
+    "Create angry_birds_python/__init__.py",
+    "Create constants.py — MinVelocity=0.05, BirdColliderRadiusNormal=0.235, BirdColliderRadiusBig=0.5",
+    "Create enums.py — SlingshotState(Idle/UserPulling/BirdFlying), GameState(Start/Playing/Won/Lost), BirdState(BeforeThrown/Thrown)",
+    "Create bird.py — MonoBehaviour: starts kinematic, OnThrow() enables physics, FixedUpdate checks sqrMagnitude < MinVelocity, coroutine DestroyAfter(2s)",
+    "Create slingshot.py — MonoBehaviour: Idle/UserPulling/BirdFlying states, mouse drag moves bird (clamped 1.5 max pull), release calculates velocity = (middle - bird_pos) * throw_speed * distance, sets rb.velocity",
+    "Create run_angry_birds.py — minimal scene: camera, ground, slingshot origin, one bird. Mouse click+drag to aim, release to launch",
+    "Run headless 120 frames with simulated mouse drag, verify bird launches",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 3: Trajectory preview with Debug.draw_line
+
+```json
+{
+  "category": "feature",
+  "priority": 3,
+  "description": "Draw projected flight path while user drags the slingshot using Debug.draw_line",
+  "steps": [
+    "In slingshot.py UserPulling state, compute 15-segment trajectory using kinematic equation: pos = start + vel*t + 0.5*gravity*t^2",
+    "Draw trajectory using Debug.draw_line between consecutive segments (duration=0 for per-frame update)",
+    "Clear trajectory lines when bird is released or state changes to Idle",
+    "Verify trajectory visually matches actual flight path",
+    "Run headless, verify Debug.get_lines() has trajectory segments during pull state",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 4: Destructible structures — bricks with health
+
+```json
+{
+  "category": "feature",
+  "priority": 4,
+  "description": "Add brick/block objects with health that take velocity-based damage on collision",
+  "steps": [
+    "Create brick.py — MonoBehaviour: health=70, on_collision_enter_2d calculates damage = collision.relative_velocity.magnitude * 10, destroys when health <= 0",
+    "Create 3 brick types with different visual sizes: small (0.5x0.5, health=40), medium (1x0.5, health=70), large (1x1, health=120)",
+    "Add PhysicsMaterial2D to bricks (bounciness=0.2, friction=0.6) for wood-like behavior",
+    "Build a simple structure: stack of 6 bricks forming a small tower",
+    "Add structure to run_angry_birds.py scene setup",
+    "Run headless 200 frames with bird launched at structure, verify some bricks destroyed",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 5: Pigs with health and damage
+
+```json
+{
+  "category": "feature",
+  "priority": 5,
+  "description": "Add pig targets that take damage from bird impact and falling bricks",
+  "steps": [
+    "Create pig.py — MonoBehaviour: health=150, on_collision_enter_2d: if tag=='Bird' destroy immediately, else calculate velocity damage, change sprite color when hurt (health < 120)",
+    "Add Rigidbody2D (dynamic) and CircleCollider2D to pigs so they react to physics",
+    "Place 2 pigs inside/behind the brick structure in scene setup",
+    "Verify bird-on-pig collision destroys pig, brick-on-pig collision does velocity damage",
+    "Run headless 200 frames, verify at least one pig takes damage",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 6: Boundary destroyers and ground
+
+```json
+{
+  "category": "feature",
+  "priority": 6,
+  "description": "Add screen boundary trigger zones that destroy objects, and a proper ground plane",
+  "steps": [
+    "Create destroyer.py — MonoBehaviour: on_trigger_enter_2d destroys objects with tags Bird/Pig/Brick",
+    "Add destroyer trigger zones at left, right, and bottom screen borders (large trigger colliders)",
+    "Add solid ground plane (static Rigidbody2D + BoxCollider2D) with PhysicsMaterial2D(bounciness=0.1, friction=0.8)",
+    "Verify bird falls to ground after energy dissipates, then destroyer cleans up after 2s coroutine",
+    "Run headless 300 frames, verify cleanup happens",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 7: GameManager — bird queue, win/lose, game flow
+
+```json
+{
+  "category": "feature",
+  "priority": 7,
+  "description": "Add GameManager controlling bird queue, turn flow, win/lose conditions",
+  "steps": [
+    "Create game_manager.py — MonoBehaviour: tracks bird list, pig list, current bird index",
+    "GameState.Start: wait for click to start, animate first bird to slingshot position",
+    "GameState.Playing: after bird thrown, wait for all objects to stop moving (sqrMagnitude < MinVelocity) or 5s timeout",
+    "After settling: if all pigs destroyed → Won, elif no more birds → Lost, else load next bird",
+    "Use coroutine for camera-follow-bird behavior (lerp camera to bird while flying)",
+    "Display game state in window title (like Breakout example)",
+    "Run headless 500 frames, verify full game flow executes",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 8: Multiple birds and level design
+
+```json
+{
+  "category": "feature",
+  "priority": 8,
+  "description": "Add 3 birds per level with a proper structure layout",
+  "steps": [
+    "Queue 3 birds at waiting positions to the left of the slingshot",
+    "Each bird animates (lerp position) to slingshot when it's their turn",
+    "Design Level 1: L-shaped structure with 3 pigs, mix of small/medium/large bricks",
+    "Design Level 2: Tower structure with 2 pigs behind walls (use SceneManager for level loading)",
+    "Register both levels with SceneManager.register_scene",
+    "On win, load next level. On last level win, display 'You Win!'",
+    "Run headless 300 frames per level, verify level progression works",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 9: Audio and UI polish
+
+```json
+{
+  "category": "feature",
+  "priority": 9,
+  "description": "Add sound effects via AudioSource and UI text for game state",
+  "steps": [
+    "Add AudioSource to Bird — play sound on throw (OnThrow)",
+    "Add AudioSource to Pig — play sound on collision damage",
+    "Add AudioSource to Brick — play sound on collision (only for damage >= 10)",
+    "Add UI Canvas with Text showing game state (Start/Playing/Won/Lost) and birds remaining",
+    "Add UI Text for score (points per pig destroyed, points per brick destroyed)",
+    "Verify UI text updates correctly through game flow",
+    "Run playtest: python tools/playtest.py angry_birds",
+    "Run headless: python tools/playtest.py angry_birds --headless --frames 500",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 10: Write C# reference files
+
+```json
+{
+  "category": "translation",
+  "priority": 10,
+  "description": "Write matching C# reference implementations in angry_birds_unity/",
+  "steps": [
+    "Create angry_birds_unity/ directory",
+    "Write Bird.cs, SlingShot.cs, Pig.cs, Brick.cs matching reference repo patterns",
+    "Write GameManager.cs, Destroyer.cs, Constants.cs, Enums.cs",
+    "Ensure C# follows Unity conventions (SerializeField, PascalCase, GetComponent<T>)",
+    "Compare Python vs C# for translation accuracy",
+    "Document any new translation gotchas in data/lessons/gotchas.md",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 11: Integration, contract, and mutation tests
+
+```json
+{
+  "category": "validation",
+  "priority": 11,
+  "description": "Write integration tests exercising angry birds systems through real game loop, contract tests for physics damage model, mutation tests for game logic",
+  "steps": [
+    "Integration: launch bird at structure via app.run(), verify bricks damaged, pigs take hits",
+    "Integration: full game flow — launch all birds, verify win/lose state reached",
+    "Contract: velocity-based damage formula matches reference (magnitude * 10)",
+    "Contract: bird with sqrMagnitude < MinVelocity triggers destruction coroutine",
+    "Contract: slingshot pull distance clamped to 1.5 units",
+    "Mutation: break damage formula, verify test catches it",
+    "Mutation: break bird velocity threshold, verify test catches it",
+    "Mutation: break pig instant-kill on bird tag, verify test catches it",
+    "Run all tests including new ones",
+    "Assign validation tests to independent agent (per data/lessons/testing.md)"
+  ],
+  "passes": false
+}
+```
