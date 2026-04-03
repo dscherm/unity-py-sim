@@ -48,6 +48,7 @@ def _reset_all():
     Time._reset()
     Debug._reset()
     GameManager.reset()
+    GameManager.current_level_index = 0
     yield
     _clear_registry()
     LifecycleManager.reset()
@@ -58,6 +59,7 @@ def _reset_all():
     Time._reset()
     Debug._reset()
     GameManager.reset()
+    GameManager.current_level_index = 0
 
 
 def _make_brick_go(pos=Vector2(0, 0), health=70.0):
