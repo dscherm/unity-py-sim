@@ -372,7 +372,7 @@ Key scripts: Bird.cs, SlingShot.cs, Pig.cs, Brick.cs, GameManager.cs, Destroyer.
     "Test trajectory math against known parabolic arc",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
