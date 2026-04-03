@@ -1,6 +1,7 @@
 """Run Angry Birds in the Python Unity simulator.
 
 Controls:
+  Click to start
   Click + drag bird to aim slingshot
   Release to launch
   ESC: Quit
@@ -24,7 +25,11 @@ from src.engine.debug import Debug
 from src.engine.app import run
 
 from angry_birds_python.bird import Bird
+from angry_birds_python.brick import Brick
+from angry_birds_python.pig import Pig
+from angry_birds_python.destroyer import Destroyer
 from angry_birds_python.slingshot import Slingshot
+from angry_birds_python.game_manager import GameManager
 
 
 class QuitHandler(MonoBehaviour):
@@ -33,6 +38,80 @@ class QuitHandler(MonoBehaviour):
             from src.engine.rendering.display import DisplayManager
             DisplayManager.instance().request_quit()
         Debug.tick(0.016)
+
+
+def _make_bird(name, pos, lm):
+    """Create a bird GameObject at a waiting position."""
+    bird_go = GameObject(name, tag="Bird")
+    bird_go.transform.position = pos
+    rb = bird_go.add_component(Rigidbody2D)
+    rb.mass = 1.0
+    col = bird_go.add_component(CircleCollider2D)
+    col.radius = 0.3
+    col.shared_material = PhysicsMaterial2D(bounciness=0.3, friction=0.5)
+    col.build()
+    sr = bird_go.add_component(SpriteRenderer)
+    sr.color = (220, 50, 50)
+    sr.size = Vector2(0.6, 0.6)
+    bird_comp = bird_go.add_component(Bird)
+    lm.register_component(bird_comp)
+    return bird_go
+
+
+def _make_brick(name, pos, size, health, brick_mat, lm):
+    """Create a destructible brick."""
+    brick_go = GameObject(name, tag="Brick")
+    brick_go.transform.position = pos
+    rb = brick_go.add_component(Rigidbody2D)
+    rb.mass = 0.5
+    rb._body.position = (pos.x, pos.y)
+    col = brick_go.add_component(BoxCollider2D)
+    col.size = size
+    col.shared_material = brick_mat
+    col.build()
+    sr = brick_go.add_component(SpriteRenderer)
+    sr.color = (180, 130, 70)
+    sr.size = size
+    brick_comp = brick_go.add_component(Brick)
+    brick_comp.health = health
+    brick_comp.max_health = health
+    lm.register_component(brick_comp)
+    return brick_go
+
+
+def _make_pig(name, pos, lm):
+    """Create a pig target."""
+    pig_go = GameObject(name, tag="Pig")
+    pig_go.transform.position = pos
+    rb = pig_go.add_component(Rigidbody2D)
+    rb.mass = 0.8
+    rb._body.position = (pos.x, pos.y)
+    col = pig_go.add_component(CircleCollider2D)
+    col.radius = 0.3
+    col.shared_material = PhysicsMaterial2D(bounciness=0.1, friction=0.5)
+    col.build()
+    sr = pig_go.add_component(SpriteRenderer)
+    sr.color = (100, 200, 80)
+    sr.size = Vector2(0.6, 0.6)
+    pig_comp = pig_go.add_component(Pig)
+    lm.register_component(pig_comp)
+    return pig_go
+
+
+def _make_destroyer(name, pos, size, lm):
+    """Create a trigger zone that destroys stray objects."""
+    dest_go = GameObject(name)
+    dest_go.transform.position = pos
+    rb = dest_go.add_component(Rigidbody2D)
+    rb.body_type = RigidbodyType2D.STATIC
+    rb._body.position = (pos.x, pos.y)
+    col = dest_go.add_component(BoxCollider2D)
+    col.size = size
+    col.is_trigger = True
+    col.build()
+    dest_comp = dest_go.add_component(Destroyer)
+    lm.register_component(dest_comp)
+    return dest_go
 
 
 def setup_scene():
@@ -71,66 +150,47 @@ def setup_scene():
     sr_s.color = (120, 80, 40)
     sr_s.size = Vector2(0.3, 1.5)
 
-    # Bird
-    bird_go = GameObject("Bird", tag="Bird")
-    bird_go.transform.position = Vector2(-5, -3.5)
-    rb_b = bird_go.add_component(Rigidbody2D)
-    rb_b.mass = 1.0
-    col_b = bird_go.add_component(CircleCollider2D)
-    col_b.radius = 0.3
-    col_b.shared_material = PhysicsMaterial2D(bounciness=0.3, friction=0.5)
-    col_b.build()
-    sr_b = bird_go.add_component(SpriteRenderer)
-    sr_b.color = (220, 50, 50)
-    sr_b.size = Vector2(0.6, 0.6)
-    bird_comp = bird_go.add_component(Bird)
-    lm.register_component(bird_comp)
+    # Three birds at waiting positions
+    bird1 = _make_bird("Bird_1", Vector2(-5, -3.5), lm)
+    bird2 = _make_bird("Bird_2", Vector2(-7, -4.2), lm)
+    bird3 = _make_bird("Bird_3", Vector2(-8, -4.2), lm)
 
-    # Wire bird to slingshot
-    sling.bird_to_throw = bird_go
+    # Wire first bird to slingshot
+    sling.bird_to_throw = bird1
 
-    # Simple structure — brick tower
+    # Structure — brick tower with varied health
     brick_mat = PhysicsMaterial2D(bounciness=0.2, friction=0.6)
-    brick_positions = [
-        # Two pillars
-        (Vector2(4, -4.0), Vector2(0.4, 1.0)),
-        (Vector2(6, -4.0), Vector2(0.4, 1.0)),
-        # Top beam
-        (Vector2(5, -3.2), Vector2(2.5, 0.3)),
-        # Second level pillars
-        (Vector2(4.5, -2.7), Vector2(0.4, 0.7)),
-        (Vector2(5.5, -2.7), Vector2(0.4, 0.7)),
-        # Top piece
-        (Vector2(5, -2.1), Vector2(1.5, 0.3)),
+    # fmt: off
+    bricks = [
+        # Two pillars (tall, medium health)
+        ("Brick_pillar_L", Vector2(4, -4.0), Vector2(0.4, 1.0), 70),
+        ("Brick_pillar_R", Vector2(6, -4.0), Vector2(0.4, 1.0), 70),
+        # Bottom beam
+        ("Brick_beam_1",   Vector2(5, -3.2), Vector2(2.5, 0.3), 50),
+        # Second level pillars (shorter, weaker)
+        ("Brick_upper_L",  Vector2(4.5, -2.7), Vector2(0.4, 0.7), 40),
+        ("Brick_upper_R",  Vector2(5.5, -2.7), Vector2(0.4, 0.7), 40),
+        # Top cap (wide, strong)
+        ("Brick_cap",      Vector2(5, -2.1), Vector2(1.5, 0.3), 90),
     ]
+    # fmt: on
+    for name, pos, size, health in bricks:
+        _make_brick(name, pos, size, health, brick_mat, lm)
 
-    for i, (pos, size) in enumerate(brick_positions):
-        brick = GameObject(f"Brick_{i}", tag="Brick")
-        brick.transform.position = pos
-        rb_brick = brick.add_component(Rigidbody2D)
-        rb_brick.mass = 0.5
-        rb_brick._body.position = (pos.x, pos.y)
-        col_brick = brick.add_component(BoxCollider2D)
-        col_brick.size = size
-        col_brick.shared_material = brick_mat
-        col_brick.build()
-        sr_brick = brick.add_component(SpriteRenderer)
-        sr_brick.color = (180, 130, 70)
-        sr_brick.size = size
+    # Two pigs — one inside structure, one behind
+    _make_pig("Pig_1", Vector2(5, -3.7), lm)
+    _make_pig("Pig_2", Vector2(6.5, -4.2), lm)
 
-    # Pig inside structure
-    pig = GameObject("Pig", tag="Pig")
-    pig.transform.position = Vector2(5, -3.7)
-    rb_pig = pig.add_component(Rigidbody2D)
-    rb_pig.mass = 0.8
-    rb_pig._body.position = (5, -3.7)
-    col_pig = pig.add_component(CircleCollider2D)
-    col_pig.radius = 0.3
-    col_pig.shared_material = PhysicsMaterial2D(bounciness=0.1, friction=0.5)
-    col_pig.build()
-    sr_pig = pig.add_component(SpriteRenderer)
-    sr_pig.color = (100, 200, 80)
-    sr_pig.size = Vector2(0.6, 0.6)
+    # Boundary destroyers (trigger zones off-screen)
+    _make_destroyer("Destroyer_Bottom", Vector2(0, -10), Vector2(40, 2), lm)
+    _make_destroyer("Destroyer_Left", Vector2(-18, 0), Vector2(2, 30), lm)
+    _make_destroyer("Destroyer_Right", Vector2(18, 0), Vector2(2, 30), lm)
+
+    # Game manager
+    gm_go = GameObject("GameManager")
+    gm = gm_go.add_component(GameManager)
+    GameManager.reset()
+    lm.register_component(gm)
 
     # Quit handler
     quit_go = GameObject("QuitHandler")
@@ -145,6 +205,6 @@ if __name__ == "__main__":
         idx = sys.argv.index("--frames")
         max_frames = int(sys.argv[idx + 1])
 
-    print("Angry Birds — Click+drag bird to aim, release to launch, ESC to quit")
+    print("Angry Birds — Click to start, drag bird to aim, release to launch, ESC to quit")
     run(setup_scene, width=900, height=600, headless=headless, max_frames=max_frames,
-        title="Angry Birds — Click+Drag to Aim")
+        title="Angry Birds — Click to Start")
