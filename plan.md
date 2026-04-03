@@ -865,7 +865,7 @@ most need pooling, and events decouple architecture. All have clean C# translati
     "Update src/reference/mappings/classes.json with DOTween equivalents",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -888,7 +888,7 @@ most need pooling, and events decouple architecture. All have clean C# translati
     "Update src/reference/mappings/classes.json",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -912,7 +912,7 @@ most need pooling, and events decouple architecture. All have clean C# translati
     "Update src/reference/mappings/classes.json",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
