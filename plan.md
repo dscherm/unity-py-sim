@@ -343,7 +343,7 @@ Priority order based on real bugs hit during Breakout/FSM ports and common Unity
     "Run headless: python tools/playtest.py breakout --headless --frames 500",
     "Verify no regressions in test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
