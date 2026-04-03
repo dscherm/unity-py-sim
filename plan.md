@@ -942,7 +942,7 @@ of features needed for any non-trivial game.
     "Update src/reference/mappings/classes.json",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -965,7 +965,7 @@ of features needed for any non-trivial game.
     "Update angry_birds camera follow to use CameraFollow2D instead of manual lerp",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -988,7 +988,7 @@ of features needed for any non-trivial game.
     "Update src/reference/mappings/classes.json",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
