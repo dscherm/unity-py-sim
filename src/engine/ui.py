@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Callable
+from typing import Any, Callable
 
 from src.engine.core import Component
 from src.engine.math.vector import Vector2
@@ -339,3 +339,99 @@ class Button(Component):
             return False
         x, y, w, h = rect_transform.get_screen_rect(canvas_width, canvas_height)
         return x <= screen_x <= x + w and y <= screen_y <= y + h
+
+
+class UIRenderManager:
+    """Renders UI elements (Text, Image) to pygame surface.
+
+    Called after world rendering, draws screen-space overlay UI.
+    """
+
+    _font_cache: dict[tuple[int, bool], Any] = {}
+
+    @classmethod
+    def _get_font(cls, size: int, bold: bool = False) -> Any:
+        """Get or create a pygame font at the given size."""
+        key = (size, bold)
+        if key not in cls._font_cache:
+            import pygame
+            if not pygame.font.get_init():
+                pygame.font.init()
+            cls._font_cache[key] = pygame.font.SysFont(None, size, bold=bold)
+        return cls._font_cache[key]
+
+    @staticmethod
+    def render_all(surface: Any, screen_width: int, screen_height: int) -> None:
+        """Render all active UI elements from all canvases."""
+        if surface is None:
+            return
+
+        import pygame
+
+        from src.engine.core import _game_objects
+
+        # Collect all Text and Image components from active game objects
+        texts: list[tuple[RectTransform, Text]] = []
+        images: list[tuple[RectTransform, Image]] = []
+
+        for go in _game_objects.values():
+            if not go.active:
+                continue
+            rt = go.get_component(RectTransform)
+            if rt is None:
+                continue
+            text = go.get_component(Text)
+            if text and text.enabled:
+                texts.append((rt, text))
+            img = go.get_component(Image)
+            if img and img.enabled:
+                images.append((rt, img))
+
+        # Render images first (backgrounds), then text on top
+        for rt, img in images:
+            x, y, w, h = rt.get_screen_rect(screen_width, screen_height)
+            rect = pygame.Rect(int(x), int(y), int(w), int(h))
+            if img.sprite is not None:
+                surface.blit(img.sprite, rect)
+            else:
+                color = img.color if len(img.color) >= 3 else (255, 255, 255)
+                pygame.draw.rect(surface, color, rect)
+
+        # Render text
+        for rt, text_comp in texts:
+            if not text_comp.text:
+                continue
+            x, y, w, h = rt.get_screen_rect(screen_width, screen_height)
+
+            if text_comp.rich_text:
+                # Render rich text runs
+                runs = text_comp.parse_rich_text()
+                cursor_x = int(x)
+                for run in runs:
+                    font = UIRenderManager._get_font(run["size"], run.get("bold", False))
+                    color = run["color"] if len(run["color"]) >= 3 else (255, 255, 255)
+                    rendered = font.render(run["text"], True, color)
+                    surface.blit(rendered, (cursor_x, int(y)))
+                    cursor_x += rendered.get_width()
+            else:
+                # Simple text rendering with alignment
+                display_text = text_comp.get_revealed_text() if text_comp.is_revealing else text_comp.text
+                font = UIRenderManager._get_font(text_comp.font_size)
+                color = text_comp.color if len(text_comp.color) >= 3 else (255, 255, 255)
+                rendered = font.render(display_text, True, color)
+
+                # Apply alignment
+                text_x = int(x)
+                text_y = int(y)
+                align = text_comp.alignment
+                if align in (TextAnchor.UPPER_CENTER, TextAnchor.MIDDLE_CENTER, TextAnchor.LOWER_CENTER):
+                    text_x = int(x + w / 2 - rendered.get_width() / 2)
+                elif align in (TextAnchor.UPPER_RIGHT, TextAnchor.MIDDLE_RIGHT, TextAnchor.LOWER_RIGHT):
+                    text_x = int(x + w - rendered.get_width())
+
+                if align in (TextAnchor.MIDDLE_LEFT, TextAnchor.MIDDLE_CENTER, TextAnchor.MIDDLE_RIGHT):
+                    text_y = int(y + h / 2 - rendered.get_height() / 2)
+                elif align in (TextAnchor.LOWER_LEFT, TextAnchor.LOWER_CENTER, TextAnchor.LOWER_RIGHT):
+                    text_y = int(y + h - rendered.get_height())
+
+                surface.blit(rendered, (text_x, text_y))

@@ -96,6 +96,9 @@ def run(
             bg = cam.background_color if cam else (0, 0, 0)
             display.clear(bg)
             RenderManager.render_all(display._surface, cam, width, height)
+            # UI overlay (after world rendering)
+            from src.engine.ui import UIRenderManager
+            UIRenderManager.render_all(display._surface, width, height)
             display.flip()
 
         # Cleanup
