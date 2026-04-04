@@ -77,6 +77,12 @@ class TypeMapper:
             base = self.python_to_csharp(t[:-7].strip())
             return f"{base}?"
 
+        # list[list[T]] -> List<T[]> (nested lists use List for mutability)
+        nested_match = re.match(r"list\[list\[(.+)\]\]", t)
+        if nested_match:
+            inner = self.python_to_csharp(nested_match.group(1))
+            return f"List<{inner}[]>"
+
         # list[T] -> T[]
         list_match = re.match(r"list\[(.+)\]", t)
         if list_match:

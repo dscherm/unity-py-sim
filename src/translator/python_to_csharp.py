@@ -127,10 +127,13 @@ def _build_symbol_table(cls: PyClass) -> dict[str, str]:
     """Build a mapping of Python names → C# names for fields, methods, and params."""
     symbols: dict[str, str] = {}
 
-    # Map field names: snake_case → camelCase
+    # Map field names: snake_case → camelCase, UPPER_CASE stays as-is
     for field in cls.fields:
         py_name = field.name
-        cs_name = snake_to_camel(py_name)
+        if py_name.isupper():
+            cs_name = py_name  # Preserve UPPER_CASE constants
+        else:
+            cs_name = snake_to_camel(py_name)
         symbols[py_name] = cs_name
         # Also map _private variants
         if not py_name.startswith("_"):
@@ -160,11 +163,49 @@ def _discover_dynamic_fields(cls: PyClass) -> list[PyField]:
     for method in cls.methods:
         for m in re.finditer(r"self\.(\w+)\s*=\s*(.+)", method.body_source):
             field_name = m.group(1)
+            value = m.group(2).strip()
             if field_name not in known_fields and field_name not in dynamic:
-                dynamic[field_name] = ""  # No type annotation
+                # Try to infer type from assignment value
+                inferred = _infer_type_from_value(value)
+                dynamic[field_name] = inferred
 
     return [PyField(name=name, type_annotation=ann, default_value=None, is_class_level=False)
             for name, ann in dynamic.items()]
+
+
+def _infer_type_from_value(value: str) -> str:
+    """Infer type annotation from an assignment value."""
+    v = value.strip()
+    # X.add_component(T) or X.AddComponent<T>
+    m = re.match(r"\w+\.add_component\((\w+)\)", v)
+    if m:
+        return m.group(1)
+    # X.get_component(T)
+    m = re.match(r"\w+\.get_component\((\w+)\)", v)
+    if m:
+        return m.group(1)
+    # GameObject("name")
+    if v.startswith("GameObject("):
+        return "GameObject"
+    # Numeric
+    if re.match(r"^-?\d+$", v):
+        return "int"
+    if re.match(r"^-?\d+\.\d+$", v):
+        return "float"
+    if v in ("True", "False"):
+        return "bool"
+    if v.startswith("'") or v.startswith('"'):
+        return "string"
+    if v.startswith("Vector2("):
+        return "Vector2"
+    if v.startswith("Vector3("):
+        return "Vector3"
+    if v == "None" or v == "null":
+        return ""  # Can't infer
+    # Method reference: self._method_name → Action delegate
+    if re.match(r"self\.\w+", v) and "(" not in v:
+        return "System.Action"
+    return ""
 
 
 def _infer_field_types(cls: PyClass) -> dict[str, str]:
@@ -202,9 +243,16 @@ def _infer_field_types(cls: PyClass) -> dict[str, str]:
     for field in cls.fields:
         if field.name in type_map:
             t = type_map[field.name]
-            if t.endswith("[]") and f"self.{field.name}.append(" in all_body:
-                inner = t[:-2]
-                type_map[field.name] = f"List<{inner}>"
+            # Check if .append() is called on this field
+            if f"self.{field.name}.append(" in all_body:
+                # Convert list[T] → List<T>
+                list_match = re.match(r"list\[(.+)\]", t)
+                if list_match:
+                    inner = list_match.group(1)
+                    type_map[field.name] = f"List<{inner}>"
+                elif t.endswith("[]"):
+                    inner = t[:-2]
+                    type_map[field.name] = f"List<{inner}>"
 
     return type_map
 
@@ -212,6 +260,7 @@ def _infer_field_types(cls: PyClass) -> dict[str, str]:
 # Thread-local symbol table for the current class being translated
 _current_symbols: dict[str, str] = {}
 _declared_vars: set[str] = set()
+_enumerate_inject: str | None = None
 
 
 def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
@@ -546,8 +595,9 @@ def _translate_body(body: str) -> str:
     logical_lines = _join_multiline(raw_lines)
 
     # Track declared local variables to avoid redeclaration
-    global _declared_vars
+    global _declared_vars, _enumerate_inject
     _declared_vars = set()
+    _enumerate_inject = None
 
     # Second pass: translate each logical line
     entries: list[tuple[int, str]] = []
@@ -558,6 +608,11 @@ def _translate_body(body: str) -> str:
         if not translated:
             continue
         entries.append((indent_level, translated))
+        # Inject enumerate variable declaration after the for-loop line
+        if _enumerate_inject and translated.startswith("for ("):
+            # Will be injected as first line inside the block (higher indent)
+            entries.append((indent_level + 1, _enumerate_inject))
+            _enumerate_inject = None
 
     if not entries:
         return ""
@@ -674,9 +729,26 @@ def _translate_py_statement(line: str) -> str:
         value = _translate_py_expression(active_match.group(2))
         return f"{target}.SetActive({value});"
 
-    # Tuple unpacking: a, b = expr -> (handled as comment — C# needs destructuring)
-    if re.match(r"^\w+,\s*\w+\s*=\s*", line):
-        return f"// TODO: tuple unpacking: {line}"
+    # Tuple unpacking: a, b = expr1, expr2 -> int a = expr1; int b = expr2;
+    tuple_match = re.match(r"^(\w+),\s*(\w+)\s*=\s*(.+)$", line)
+    if tuple_match:
+        a = tuple_match.group(1)
+        b = tuple_match.group(2)
+        rhs = tuple_match.group(3)
+        # Split RHS by comma (respecting parens)
+        parts = _split_args(rhs)
+        cs_a = _translate_py_expression(a)
+        cs_b = _translate_py_expression(b)
+        if len(parts) == 2:
+            val_a = _translate_py_expression(parts[0].strip())
+            val_b = _translate_py_expression(parts[1].strip())
+            _declared_vars.add(cs_a)
+            _declared_vars.add(cs_b)
+            return f"var {cs_a} = {val_a}; var {cs_b} = {val_b};"
+        else:
+            # Single value — use C# tuple deconstruction
+            val = _translate_py_expression(rhs)
+            return f"var ({cs_a}, {cs_b}) = {val};"
 
     # Assignment
     assign_match = re.match(r"^([\w.]+)\s*=\s*(.+)$", line)
@@ -730,6 +802,20 @@ def _translate_for_loop(line: str) -> str:
             end = _translate_py_expression(args[1])
             step = _translate_py_expression(args[2])
             return f"for (int {cs_var} = {start}; {cs_var} < {end}; {cs_var} += {step})"
+
+    # Match: idx, var in enumerate(collection)
+    enum_match = re.match(r"(\w+),\s*(\w+)\s+in\s+enumerate\((.+)\)$", body)
+    if enum_match:
+        idx_var = snake_to_camel(enum_match.group(1))
+        val_var = snake_to_camel(enum_match.group(2))
+        collection = _translate_py_expression(enum_match.group(3).strip())
+        _declared_vars.add(idx_var)
+        _declared_vars.add(val_var)
+        # The body translator will add the val_var declaration as first line in the block
+        # We store it for injection
+        global _enumerate_inject
+        _enumerate_inject = f"var {val_var} = {collection}[{idx_var}];"
+        return f"for (int {idx_var} = 0; {idx_var} < {collection}.Count; {idx_var}++)"
 
     # Match: var in collection (foreach)
     foreach_match = re.match(r"(\w+)\s+in\s+(.+)$", body)
@@ -1255,6 +1341,32 @@ def _translate_py_condition(cond: str) -> str:
     cond = _translate_py_expression(cond)
     cond = cond.replace(" and ", " && ").replace(" or ", " || ")
     cond = re.sub(r"\bnot\s+", "!", cond)
+
+    # Python chained comparisons: 0 <= x < N -> x >= 0 && x < N
+    chain_match = re.match(r"^(\d+)\s*<=\s*(\w+)\s*<\s*(.+)$", cond)
+    if chain_match:
+        low = chain_match.group(1)
+        var = chain_match.group(2)
+        high = chain_match.group(3)
+        cond = f"{var} >= {low} && {var} < {high}"
+
+    # Fix chained comparisons with && (multiple chained)
+    cond = re.sub(r"(\d+)\s*<=\s*(\w+)\s*<\s*(\w+)", r"\2 >= \1 && \2 < \3", cond)
+
+    # Object truthiness: bare object names in && / || should get != null
+    # e.g., "spriteRenderer && animationSprites" → "spriteRenderer != null && animationSprites != null"
+    parts = re.split(r"\s*(&&|\|\|)\s*", cond)
+    fixed_parts = []
+    for part in parts:
+        if part in ("&&", "||"):
+            fixed_parts.append(part)
+        elif re.match(r"^[a-zA-Z_]\w*$", part.strip()) and part.strip() not in ("true", "false", "null"):
+            # Bare identifier — add != null for truthiness
+            fixed_parts.append(f"{part.strip()} != null")
+        else:
+            fixed_parts.append(part)
+    cond = " ".join(fixed_parts)
+
     return cond
 
 

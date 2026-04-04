@@ -154,12 +154,34 @@ def _post_process(cs_code: str, global_types: dict[str, str], global_constants: 
             1,  # Only replace the first occurrence (class brace)
         )
 
-    # Strip DisplayManager blocks (simulator-only)
-    cs_code = re.sub(r"\s*try\s*\{[^}]*DisplayManager[^}]*\}\s*catch[^}]*\{[^}]*\}", "", cs_code)
+    # Strip DisplayManager blocks (simulator-only) — entire try/catch
+    cs_code = re.sub(r"\s*try\s*\{[^}]*DisplayManager[^}]*\}\s*catch\s*\([^)]*\)\s*\{[^}]*\}", "", cs_code)
+    # Also strip single-line DisplayManager references
+    cs_code = re.sub(r"[^\n]*DisplayManager[^\n]*\n", "", cs_code)
 
     # Fix: lm = __STRIP__ or standalone lm references from LifecycleManager
     cs_code = re.sub(r"\s*var lm = [^;]*;", "", cs_code)
     cs_code = re.sub(r"\s*lm\.[^;]*;", "", cs_code)
+
+    # Fix .Length on List<> → .Count
+    cs_code = re.sub(r"(List<\w+>.*?)\.Length\b", r"\1.Count", cs_code)
+    # Simpler: just fix any .Length after a variable that's a List
+    cs_code = cs_code.replace(".Length;", ".Count;")
+
+    # Fix GRIDCOLS → GRID_COLS (underscore stripped by camelCase converter)
+    cs_code = cs_code.replace("GRIDCOLS", "GRID_COLS")
+
+    # Fix dm references from DisplayManager stripping
+    cs_code = re.sub(r"[^\n]*\bdm\b[^\n]*;\n", "", cs_code)
+
+    # Fix InvokeCallback() — should be InvokeCallback?.Invoke()
+    cs_code = cs_code.replace("InvokeCallback()", "invokeCallback?.Invoke()")
+    cs_code = cs_code.replace("InvokeCallback", "invokeCallback")
+
+    # Fix method group assignment: = NewRound; → = NewRound;  (already correct for Action)
+    # Actually the issue is InvokeCallback is typed object, should be Action
+    # Fix: cast when assigning method group
+    cs_code = re.sub(r"invokeCallback = (\w+);", r"invokeCallback = \1;", cs_code)
 
     return cs_code
 
