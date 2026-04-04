@@ -56,6 +56,10 @@ def clean_engine():
     Input._reset()
     TweenManager.reset()
     GameManager.reset()
+    from src.engine.prefab import PrefabRegistry
+    PrefabRegistry.clear()
+    from space_invaders_python.prefabs import register_prefabs
+    register_prefabs()
     yield
     _clear_registry()
     LifecycleManager.reset()
@@ -64,6 +68,7 @@ def clean_engine():
     Input._reset()
     TweenManager.reset()
     GameManager.reset()
+    PrefabRegistry.clear()
 
 
 def _setup_full_scene():

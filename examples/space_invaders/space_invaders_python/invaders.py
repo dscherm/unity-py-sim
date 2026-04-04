@@ -126,29 +126,12 @@ class Invaders(MonoBehaviour):
 
     def _instantiate_missile(self, position):
         """Instantiate(missilePrefab, invader.position, Quaternion.identity)"""
-        from space_invaders_python.projectile import Projectile
         from space_invaders_python.player import LAYER_MISSILE
+        from src.engine.prefab import Instantiate
 
-        missile = GameObject("Missile", tag="Missile")
+        pos = Vector2(position.x, position.y - 0.5)
+        missile = Instantiate("Missile", position=pos, tag="Missile")
         missile.layer = LAYER_MISSILE
-        missile.transform.position = Vector2(position.x, position.y - 0.5)
-
-        rb = missile.add_component(Rigidbody2D)
-        rb.body_type = RigidbodyType2D.KINEMATIC
-
-        col = missile.add_component(BoxCollider2D)
-        col.size = Vector2(0.2, 0.6)
-        col.is_trigger = True
-
-        sr = missile.add_component(SpriteRenderer)
-        sr.color = (255, 80, 80)
-        sr.size = Vector2(0.2, 0.6)
-        sr.sorting_order = 5
-
-        proj = missile.add_component(Projectile)
-        proj.direction = Vector3(0, -1, 0)  # Vector3.down
-        proj.speed = 10.0
-        # auto-registered via add_component
 
     def update(self):
         # Speed scaling based on percent killed

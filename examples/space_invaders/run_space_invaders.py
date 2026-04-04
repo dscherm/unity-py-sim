@@ -27,6 +27,7 @@ from space_invaders_python.invaders import Invaders
 from space_invaders_python.bunker import Bunker, GRID_COLS, GRID_ROWS, CELL_SIZE
 from space_invaders_python.mystery_ship import MysteryShip
 from space_invaders_python.game_manager import GameManager
+from space_invaders_python.prefabs import register_prefabs
 
 
 class QuitHandler(MonoBehaviour):
@@ -37,6 +38,7 @@ class QuitHandler(MonoBehaviour):
 
 
 def setup_scene():
+    register_prefabs()
     pm = PhysicsManager.instance()
     pm.gravity = Vector2(0, 0)  # No gravity — projectiles move via transform
 

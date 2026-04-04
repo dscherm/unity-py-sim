@@ -7,9 +7,7 @@ from src.engine.core import MonoBehaviour, GameObject
 from src.engine.math.vector import Vector2, Vector3
 from src.engine.input_manager import Input
 from src.engine.time_manager import Time
-from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
-from src.engine.physics.collider import BoxCollider2D
-from src.engine.rendering.renderer import SpriteRenderer
+from src.engine.prefab import Instantiate
 
 
 
@@ -60,32 +58,10 @@ class Player(MonoBehaviour):
             self._laser = self._instantiate_laser()
 
     def _instantiate_laser(self) -> GameObject:
-        """Equivalent of Instantiate(laserPrefab, transform.position, Quaternion.identity)."""
-        from space_invaders_python.projectile import Projectile
-
-        laser = GameObject("Laser", tag="Laser")
+        """Instantiate(laserPrefab, transform.position, Quaternion.identity)"""
+        pos = Vector2(self.transform.position.x, self.transform.position.y + 0.5)
+        laser = Instantiate("Laser", position=pos, tag="Laser")
         laser.layer = LAYER_LASER
-        laser.transform.position = Vector2(
-            self.transform.position.x,
-            self.transform.position.y + 0.5,
-        )
-
-        rb = laser.add_component(Rigidbody2D)
-        rb.body_type = RigidbodyType2D.KINEMATIC
-
-        col = laser.add_component(BoxCollider2D)
-        col.size = Vector2(0.2, 0.6)
-        col.is_trigger = True
-
-        sr = laser.add_component(SpriteRenderer)
-        sr.color = (100, 255, 100)
-        sr.size = Vector2(0.2, 0.6)
-        sr.sorting_order = 5
-
-        proj = laser.add_component(Projectile)
-        proj.direction = Vector3(0, 1, 0)  # Vector3.up
-        proj.speed = 20.0
-
         return laser
 
     def on_trigger_enter_2d(self, other):
