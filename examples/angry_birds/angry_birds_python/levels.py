@@ -1,7 +1,6 @@
 """Level definitions for Angry Birds."""
 
 from src.engine.core import GameObject
-from src.engine.lifecycle import LifecycleManager
 from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
 from src.engine.physics.collider import BoxCollider2D, CircleCollider2D, PhysicsMaterial2D
 from src.engine.rendering.camera import Camera
@@ -27,7 +26,7 @@ class _QuitHandler:
     pass
 
 
-def _make_bird(name, pos, lm):
+def _make_bird(name, pos):
     bird_go = GameObject(name, tag="Bird")
     bird_go.transform.position = pos
     rb = bird_go.add_component(Rigidbody2D)
@@ -43,11 +42,10 @@ def _make_bird(name, pos, lm):
     audio = bird_go.add_component(AudioSource)  # throw sound
     audio.clip_ref = "bird_launch_sfx"
     bird_comp = bird_go.add_component(Bird)
-    lm.register_component(bird_comp)
     return bird_go
 
 
-def _make_brick(name, pos, size, health, brick_mat, lm):
+def _make_brick(name, pos, size, health, brick_mat):
     brick_go = GameObject(name, tag="Brick")
     brick_go.transform.position = pos
     rb = brick_go.add_component(Rigidbody2D)
@@ -66,11 +64,10 @@ def _make_brick(name, pos, size, health, brick_mat, lm):
     brick_comp = brick_go.add_component(Brick)
     brick_comp.health = health
     brick_comp.max_health = health
-    lm.register_component(brick_comp)
     return brick_go
 
 
-def _make_pig(name, pos, lm):
+def _make_pig(name, pos):
     pig_go = GameObject(name, tag="Pig")
     pig_go.transform.position = pos
     rb = pig_go.add_component(Rigidbody2D)
@@ -87,11 +84,10 @@ def _make_pig(name, pos, lm):
     audio = pig_go.add_component(AudioSource)  # collision sound
     audio.clip_ref = "pig_hit_sfx"
     pig_comp = pig_go.add_component(Pig)
-    lm.register_component(pig_comp)
     return pig_go
 
 
-def _make_destroyer(name, pos, size, lm):
+def _make_destroyer(name, pos, size):
     dest_go = GameObject(name)
     dest_go.transform.position = pos
     rb = dest_go.add_component(Rigidbody2D)
@@ -102,11 +98,10 @@ def _make_destroyer(name, pos, size, lm):
     col.is_trigger = True
     col.build()
     dest_comp = dest_go.add_component(Destroyer)
-    lm.register_component(dest_comp)
     return dest_go
 
 
-def _setup_shared(lm):
+def _setup_shared():
     """Create shared objects: camera, ground, slingshot, destroyers."""
     pm = PhysicsManager.instance()
     pm.gravity = Vector2(0, -9.81)
@@ -115,7 +110,6 @@ def _setup_shared(lm):
     cam = cam_go.add_component(Camera)
     cam.orthographic_size = 6.0
     cam.background_color = (135, 200, 235)
-    lm.register_component(cam)
 
     ground_mat = PhysicsMaterial2D(bounciness=0.1, friction=0.8)
     ground = GameObject("Ground", tag="Ground")
@@ -135,72 +129,67 @@ def _setup_shared(lm):
     slingshot_go = GameObject("Slingshot")
     slingshot_go.transform.position = Vector2(-5, -3.5)
     sling = slingshot_go.add_component(Slingshot)
-    lm.register_component(sling)
     sr_s = slingshot_go.add_component(SpriteRenderer)
     sr_s.color = (120, 80, 40)
     sr_s.size = Vector2(0.3, 1.5)
     sr_s.asset_ref = "slingshot"
 
-    _make_destroyer("Destroyer_Bottom", Vector2(0, -10), Vector2(40, 2), lm)
-    _make_destroyer("Destroyer_Left", Vector2(-18, 0), Vector2(2, 30), lm)
-    _make_destroyer("Destroyer_Right", Vector2(18, 0), Vector2(2, 30), lm)
+    _make_destroyer("Destroyer_Bottom", Vector2(0, -10), Vector2(40, 2))
+    _make_destroyer("Destroyer_Left", Vector2(-18, 0), Vector2(2, 30))
+    _make_destroyer("Destroyer_Right", Vector2(18, 0), Vector2(2, 30))
 
     return sling
 
 
 def setup_level_1():
     """Level 1: Simple tower with 2 pigs, 3 birds."""
-    lm = LifecycleManager.instance()
-    sling = _setup_shared(lm)
+    sling = _setup_shared()
     brick_mat = PhysicsMaterial2D(bounciness=0.2, friction=0.6)
 
-    bird1 = _make_bird("Bird_1", Vector2(-5, -3.5), lm)
-    bird2 = _make_bird("Bird_2", Vector2(-7, -4.2), lm)
-    bird3 = _make_bird("Bird_3", Vector2(-8, -4.2), lm)
+    bird1 = _make_bird("Bird_1", Vector2(-5, -3.5))
+    bird2 = _make_bird("Bird_2", Vector2(-7, -4.2))
+    bird3 = _make_bird("Bird_3", Vector2(-8, -4.2))
     sling.bird_to_throw = bird1
 
-    _make_brick("B_pL", Vector2(4, -4.0), Vector2(0.4, 1.0), 70, brick_mat, lm)
-    _make_brick("B_pR", Vector2(6, -4.0), Vector2(0.4, 1.0), 70, brick_mat, lm)
-    _make_brick("B_b1", Vector2(5, -3.2), Vector2(2.5, 0.3), 50, brick_mat, lm)
-    _make_brick("B_uL", Vector2(4.5, -2.7), Vector2(0.4, 0.7), 40, brick_mat, lm)
-    _make_brick("B_uR", Vector2(5.5, -2.7), Vector2(0.4, 0.7), 40, brick_mat, lm)
-    _make_brick("B_cap", Vector2(5, -2.1), Vector2(1.5, 0.3), 90, brick_mat, lm)
+    _make_brick("B_pL", Vector2(4, -4.0), Vector2(0.4, 1.0), 70, brick_mat)
+    _make_brick("B_pR", Vector2(6, -4.0), Vector2(0.4, 1.0), 70, brick_mat)
+    _make_brick("B_b1", Vector2(5, -3.2), Vector2(2.5, 0.3), 50, brick_mat)
+    _make_brick("B_uL", Vector2(4.5, -2.7), Vector2(0.4, 0.7), 40, brick_mat)
+    _make_brick("B_uR", Vector2(5.5, -2.7), Vector2(0.4, 0.7), 40, brick_mat)
+    _make_brick("B_cap", Vector2(5, -2.1), Vector2(1.5, 0.3), 90, brick_mat)
 
-    _make_pig("Pig_1", Vector2(5, -3.7), lm)
-    _make_pig("Pig_2", Vector2(6.5, -4.2), lm)
+    _make_pig("Pig_1", Vector2(5, -3.7))
+    _make_pig("Pig_2", Vector2(6.5, -4.2))
 
     gm_go = GameObject("GameManager")
     gm = gm_go.add_component(GameManager)
     GameManager.reset()
-    lm.register_component(gm)
 
 
 def setup_level_2():
     """Level 2: Fortress with 3 pigs behind walls, 3 birds."""
-    lm = LifecycleManager.instance()
-    sling = _setup_shared(lm)
+    sling = _setup_shared()
     brick_mat = PhysicsMaterial2D(bounciness=0.15, friction=0.7)
 
-    bird1 = _make_bird("Bird_1", Vector2(-5, -3.5), lm)
-    bird2 = _make_bird("Bird_2", Vector2(-7, -4.2), lm)
-    bird3 = _make_bird("Bird_3", Vector2(-8, -4.2), lm)
+    bird1 = _make_bird("Bird_1", Vector2(-5, -3.5))
+    bird2 = _make_bird("Bird_2", Vector2(-7, -4.2))
+    bird3 = _make_bird("Bird_3", Vector2(-8, -4.2))
     sling.bird_to_throw = bird1
 
     # Fortress: thick walls with pigs inside
-    _make_brick("B_wL", Vector2(3.5, -3.5), Vector2(0.5, 2.0), 120, brick_mat, lm)
-    _make_brick("B_wR", Vector2(7.0, -3.5), Vector2(0.5, 2.0), 120, brick_mat, lm)
-    _make_brick("B_roof", Vector2(5.25, -2.2), Vector2(4.0, 0.4), 100, brick_mat, lm)
-    _make_brick("B_floor", Vector2(5.25, -4.3), Vector2(4.0, 0.3), 80, brick_mat, lm)
-    _make_brick("B_mid", Vector2(5.25, -3.2), Vector2(0.3, 1.5), 50, brick_mat, lm)
+    _make_brick("B_wL", Vector2(3.5, -3.5), Vector2(0.5, 2.0), 120, brick_mat)
+    _make_brick("B_wR", Vector2(7.0, -3.5), Vector2(0.5, 2.0), 120, brick_mat)
+    _make_brick("B_roof", Vector2(5.25, -2.2), Vector2(4.0, 0.4), 100, brick_mat)
+    _make_brick("B_floor", Vector2(5.25, -4.3), Vector2(4.0, 0.3), 80, brick_mat)
+    _make_brick("B_mid", Vector2(5.25, -3.2), Vector2(0.3, 1.5), 50, brick_mat)
 
-    _make_pig("Pig_1", Vector2(4.3, -3.7), lm)
-    _make_pig("Pig_2", Vector2(6.2, -3.7), lm)
-    _make_pig("Pig_3", Vector2(5.25, -2.8), lm)
+    _make_pig("Pig_1", Vector2(4.3, -3.7))
+    _make_pig("Pig_2", Vector2(6.2, -3.7))
+    _make_pig("Pig_3", Vector2(5.25, -2.8))
 
     gm_go = GameObject("GameManager")
     gm = gm_go.add_component(GameManager)
     GameManager.reset()
-    lm.register_component(gm)
 
 
 def register_all_levels():

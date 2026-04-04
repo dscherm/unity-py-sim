@@ -13,7 +13,6 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.engine.core import GameObject, MonoBehaviour
-from src.engine.lifecycle import LifecycleManager
 from src.engine.input_manager import Input
 from src.engine.debug import Debug
 from src.engine.app import run
@@ -38,10 +37,8 @@ def setup_scene():
     # Load level 1, then add quit handler
     setup_level_1()
 
-    lm = LifecycleManager.instance()
     quit_go = GameObject("QuitHandler")
     qh = quit_go.add_component(QuitHandler)
-    lm.register_component(qh)
 
 
 if __name__ == "__main__":

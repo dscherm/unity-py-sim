@@ -16,7 +16,6 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.engine.core import GameObject, MonoBehaviour
-from src.engine.lifecycle import LifecycleManager
 from src.engine.rendering.camera import Camera
 from src.engine.rendering.renderer import SpriteRenderer
 from src.engine.physics.physics_manager import PhysicsManager
@@ -81,7 +80,6 @@ GROUND_THICKNESS = 1.0
 
 
 def setup_scene():
-    lm = LifecycleManager.instance()
     pm = PhysicsManager.instance()
     pm.gravity = Vector2(0, -9.81)
 
@@ -90,7 +88,6 @@ def setup_scene():
     cam = cam_go.add_component(Camera)
     cam.orthographic_size = 6.0
     cam.background_color = (40, 40, 60)
-    lm.register_component(cam)
 
     # ---- Ground platform (static) ----
     ground = GameObject("Ground", tag="Ground")
@@ -122,7 +119,6 @@ def setup_scene():
     pih.move_speed = 3.0
     pih.jump_force = 5.0
     pih.ground_y = GROUND_SURFACE_Y
-    lm.register_component(pih)
 
     # ---- Enemy ----
     enemy = GameObject("Enemy", tag="Enemy")
@@ -141,7 +137,6 @@ def setup_scene():
     eb.walk_speed = 1.5
     eb.patrol_min_x = 1.0
     eb.patrol_max_x = 6.0
-    lm.register_component(eb)
 
     # ---- Left wall (static) ----
     left_wall = GameObject("LeftWall")
@@ -166,12 +161,10 @@ def setup_scene():
     # ---- State display ----
     disp_go = GameObject("StateDisplay")
     sd = disp_go.add_component(StateDisplay)
-    lm.register_component(sd)
 
     # ---- Quit handler ----
     quit_go = GameObject("QuitHandler")
     qh = quit_go.add_component(QuitHandler)
-    lm.register_component(qh)
 
 
 if __name__ == "__main__":

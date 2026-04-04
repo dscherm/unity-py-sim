@@ -10,7 +10,7 @@ from src.engine.time_manager import Time
 from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
 from src.engine.physics.collider import BoxCollider2D
 from src.engine.rendering.renderer import SpriteRenderer
-from src.engine.lifecycle import LifecycleManager
+
 
 
 # Layer constants matching Unity LayerMask.NameToLayer
@@ -87,7 +87,6 @@ class Player(MonoBehaviour):
         proj.direction = Vector3(0, 1, 0)  # Vector3.up
         proj.speed = 20.0
 
-        LifecycleManager.instance().register_component(proj)
         return laser
 
     def on_trigger_enter_2d(self, other):

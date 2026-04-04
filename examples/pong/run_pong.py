@@ -12,7 +12,6 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.engine.core import GameObject, MonoBehaviour
-from src.engine.lifecycle import LifecycleManager
 from src.engine.rendering.camera import Camera
 from src.engine.rendering.renderer import SpriteRenderer
 from src.engine.physics.physics_manager import PhysicsManager
@@ -95,7 +94,6 @@ class QuitHandler(MonoBehaviour):
 
 
 def setup_scene():
-    lm = LifecycleManager.instance()
     pm = PhysicsManager.instance()
     pm.gravity = Vector2(0, 0)
 
@@ -104,7 +102,6 @@ def setup_scene():
     cam = cam_go.add_component(Camera)
     cam.orthographic_size = 6.0
     cam.background_color = (20, 20, 30)
-    lm.register_component(cam)
 
     # Left Paddle (W/S)
     left_paddle = GameObject("LeftPaddle", tag="Paddle")
@@ -119,7 +116,6 @@ def setup_scene():
     sr_lp.size = Vector2(0.5, 2)
     pc_l = left_paddle.add_component(PaddleController)
     pc_l.input_axis = "Vertical1"
-    lm.register_component(pc_l)
 
     # Right Paddle (Up/Down)
     right_paddle = GameObject("RightPaddle", tag="Paddle")
@@ -134,7 +130,6 @@ def setup_scene():
     sr_rp.size = Vector2(0.5, 2)
     pc_r = right_paddle.add_component(PaddleController)
     pc_r.input_axis = "Vertical2"
-    lm.register_component(pc_r)
 
     # Ball
     ball = GameObject("Ball")
@@ -148,7 +143,6 @@ def setup_scene():
     sr_ball.color = (255, 255, 0)
     sr_ball.size = Vector2(0.5, 0.5)
     bc = ball.add_component(BallController)
-    lm.register_component(bc)
 
     # Top/Bottom walls
     for y_pos, name in [(5.5, "TopWall"), (-5.5, "BottomWall")]:
@@ -173,23 +167,19 @@ def setup_scene():
         gz_go = GameObject(f"Goal_{side}")
         gz = gz_go.add_component(GoalZone)
         gz.side = side
-        lm.register_component(gz)
 
     # Score manager
     score_go = GameObject("ScoreManager")
     sm = score_go.add_component(ScoreManager)
     ScoreManager.reset_scores()
-    lm.register_component(sm)
 
     # Score display
     disp_go = GameObject("ScoreDisplay")
     sd = disp_go.add_component(ScoreDisplay)
-    lm.register_component(sd)
 
     # Quit handler
     quit_go = GameObject("QuitHandler")
     qh = quit_go.add_component(QuitHandler)
-    lm.register_component(qh)
 
 
 if __name__ == "__main__":

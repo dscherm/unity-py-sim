@@ -55,12 +55,8 @@ class GameManager(MonoBehaviour):
 
     def _setup_ui(self):
         """Create UI canvas with score and lives text."""
-        from src.engine.lifecycle import LifecycleManager
-        lm = LifecycleManager.instance()
-
         canvas_go = GameObject("UICanvas")
         self._canvas = canvas_go.add_component(Canvas)
-        lm.register_component(self._canvas)
 
         # Score text (top left)
         score_go = GameObject("ScoreText")

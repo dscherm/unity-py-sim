@@ -12,7 +12,6 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.engine.core import GameObject, MonoBehaviour
-from src.engine.lifecycle import LifecycleManager
 from src.engine.rendering.camera import Camera
 from src.engine.rendering.renderer import SpriteRenderer
 from src.engine.physics.physics_manager import PhysicsManager
@@ -53,7 +52,6 @@ class QuitHandler(MonoBehaviour):
 
 
 def setup_scene():
-    lm = LifecycleManager.instance()
     pm = PhysicsManager.instance()
     pm.gravity = Vector2(0, 0)  # No gravity — ball bounces, doesn't fall
 
@@ -62,7 +60,6 @@ def setup_scene():
     cam = cam_go.add_component(Camera)
     cam.orthographic_size = 7.0
     cam.background_color = (15, 15, 25)
-    lm.register_component(cam)
 
     # Shared physics material — perfect bounce, no friction
     bounce_mat = PhysicsMaterial2D(bounciness=1.0, friction=0.0)
@@ -81,7 +78,6 @@ def setup_scene():
     sr_p.size = Vector2(2.0, 0.4)
     sr_p.asset_ref = "paddle"
     pc = paddle.add_component(PaddleController)
-    lm.register_component(pc)
 
     # Ball
     ball = GameObject("Ball", tag="Ball")
@@ -99,7 +95,6 @@ def setup_scene():
     ball_audio = ball.add_component(AudioSource)
     ball_audio.clip_ref = "ball_hit"
     bc = ball.add_component(BallController)
-    lm.register_component(bc)
 
     # Walls (left, right, top) — static colliders for physics bouncing
     for name, pos, size in [
@@ -154,18 +149,15 @@ def setup_scene():
 
             brick_comp = brick_go.add_component(Brick)
             brick_comp.points = ROW_POINTS[row]
-            lm.register_component(brick_comp)
 
     # Game manager
     gm_go = GameObject("GameManager")
     gm = gm_go.add_component(GameManager)
     GameManager.reset()
-    lm.register_component(gm)
 
     # Quit handler
     quit_go = GameObject("QuitHandler")
     qh = quit_go.add_component(QuitHandler)
-    lm.register_component(qh)
 
 
 if __name__ == "__main__":

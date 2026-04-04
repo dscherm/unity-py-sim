@@ -196,12 +196,8 @@ class GameManager(MonoBehaviour):
 
     def _setup_ui(self):
         """Create UI — maps to [SerializeField] references in C#."""
-        from src.engine.lifecycle import LifecycleManager
-        lm = LifecycleManager.instance()
-
         canvas_go = GameObject("UICanvas")
         canvas = canvas_go.add_component(Canvas)
-        lm.register_component(canvas)
 
         # scoreText
         score_go = GameObject("ScoreText")

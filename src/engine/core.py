@@ -170,7 +170,11 @@ class GameObject:
         return self._transform
 
     def add_component(self, cls: Type[T], **kwargs) -> T:
-        """Add a component of the given type to this GameObject."""
+        """Add a component of the given type to this GameObject.
+
+        Automatically registers MonoBehaviour components with LifecycleManager,
+        matching Unity's behavior where AddComponent triggers Awake/Start.
+        """
         component = cls(**kwargs)
         component._game_object = self
         self._components.append(component)
@@ -179,6 +183,10 @@ class GameObject:
         from src.engine.transform import Transform
         if isinstance(component, Transform) and self._transform is None:
             self._transform = component
+
+        # Auto-register with LifecycleManager (Unity does this automatically)
+        from src.engine.lifecycle import LifecycleManager
+        LifecycleManager.instance().register_component(component)
 
         return component
 

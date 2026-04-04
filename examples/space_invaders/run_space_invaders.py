@@ -13,7 +13,6 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.engine.core import GameObject, MonoBehaviour
-from src.engine.lifecycle import LifecycleManager
 from src.engine.rendering.camera import Camera
 from src.engine.rendering.renderer import SpriteRenderer
 from src.engine.physics.physics_manager import PhysicsManager
@@ -38,7 +37,6 @@ class QuitHandler(MonoBehaviour):
 
 
 def setup_scene():
-    lm = LifecycleManager.instance()
     pm = PhysicsManager.instance()
     pm.gravity = Vector2(0, 0)  # No gravity — projectiles move via transform
 
@@ -47,7 +45,7 @@ def setup_scene():
     cam = cam_go.add_component(Camera)
     cam.orthographic_size = 7.0
     cam.background_color = (5, 5, 15)
-    lm.register_component(cam)
+
 
     # Player
     player_go = GameObject("Player", tag="Player")
@@ -64,7 +62,7 @@ def setup_scene():
     sr_p.sorting_order = 3
     sr_p.asset_ref = "player_ship"
     player = player_go.add_component(Player)
-    lm.register_component(player)
+
 
     # Invaders grid
     grid_go = GameObject("InvadersGrid")
@@ -72,7 +70,7 @@ def setup_scene():
     invaders = grid_go.add_component(Invaders)
     invaders.base_speed = 1.0
     invaders.missile_spawn_rate = 1.5
-    lm.register_component(invaders)
+
 
     # Bunkers (4 shields)
     bunker_positions = [-4.5, -1.5, 1.5, 4.5]
@@ -95,7 +93,7 @@ def setup_scene():
         sr_b.asset_ref = "bunker"
 
         bunker = bunker_go.add_component(Bunker)
-        lm.register_component(bunker)
+
 
     # Mystery ship
     ship_go = GameObject("MysteryShip", tag="MysteryShip")
@@ -112,7 +110,7 @@ def setup_scene():
     sr_s.sorting_order = 4
     sr_s.asset_ref = "mystery_ship"
     mystery = ship_go.add_component(MysteryShip)
-    lm.register_component(mystery)
+
 
     # Boundary zones (top/bottom) — destroy projectiles that leave screen
     for name, pos, size in [
@@ -133,12 +131,12 @@ def setup_scene():
     gm_go = GameObject("GameManager")
     gm = gm_go.add_component(GameManager)
     GameManager.reset()
-    lm.register_component(gm)
+
 
     # Quit handler
     quit_go = GameObject("QuitHandler")
     qh = quit_go.add_component(QuitHandler)
-    lm.register_component(qh)
+
 
 
 if __name__ == "__main__":

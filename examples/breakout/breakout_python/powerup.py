@@ -105,7 +105,7 @@ class Powerup(MonoBehaviour):
             bc.speed = original_speed
 
 
-def maybe_spawn_powerup(position: Vector2, lifecycle_manager) -> None:
+def maybe_spawn_powerup(position: Vector2) -> None:
     """20% chance to spawn a powerup at the given position."""
     if random.random() > 0.20:
         return
@@ -130,4 +130,3 @@ def maybe_spawn_powerup(position: Vector2, lifecycle_manager) -> None:
 
     pu = go.add_component(Powerup)
     pu.powerup_type = chosen
-    lifecycle_manager.register_component(pu)

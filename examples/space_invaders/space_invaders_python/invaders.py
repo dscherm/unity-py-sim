@@ -11,7 +11,7 @@ from src.engine.time_manager import Time
 from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
 from src.engine.physics.collider import BoxCollider2D
 from src.engine.rendering.renderer import SpriteRenderer
-from src.engine.lifecycle import LifecycleManager
+
 
 
 # Row configs: animation colors and score (maps to Invader[] prefabs in C#)
@@ -56,8 +56,6 @@ class Invaders(MonoBehaviour):
 
     def _create_invader_grid(self):
         """private void CreateInvaderGrid()"""
-        lm = LifecycleManager.instance()
-
         for i in range(self.rows):
             width = 2.0 * (self.columns - 1)
             height = 2.0 * (self.rows - 1)
@@ -92,8 +90,6 @@ class Invaders(MonoBehaviour):
                 inv = invader_go.add_component(Invader)
                 inv.score = config["score"]
                 inv.animation_sprites = config["animation_sprites"]
-                lm.register_component(inv)
-
                 # Vector3 position = rowPosition; position.x += 2f * j
                 position = Vector3(row_position.x + 2.0 * j, row_position.y, 0)
                 # invader.transform.localPosition = position
@@ -154,7 +150,7 @@ class Invaders(MonoBehaviour):
         proj = missile.add_component(Projectile)
         proj.direction = Vector3(0, -1, 0)  # Vector3.down
         proj.speed = 10.0
-        LifecycleManager.instance().register_component(proj)
+        # auto-registered via add_component
 
     def update(self):
         # Speed scaling based on percent killed

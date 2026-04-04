@@ -29,7 +29,15 @@ class LifecycleManager:
         cls._instance = None
 
     def register_component(self, comp: Component) -> None:
-        """Register a component for lifecycle management. Called when added to a GameObject."""
+        """Register a component for lifecycle management. Called automatically by add_component().
+
+        Idempotent — calling multiple times for the same component is safe.
+        """
+        if comp in self._awake_queue or comp in self._start_queue:
+            return
+        # Also check if already in update lists (fully started)
+        if isinstance(comp, MonoBehaviour) and comp in self._update_list:
+            return
         self._awake_queue.append(comp)
 
     def unregister_component(self, comp: Component) -> None:
