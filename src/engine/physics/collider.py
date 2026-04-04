@@ -76,6 +76,37 @@ class Collider2D(Component):
         self._shared_material: PhysicsMaterial2D | None = None
         self._material: PhysicsMaterial2D | None = None
 
+    def awake(self) -> None:
+        """Auto-build the physics shape on awake, matching Unity's behavior.
+
+        In Unity, colliders are automatically active once configured via inspector.
+        This builds the pymunk shape after all properties have been set in scene setup.
+        """
+        if self._shape is None and self._game_object is not None:
+            self.build()
+
+    def build(self) -> None:
+        """Build the pymunk shape. Override in subclasses.
+
+        Safe to call multiple times — removes old shape before rebuilding.
+        """
+        pass
+
+    def _cleanup_old_shape(self) -> None:
+        """Remove old shape from physics if rebuilding."""
+        if self._shape is not None:
+            rb = self.game_object.get_component(Rigidbody2D)
+            if rb is not None and self._shape in rb._shapes:
+                rb._shapes.remove(self._shape)
+                try:
+                    from src.engine.physics.physics_manager import PhysicsManager
+                    pm = PhysicsManager.instance()
+                    if self._shape in pm._space.shapes:
+                        pm._space.remove(self._shape)
+                except Exception:
+                    pass
+            self._shape = None
+
     @property
     def offset(self) -> Vector2:
         return self._offset
@@ -189,7 +220,8 @@ class BoxCollider2D(Collider2D):
         self._size = value
 
     def build(self) -> None:
-        """Build the pymunk shape. Call after setting size and attaching to a GameObject."""
+        """Build the pymunk box shape from current size."""
+        self._cleanup_old_shape()
         body = self._get_or_create_body()
         hw, hh = self._size.x / 2.0, self._size.y / 2.0
         ox, oy = self._offset.x, self._offset.y
@@ -219,7 +251,8 @@ class CircleCollider2D(Collider2D):
         self._radius = value
 
     def build(self) -> None:
-        """Build the pymunk shape. Call after setting radius and attaching to a GameObject."""
+        """Build the pymunk circle shape from current radius."""
+        self._cleanup_old_shape()
         body = self._get_or_create_body()
         shape = pymunk.Circle(body, self._radius, offset=(self._offset.x, self._offset.y))
         self._register_shape(shape)
@@ -244,6 +277,7 @@ class PolygonCollider2D(Collider2D):
         """Build the pymunk polygon shape from points."""
         if len(self._points) < 3:
             return
+        self._cleanup_old_shape()
         body = self._get_or_create_body()
         vertices = [(p.x + self._offset.x, p.y + self._offset.y) for p in self._points]
         shape = pymunk.Poly(body, vertices)
@@ -269,6 +303,7 @@ class EdgeCollider2D(Collider2D):
         """Build pymunk segment shapes for each edge."""
         if len(self._points) < 2:
             return
+        self._cleanup_old_shape()
         body = self._get_or_create_body()
         for i in range(len(self._points) - 1):
             a = self._points[i]

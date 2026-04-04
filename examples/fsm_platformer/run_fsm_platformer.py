@@ -98,7 +98,6 @@ def setup_scene():
     rb_g._body.position = (0, ground_y)
     col_g = ground.add_component(BoxCollider2D)
     col_g.size = Vector2(20, GROUND_THICKNESS)
-    col_g.build()
     sr_g = ground.add_component(SpriteRenderer)
     sr_g.color = (80, 160, 80)
     sr_g.size = Vector2(20, GROUND_THICKNESS)
@@ -111,7 +110,6 @@ def setup_scene():
     rb_p.gravity_scale = 1.0
     col_p = player.add_component(BoxCollider2D)
     col_p.size = Vector2(0.8, 1.0)
-    col_p.build()
     sr_p = player.add_component(SpriteRenderer)
     sr_p.color = (100, 180, 255)
     sr_p.size = Vector2(0.8, 1.0)
@@ -127,7 +125,6 @@ def setup_scene():
     rb_e.gravity_scale = 1.0
     col_e = enemy.add_component(BoxCollider2D)
     col_e.size = Vector2(0.8, 1.0)
-    col_e.build()
     sr_e = enemy.add_component(SpriteRenderer)
     sr_e.color = (255, 100, 100)
     sr_e.size = Vector2(0.8, 1.0)
@@ -146,7 +143,6 @@ def setup_scene():
     rb_lw._body.position = (-9.5, 0)
     col_lw = left_wall.add_component(BoxCollider2D)
     col_lw.size = Vector2(1, 14)
-    col_lw.build()
 
     # ---- Right wall (static) ----
     right_wall = GameObject("RightWall")
@@ -156,7 +152,6 @@ def setup_scene():
     rb_rw._body.position = (9.5, 0)
     col_rw = right_wall.add_component(BoxCollider2D)
     col_rw.size = Vector2(1, 14)
-    col_rw.build()
 
     # ---- State display ----
     disp_go = GameObject("StateDisplay")

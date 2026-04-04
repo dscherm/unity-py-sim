@@ -34,7 +34,6 @@ def _make_bird(name, pos):
     col = bird_go.add_component(CircleCollider2D)
     col.radius = 0.3
     col.shared_material = PhysicsMaterial2D(bounciness=0.3, friction=0.5)
-    col.build()
     sr = bird_go.add_component(SpriteRenderer)
     sr.color = (220, 50, 50)
     sr.size = Vector2(0.6, 0.6)
@@ -54,7 +53,6 @@ def _make_brick(name, pos, size, health, brick_mat):
     col = brick_go.add_component(BoxCollider2D)
     col.size = size
     col.shared_material = brick_mat
-    col.build()
     sr = brick_go.add_component(SpriteRenderer)
     sr.color = (180, 130, 70)
     sr.size = size
@@ -76,7 +74,6 @@ def _make_pig(name, pos):
     col = pig_go.add_component(CircleCollider2D)
     col.radius = 0.3
     col.shared_material = PhysicsMaterial2D(bounciness=0.1, friction=0.5)
-    col.build()
     sr = pig_go.add_component(SpriteRenderer)
     sr.color = (100, 200, 80)
     sr.size = Vector2(0.6, 0.6)
@@ -96,7 +93,6 @@ def _make_destroyer(name, pos, size):
     col = dest_go.add_component(BoxCollider2D)
     col.size = size
     col.is_trigger = True
-    col.build()
     dest_comp = dest_go.add_component(Destroyer)
     return dest_go
 
@@ -120,7 +116,6 @@ def _setup_shared():
     col_g = ground.add_component(BoxCollider2D)
     col_g.size = Vector2(30, 1)
     col_g.shared_material = ground_mat
-    col_g.build()
     sr_g = ground.add_component(SpriteRenderer)
     sr_g.color = (80, 160, 60)
     sr_g.size = Vector2(30, 1)

@@ -72,7 +72,6 @@ def setup_scene():
     col_p = paddle.add_component(BoxCollider2D)
     col_p.size = Vector2(2.0, 0.4)
     col_p.material = bounce_mat
-    col_p.build()
     sr_p = paddle.add_component(SpriteRenderer)
     sr_p.color = (200, 200, 220)
     sr_p.size = Vector2(2.0, 0.4)
@@ -87,7 +86,6 @@ def setup_scene():
     col_b = ball.add_component(CircleCollider2D)
     col_b.radius = 0.2
     col_b.material = bounce_mat
-    col_b.build()
     sr_b = ball.add_component(SpriteRenderer)
     sr_b.color = (255, 255, 100)
     sr_b.size = Vector2(0.4, 0.4)
@@ -110,7 +108,6 @@ def setup_scene():
         col_w = wall.add_component(BoxCollider2D)
         col_w.size = size
         col_w.material = bounce_mat
-        col_w.build()
 
     # Brick grid
     cols = 10
@@ -137,7 +134,6 @@ def setup_scene():
             col_brick = brick_go.add_component(BoxCollider2D)
             col_brick.size = Vector2(brick_w, brick_h)
             col_brick.material = bounce_mat
-            col_brick.build()
 
             sr_brick = brick_go.add_component(SpriteRenderer)
             sr_brick.color = ROW_COLORS[row]

@@ -80,7 +80,6 @@ class Invaders(MonoBehaviour):
                 col = invader_go.add_component(BoxCollider2D)
                 col.size = Vector2(1.5, 1.5)
                 col.is_trigger = True
-                col.build()
 
                 sr = invader_go.add_component(SpriteRenderer)
                 sr.color = config["animation_sprites"][0]
@@ -140,7 +139,6 @@ class Invaders(MonoBehaviour):
         col = missile.add_component(BoxCollider2D)
         col.size = Vector2(0.2, 0.6)
         col.is_trigger = True
-        col.build()
 
         sr = missile.add_component(SpriteRenderer)
         sr.color = (255, 80, 80)

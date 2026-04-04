@@ -110,7 +110,6 @@ def setup_scene():
     rb_lp.body_type = RigidbodyType2D.KINEMATIC
     col_lp = left_paddle.add_component(BoxCollider2D)
     col_lp.size = Vector2(0.5, 2)
-    col_lp.build()
     sr_lp = left_paddle.add_component(SpriteRenderer)
     sr_lp.color = (100, 180, 255)
     sr_lp.size = Vector2(0.5, 2)
@@ -124,7 +123,6 @@ def setup_scene():
     rb_rp.body_type = RigidbodyType2D.KINEMATIC
     col_rp = right_paddle.add_component(BoxCollider2D)
     col_rp.size = Vector2(0.5, 2)
-    col_rp.build()
     sr_rp = right_paddle.add_component(SpriteRenderer)
     sr_rp.color = (255, 130, 100)
     sr_rp.size = Vector2(0.5, 2)
@@ -138,7 +136,6 @@ def setup_scene():
     rb_ball.mass = 0.1
     col_ball = ball.add_component(CircleCollider2D)
     col_ball.radius = 0.25
-    col_ball.build()
     sr_ball = ball.add_component(SpriteRenderer)
     sr_ball.color = (255, 255, 0)
     sr_ball.size = Vector2(0.5, 0.5)
@@ -153,7 +150,6 @@ def setup_scene():
         rb_w._body.position = (0, y_pos)
         col_w = wall.add_component(BoxCollider2D)
         col_w.size = Vector2(20, 1)
-        col_w.build()
 
     # Center line (visual only)
     center_line = GameObject("CenterLine")

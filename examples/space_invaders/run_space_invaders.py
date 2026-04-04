@@ -55,7 +55,6 @@ def setup_scene():
     col_p = player_go.add_component(BoxCollider2D)
     col_p.size = Vector2(1.5, 0.8)
     col_p.is_trigger = True
-    col_p.build()
     sr_p = player_go.add_component(SpriteRenderer)
     sr_p.color = (50, 255, 50)
     sr_p.size = Vector2(1.5, 0.8)
@@ -84,7 +83,6 @@ def setup_scene():
         col_b = bunker_go.add_component(BoxCollider2D)
         col_b.size = Vector2(GRID_COLS * CELL_SIZE, GRID_ROWS * CELL_SIZE)
         col_b.is_trigger = True
-        col_b.build()
 
         sr_b = bunker_go.add_component(SpriteRenderer)
         sr_b.color = (50, 200, 50)
@@ -103,7 +101,6 @@ def setup_scene():
     col_s = ship_go.add_component(BoxCollider2D)
     col_s.size = Vector2(2.0, 0.8)
     col_s.is_trigger = True
-    col_s.build()
     sr_s = ship_go.add_component(SpriteRenderer)
     sr_s.color = (255, 50, 50)
     sr_s.size = Vector2(2.0, 0.8)
@@ -125,7 +122,6 @@ def setup_scene():
         col_bnd = boundary.add_component(BoxCollider2D)
         col_bnd.size = size
         col_bnd.is_trigger = True
-        col_bnd.build()
 
     # GameManager
     gm_go = GameObject("GameManager")

@@ -76,7 +76,6 @@ class Player(MonoBehaviour):
         col = laser.add_component(BoxCollider2D)
         col.size = Vector2(0.2, 0.6)
         col.is_trigger = True
-        col.build()
 
         sr = laser.add_component(SpriteRenderer)
         sr.color = (100, 255, 100)
