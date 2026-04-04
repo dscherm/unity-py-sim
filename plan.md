@@ -1387,7 +1387,7 @@ Key insight: the problem is in the SIMULATOR, not the TRANSLATOR.
     "Run all 5 example games headless to verify no regressions",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1406,7 +1406,7 @@ Key insight: the problem is in the SIMULATOR, not the TRANSLATOR.
     "Update translator to NOT strip .build() (it won't exist in game code)",
     "Run all examples headless, run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1426,7 +1426,7 @@ Key insight: the problem is in the SIMULATOR, not the TRANSLATOR.
     "Translator maps Instantiate() → UnityEngine.Object.Instantiate()",
     "Run all examples headless, run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1445,7 +1445,7 @@ Key insight: the problem is in the SIMULATOR, not the TRANSLATOR.
     "All game data expressible as typed fields, not dict keys",
     "Run all examples headless, run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1464,7 +1464,7 @@ Key insight: the problem is in the SIMULATOR, not the TRANSLATOR.
     "Translator no longer needs cross-file constant injection (constants are in-class)",
     "Run all examples headless, run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1484,7 +1484,7 @@ Key insight: the problem is in the SIMULATOR, not the TRANSLATOR.
     "Translator produces correct types from annotations without inference fallbacks",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1504,7 +1504,7 @@ Key insight: the problem is in the SIMULATOR, not the TRANSLATOR.
     "Record final pipeline metrics: syntax %, type %, runtime %",
     "If runtime issues remain, fix and document"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1523,6 +1523,6 @@ Key insight: the problem is in the SIMULATOR, not the TRANSLATOR.
     "Compare: Breakout translation score before vs after redesign",
     "Record metrics"
   ],
-  "passes": false
+  "passes": true
 }
 ```
