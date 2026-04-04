@@ -460,6 +460,13 @@ def _add_locals_to_symbols(body_source: str) -> None:
     global _current_symbols
     for line in body_source.split("\n"):
         stripped = line.strip()
+        # Match: var_name: Type = expression (typed assignment)
+        m = re.match(r"^([a-z_]\w*)\s*:\s*\S+.*=\s*", stripped)
+        if m and not stripped.startswith("self."):
+            py_name = m.group(1)
+            if py_name not in _current_symbols and "_" in py_name:
+                _current_symbols[py_name] = snake_to_camel(py_name)
+            continue
         # Match: var_name = expression (not self.var_name)
         m = re.match(r"^([a-z_]\w*)\s*=\s*", stripped)
         if m and not stripped.startswith("self."):
@@ -786,6 +793,40 @@ def _translate_py_statement(line: str) -> str:
             _declared_vars.add(cs_b)
             # Handle nullable tuples: result.Value for (T1,T2)? types
             return f"var ({cs_a}, {cs_b}) = {val}.Value;"
+
+    # Typed self.field assignment: self.field: Type = value (strip annotation, emit field = value)
+    self_typed = re.match(r"^self\.(\w+)\s*:\s*.+?\s*=\s*(.+)$", line)
+    if self_typed:
+        field_name, value = self_typed.groups()
+        cs_field = _translate_py_expression(f"self.{field_name}")
+        cs_value = _translate_py_expression(value)
+        return f"{cs_field} = {cs_value};"
+
+    # Typed assignment: var: Type = value (Python type annotation on local variable)
+    typed_assign = re.match(r"^(\w+)\s*:\s*(.+?)\s*=\s*(.+)$", line)
+    if typed_assign and "." not in typed_assign.group(1):
+        var_name, py_type, value = typed_assign.groups()
+        cs_target = _translate_py_expression(var_name)
+        cs_value = _translate_py_expression(value)
+        if cs_value == "__STRIP__":
+            return ""
+        # Convert Python type to C# type
+        cs_type = _translate_type_annotation(py_type)
+        if cs_target in _declared_vars:
+            return f"{cs_target} = {cs_value};"
+        _declared_vars.add(cs_target)
+        return f"{cs_type} {cs_target} = {cs_value};"
+
+    # Typed declaration without assignment: var: Type (no =)
+    typed_decl = re.match(r"^(\w+)\s*:\s*(.+)$", line)
+    if typed_decl and "." not in typed_decl.group(1) and "=" not in typed_decl.group(2):
+        var_name, py_type = typed_decl.groups()
+        cs_target = _translate_py_expression(var_name)
+        cs_type = _translate_type_annotation(py_type)
+        if cs_target not in _declared_vars:
+            _declared_vars.add(cs_target)
+            return f"{cs_type} {cs_target};"
+        return ""  # Already declared, skip
 
     # Assignment
     assign_match = re.match(r"^([\w.]+)\s*=\s*(.+)$", line)
@@ -1405,6 +1446,24 @@ def _translate_py_condition(cond: str) -> str:
     cond = " ".join(fixed_parts)
 
     return cond
+
+
+def _translate_type_annotation(py_type: str) -> str:
+    """Convert a Python type annotation string to C# type for local variables.
+
+    Handles: int, float, str, bool, Vector2, Vector3, GameObject,
+    list[T], tuple[T, ...], Type | None, etc.
+    """
+    py_type = py_type.strip()
+    # Strip Optional/None union: Type | None -> Type, None | Type -> Type
+    py_type = re.sub(r"\s*\|\s*None\s*$", "", py_type)
+    py_type = re.sub(r"^None\s*\|\s*", "", py_type)
+    # Also handle already-translated null: Type | null -> Type
+    py_type = re.sub(r"\s*\|\s*null\s*$", "", py_type)
+    py_type = py_type.strip()
+    # Map through the existing type system
+    result = _py_type_to_csharp(py_type)
+    return result
 
 
 def _py_type_to_csharp(type_str: str, is_field: bool = False, default_value: str = "") -> str:
