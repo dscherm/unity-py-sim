@@ -132,15 +132,35 @@ def _inject_global_types(parsed: PyFile, global_types: dict[str, str], global_co
 
 def _post_process(cs_code: str, global_types: dict[str, str], global_constants: dict[str, str]) -> str:
     """Fix cross-file references in generated C# code."""
-    # Replace GameManager.instance type from 'object' usage
-    # The singleton pattern: GameManager.instance.Method() — instance IS the type
-    for cls_name in global_types.values():
-        # Fix: (ClassName) cast when accessing singleton methods
-        # GameManager.instance.OnPlayerKilled → already correct if type is right
-        pass
+    # Inject cross-file constants that are referenced but not defined in this class
+    const_lines = []
+    for const_name, const_value in global_constants.items():
+        # Only inject if referenced in the code and not already defined
+        if const_name in cs_code and f" {const_name} =" not in cs_code and f" {const_name};" not in cs_code:
+            # Infer type from value
+            v = const_value.strip()
+            if re.match(r"^-?\d+$", v):
+                const_lines.append(f"    private const int {const_name} = {v};")
+            elif re.match(r"^-?\d+\.\d+$", v):
+                const_lines.append(f"    private const float {const_name} = {v}f;")
+            elif v.startswith("'") or v.startswith('"'):
+                const_lines.append(f'    private const string {const_name} = "{v[1:-1]}";')
 
-    # Add missing constants as comments (they need to be defined somewhere)
-    # For now, just note which constants are referenced but undefined
+    if const_lines:
+        # Insert after the class opening brace
+        cs_code = cs_code.replace(
+            "{\n",
+            "{\n" + "\n".join(const_lines) + "\n",
+            1,  # Only replace the first occurrence (class brace)
+        )
+
+    # Strip DisplayManager blocks (simulator-only)
+    cs_code = re.sub(r"\s*try\s*\{[^}]*DisplayManager[^}]*\}\s*catch[^}]*\{[^}]*\}", "", cs_code)
+
+    # Fix: lm = __STRIP__ or standalone lm references from LifecycleManager
+    cs_code = re.sub(r"\s*var lm = [^;]*;", "", cs_code)
+    cs_code = re.sub(r"\s*lm\.[^;]*;", "", cs_code)
+
     return cs_code
 
 

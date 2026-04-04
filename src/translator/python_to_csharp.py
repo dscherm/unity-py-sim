@@ -152,6 +152,21 @@ def _build_symbol_table(cls: PyClass) -> dict[str, str]:
     return symbols
 
 
+def _discover_dynamic_fields(cls: PyClass) -> list[PyField]:
+    """Find self.X = Y assignments in ALL methods that aren't in __init__."""
+    known_fields = {f.name for f in cls.fields}
+    dynamic: dict[str, str] = {}
+
+    for method in cls.methods:
+        for m in re.finditer(r"self\.(\w+)\s*=\s*(.+)", method.body_source):
+            field_name = m.group(1)
+            if field_name not in known_fields and field_name not in dynamic:
+                dynamic[field_name] = ""  # No type annotation
+
+    return [PyField(name=name, type_annotation=ann, default_value=None, is_class_level=False)
+            for name, ann in dynamic.items()]
+
+
 def _infer_field_types(cls: PyClass) -> dict[str, str]:
     """Infer field types from get_component() calls in start/awake and type annotations."""
     type_map: dict[str, str] = {}
@@ -182,11 +197,21 @@ def _infer_field_types(cls: PyClass) -> dict[str, str]:
                 if field_name not in type_map:
                     type_map[field_name] = "GameObject"
 
+    # 4. Fix array→List when .append() is used on the field
+    all_body = " ".join(m.body_source for m in cls.methods)
+    for field in cls.fields:
+        if field.name in type_map:
+            t = type_map[field.name]
+            if t.endswith("[]") and f"self.{field.name}.append(" in all_body:
+                inner = t[:-2]
+                type_map[field.name] = f"List<{inner}>"
+
     return type_map
 
 
 # Thread-local symbol table for the current class being translated
 _current_symbols: dict[str, str] = {}
+_declared_vars: set[str] = set()
 
 
 def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
@@ -194,6 +219,10 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     global _current_symbols
     extra_using = _infer_using_directives(cls, parsed)
     attributes = _infer_attributes(cls)
+
+    # Discover dynamic fields (self.X = Y in methods, not in __init__)
+    dynamic_fields = _discover_dynamic_fields(cls)
+    cls.fields.extend(dynamic_fields)
 
     # Build symbol table for consistent naming in method bodies
     _current_symbols = _build_symbol_table(cls)
@@ -408,13 +437,50 @@ def _infer_return_type(method: PyMethod) -> str:
 
 
 def _infer_param_type(param_name: str, method: PyMethod) -> str:
-    """Infer C# type from parameter name when no annotation exists."""
+    """Infer C# type from parameter name and usage when no annotation exists."""
+    # Known Unity callback params
     if param_name in ("collision",):
         return "Collision2D"
     if param_name in ("other",):
         return "Collider2D"
-    if param_name in ("side", "name", "tag"):
-        return "string"
+
+    # Common param names → types
+    _PARAM_TYPE_MAP = {
+        "position": "Vector3",
+        "hit_point": "Vector3",
+        "point": "Vector2",
+        "direction": "Vector3",
+        "force": "Vector2",
+        "velocity": "Vector2",
+        "target": "Transform",
+        "other_collider": "BoxCollider2D",
+        "collider": "Collider2D",
+        "side": "string",
+        "name": "string",
+        "tag": "string",
+        "score": "int",
+        "speed": "float",
+        "duration": "float",
+        "delay": "float",
+        "count": "int",
+        "index": "int",
+        "player": "Player",
+        "invader": "Invader",
+        "mystery_ship": "MysteryShip",
+    }
+
+    if param_name in _PARAM_TYPE_MAP:
+        return _PARAM_TYPE_MAP[param_name]
+
+    # Infer from usage in method body
+    body = method.body_source
+    if f"{param_name}.x" in body or f"{param_name}.y" in body:
+        return "Vector2"
+    if f"{param_name}.game_object" in body or f"{param_name}.transform" in body:
+        return "Component"
+    if f"{param_name}.size" in body:
+        return "BoxCollider2D"
+
     return "object"
 
 
@@ -478,6 +544,10 @@ def _translate_body(body: str) -> str:
 
     # First pass: join multi-line expressions into logical lines
     logical_lines = _join_multiline(raw_lines)
+
+    # Track declared local variables to avoid redeclaration
+    global _declared_vars
+    _declared_vars = set()
 
     # Second pass: translate each logical line
     entries: list[tuple[int, str]] = []
@@ -616,8 +686,12 @@ def _translate_py_statement(line: str) -> str:
         cs_value = _translate_py_expression(value)
         if cs_value == "__STRIP__":
             return ""
-        # Infer type for variable declarations
+        # Infer type for variable declarations (skip if already declared)
         if "." not in target and not target.startswith("self"):
+            if cs_target in _declared_vars:
+                # Already declared — just assign
+                return f"{cs_target} = {cs_value};"
+            _declared_vars.add(cs_target)
             cs_type = _infer_expression_type(value)
             return f"{cs_type} {cs_target} = {cs_value};"
         return f"{cs_target} = {cs_value};"
@@ -1144,9 +1218,16 @@ def _translate_py_expression(expr: str) -> str:
         parts = name.lstrip('_').split('_')
         pascal = ''.join(p.capitalize() for p in parts if p)
         return prefix + pascal + '('
-    # Match: .method_name( or standalone method_name( with underscores
+    # Match: .method_name( with underscores → .PascalCase(
     expr = re.sub(r"(\.)([a-z_][a-z_]*[a-z])\(", _snake_method_to_pascal, expr)
-    expr = re.sub(r"(?<![.\w])(_[a-z][a-z_]*)\(", _snake_method_to_pascal, expr)
+
+    # Match standalone _method_name( → PascalCase(
+    def _standalone_snake_method(m):
+        name = m.group(1)
+        parts = name.lstrip('_').split('_')
+        pascal = ''.join(p.capitalize() for p in parts if p)
+        return pascal + '('
+    expr = re.sub(r"(?<![.\w])(_[a-z][a-z_]*)\(", _standalone_snake_method, expr)
 
     # Convert .snake_case field access to .camelCase (for external objects not in symbol table)
     def _snake_field_to_camel(m):

@@ -8,7 +8,7 @@ using UnityEngine;
     public {{ field.csharp_type }} {{ field.csharp_name }}{% if field.default %} = {{ field.default }}{% endif %};
 {% endfor %}
 {% for field in private_fields %}
-    private {{ field.csharp_type }} {{ field.csharp_name }};
+    public {{ field.csharp_type }} {{ field.csharp_name }};
 {% endfor %}
 {% for field in static_fields %}
     public static {{ field.csharp_type }} {{ field.csharp_name }}{% if field.default %} = {{ field.default }}{% endif %};
