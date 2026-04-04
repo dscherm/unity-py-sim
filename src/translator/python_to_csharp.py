@@ -1137,13 +1137,16 @@ def _translate_py_expression(expr: str) -> str:
             # Replace as whole word: \b doesn't work with _ prefix, use lookaround
             expr = re.sub(rf"(?<![.\w]){re.escape(py_name)}(?!\w)", cs_name, expr)
 
-    # Convert remaining snake_case method calls not in symbol table
+    # Convert ALL remaining snake_case method calls to PascalCase (cross-class calls)
     def _snake_method_to_pascal(m):
-        name = m.group(1)
+        prefix = m.group(1) or ""
+        name = m.group(2)
         parts = name.lstrip('_').split('_')
         pascal = ''.join(p.capitalize() for p in parts if p)
-        return pascal + '('
-    expr = re.sub(r"\b_([a-z][a-z_]*)\(", _snake_method_to_pascal, expr)
+        return prefix + pascal + '('
+    # Match: .method_name( or standalone method_name( with underscores
+    expr = re.sub(r"(\.)([a-z_][a-z_]*[a-z])\(", _snake_method_to_pascal, expr)
+    expr = re.sub(r"(?<![.\w])(_[a-z][a-z_]*)\(", _snake_method_to_pascal, expr)
 
     # Convert .snake_case field access to .camelCase (for external objects not in symbol table)
     def _snake_field_to_camel(m):
@@ -1153,6 +1156,13 @@ def _translate_py_expression(expr: str) -> str:
         camel = parts[0] + ''.join(p.capitalize() for p in parts[1:])
         return dot + camel
     expr = re.sub(r"(\.)([a-z]+_[a-z_]+)(?!\()", _snake_field_to_camel, expr)
+
+    # Convert standalone _underscore_names to camelCase (fields not in symbol table)
+    def _underscore_to_camel(m):
+        name = m.group(0)
+        parts = name.lstrip('_').split('_')
+        return parts[0] + ''.join(p.capitalize() for p in parts[1:])
+    expr = re.sub(r"(?<![.\w])_[a-z][a-z_]*[a-z]\b(?!\()", _underscore_to_camel, expr)
 
     return expr
 
