@@ -10,6 +10,8 @@ namespace Breakout
         public bool attached = true;
         public Vector2 paddleOffset = new Vector2(0, 0.6);
         public bool showTrajectory = true;
+        public Rigidbody2D rb;
+        public GameObject paddle;
          void Start()
         {
             rb = GetComponent<Rigidbody2D>();
@@ -18,7 +20,7 @@ namespace Breakout
         }
          void Update()
         {
-            if (attached != null)
+            if (attached)
             {
                 // Follow paddle
                 if (paddle != null)
@@ -57,14 +59,14 @@ namespace Breakout
                 Reset();
                 return;
             }
-            if (showTrajectory != null && !attached)
+            if (showTrajectory && !attached)
             {
                 vel = rb.linearVelocity;
                 if (vel.sqrMagnitude > 0.01f)
                 {
                     Vector2 Start = transform.position;
                     Vector2 end = new Vector2(Start.x + vel.x * 0.3f, Start.y + vel.y * 0.3f);
-                    Debug.DrawLine(Start, end, color=(255, 255, 0), duration=0);
+                    Debug.DrawLine(Start, end, new Color32(255, 255, 0, 255), 0f);
                 }
             }
         }
@@ -83,8 +85,8 @@ namespace Breakout
                 // Normalize to -1..1 based on paddle width (~2 units)
                 float normalized = Mathf.Max(-1.0f, Mathf.Min(1.0f, hitX / 1.0f));
                 // Angle between 30 and 150 degrees (always upward)
-                float angle = math.pi * (0.25f + 0.5f * (1.0f - (normalized + 1.0f) / 2.0f));
-                Vector2 direction = new Vector2(math.Cos(angle), math.Sin(angle)).normalized;
+                float angle = Mathf.PI * (0.25f + 0.5f * (1.0f - (normalized + 1.0f) / 2.0f));
+                Vector2 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)).normalized;
                 rb.linearVelocity = direction * speed;
             }
             else if (collision.gameObject.tag == "Brick")
@@ -102,8 +104,8 @@ namespace Breakout
         public void Launch()
         {
             attached = false;
-            float angle = math.pi / 2 + Random.Range(-0.3f, 0.3f);
-            Vector2 direction = new Vector2(math.Cos(angle), math.Sin(angle)).normalized;
+            float angle = Mathf.PI / 2 + Random.Range(-0.3f, 0.3f);
+            Vector2 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)).normalized;
             rb.linearVelocity = direction * speed;
         }
         public void Reset()

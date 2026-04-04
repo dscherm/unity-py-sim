@@ -35,7 +35,7 @@ namespace SpaceInvaders
                 Vector2 centerOffset = new Vector2(-width * 0.5f, -height * 0.5f);
                 // Vector3 rowPosition = new Vector3(centerOffset.x, (2f * i) + centerOffset.y, 0f)
                 Vector3 rowPosition = new Vector3(centerOffset.x, (2.0f * i) + centerOffset.y, 0);
-                // TODO: InvaderRowConfig config = Invaders.ROW_CONFIG[i % Invaders.ROW_CONFIG.Count];
+                InvaderRowConfig config = Invaders.ROW_CONFIG[i % Invaders.ROW_CONFIG.Count];
                 for (int j = 0; j < columns; j++)
                 {
                     // Invader invader = Instantiate(prefabs[i], transform)

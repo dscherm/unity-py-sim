@@ -1,4 +1,4 @@
-namespace Spaceinvaders
+namespace SpaceInvaders
 {
     using UnityEngine;
     using System;
@@ -22,7 +22,9 @@ namespace Spaceinvaders
         public Player player;
         public Invaders invaders;
         public MysteryShip mysteryShip;
-        public System.Action invokeCallback;
+        public System.Action InvokeCallback;
+        public self._invoke_pending InvokeDelay;
+        public Text StatusText;
         public static GameManager instance = null;
          void Awake()
         {
@@ -72,15 +74,15 @@ namespace Spaceinvaders
         }
          void Update()
         {
-            if (InvokePending != null)
+            if (InvokePending)
             {
                 InvokeTimer += Time.deltaTime;
-                if (InvokeTimer >= invokeDelay)
+                if (InvokeTimer >= InvokeDelay)
                 {
                     InvokePending = false;
-                    if (invokeCallback != null)
+                    if (InvokeCallback != null)
                     {
-                        invokeCallback?.Invoke();
+                        InvokeCallback();
                     }
                 }
             }
@@ -97,7 +99,7 @@ namespace Spaceinvaders
             }
             if (true)
             {
-                statusText.text = "";
+                StatusText.text = "";
             }
             SetScore(0);
             SetLives(3);
@@ -128,7 +130,7 @@ namespace Spaceinvaders
         {
             if (true)
             {
-                statusText.text = "GAME OVER — Press Enter";
+                StatusText.text = "GAME OVER — Press Enter";
             }
             if (invaders != null)
             {
@@ -162,8 +164,8 @@ namespace Spaceinvaders
             }
             if (lives > 0)
             {
-                invokeCallback = NewRound;
-                invokeDelay = 1.0f;
+                InvokeCallback = NewRound;
+                InvokeDelay = 1.0f;
                 InvokeTimer = 0.0f;
                 InvokePending = true;
             }
@@ -226,16 +228,18 @@ namespace Spaceinvaders
             rt3.anchorMax = new Vector2(0.5f, 0.5f);
             rt3.anchoredPosition = Vector2.zero;
             rt3.sizeDelta = new Vector2(400, 40);
-            statusText = statusGo.AddComponent<Text>();
-            statusText.text = "";
-            statusText.fontSize = 28;
-            statusText.color = new Color32(255, 255, 100, 255);
-            statusText.alignment = TextAnchor.MiddleCenter;
+            StatusText = statusGo.AddComponent<Text>();
+            StatusText.text = "";
+            StatusText.fontSize = 28;
+            StatusText.color = new Color32(255, 255, 100, 255);
+            StatusText.alignment = TextAnchor.MiddleCenter;
         }
         public void UpdateTitle()
         {
             try
             {
+                DisplayManager dm = DisplayManager.Instance();
+                dm._title = $"Space Invaders — Score: {score} | Lives: {lives}";
             }
             catch (Exception) { }
         }

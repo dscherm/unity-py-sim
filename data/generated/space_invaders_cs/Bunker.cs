@@ -1,4 +1,4 @@
-namespace Spaceinvaders
+namespace SpaceInvaders
 {
     using UnityEngine;
     using System.Collections.Generic;
@@ -19,7 +19,7 @@ namespace Spaceinvaders
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
             boxCollider = GetComponent<BoxCollider2D>();
-            OriginalCells = range(Bunker.GRID_ROWS).Select(_ => Enumerable.Repeat(true, Bunker).ToArray().GRID_COLS).ToList();
+            OriginalCells = range(Bunker.GRID_ROWS).Select(_ => Enumerable.Repeat(true, Bunker).ToArray().GRIDCOLS).ToList();
             ResetBunker();
         }
         public void ResetBunker()

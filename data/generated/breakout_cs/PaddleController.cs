@@ -8,6 +8,7 @@ namespace Breakout
         public float speed = 12f;
         public float boundX = 6.5f;
         public bool ballAttached = true;
+        public Rigidbody2D rb;
          void Start()
         {
             rb = GetComponent<Rigidbody2D>();

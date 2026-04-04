@@ -1,4 +1,4 @@
-namespace Spaceinvaders
+namespace SpaceInvaders
 {
     using UnityEngine;
     public class MysteryShip : MonoBehaviour
@@ -21,7 +21,7 @@ namespace Spaceinvaders
         }
          void Update()
         {
-            if (InvokePending != null)
+            if (InvokePending)
             {
                 InvokeTimer += Time.deltaTime;
                 if (InvokeTimer >= cycleTime)
