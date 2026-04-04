@@ -22,7 +22,6 @@ public class Invaders : MonoBehaviour
     }
     public void CreateInvaderGrid()
     {
-        """private void CreateInvaderGrid()""";
         var lm = LifecycleManager.instance();
         for (int i = 0; i < rows; i++)
         {
@@ -36,7 +35,6 @@ public class Invaders : MonoBehaviour
             for (int j = 0; j < columns; j++)
             {
                 // Invader invader = Instantiate(prefabs[i], transform)
-                from space_invaders_python.invader import Invader;
                 var invader_go = new GameObject(f"Invader_{i}_{j}", tag="Invader");
                 invader_go.layer = 10  # LAYER_INVADER;
                 var rb = invader_go.add_component(Rigidbody2D);
@@ -72,7 +70,6 @@ public class Invaders : MonoBehaviour
     }
     public void MissileAttack()
     {
-        """private void MissileAttack()""";
         var amount_alive = get_alive_count();
         if (amount_alive == 0)
         {
@@ -96,9 +93,6 @@ public class Invaders : MonoBehaviour
     }
     public void InstantiateMissile(object position)
     {
-        """Instantiate(missilePrefab, invader.position, Quaternion.identity)""";
-        from space_invaders_python.projectile import Projectile;
-        from space_invaders_python.player import LAYER_MISSILE;
         var missile = new GameObject("Missile", tag="Missile");
         missile.layer = LAYER_MISSILE;
         missile.transform.position = new Vector2(position.x, position.y - 0.5);
@@ -164,7 +158,6 @@ public class Invaders : MonoBehaviour
     }
     public void AdvanceRow()
     {
-        """private void AdvanceRow()""";
         direction = new Vector3(-direction.x, 0, 0);
         var pos = transform.position;
         transform.position = new Vector2(pos.x, pos.y - 1f);
@@ -179,7 +172,6 @@ public class Invaders : MonoBehaviour
     }
     public void ResetInvaders()
     {
-        """public void ResetInvaders()""";
         direction = new Vector3(1, 0, 0)  # Vector3.right;
         transform.position = new Vector2(initial_position.x, initial_position.y);
         // TODO: translate for loop: for idx, invader_go in enumerate(self._invader_children):
@@ -202,7 +194,6 @@ public class Invaders : MonoBehaviour
     }
     public void GetAliveCount()
     {
-        """public int GetAliveCount()""";
         var count = 0;
         foreach (var invaderGo in _invader_children)
         {

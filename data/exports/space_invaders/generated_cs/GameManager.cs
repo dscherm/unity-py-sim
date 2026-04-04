@@ -38,10 +38,6 @@ public class GameManager : MonoBehaviour
     }
      void Start()
     {
-        from space_invaders_python.player import Player;
-        from space_invaders_python.invaders import Invaders;
-        from space_invaders_python.mystery_ship import MysteryShip;
-        from space_invaders_python.bunker import Bunker;
         GameObject player_go = GameObject.Find("Player");
         if (player_go)
         {
@@ -89,7 +85,6 @@ public class GameManager : MonoBehaviour
     }
     public void NewGame()
     {
-        """private void NewGame()""";
         if (game_over_ui)
         {
             game_over_ui.active = false;
@@ -104,7 +99,6 @@ public class GameManager : MonoBehaviour
     }
     public void NewRound()
     {
-        """private void NewRound()""";
         if (invaders)
         {
             invaders.reset_invaders();
@@ -118,7 +112,6 @@ public class GameManager : MonoBehaviour
     }
     public void Respawn()
     {
-        """private void Respawn()""";
         if (player)
         {
             player.transform.position = new Vector2(0, player.transform.position.y);
@@ -127,7 +120,6 @@ public class GameManager : MonoBehaviour
     }
     public void GameOver()
     {
-        """private void GameOver()""";
         if (hasattr(self, "_status_text"))
         {
             _status_text.text = "GAME OVER — Press Enter";
@@ -139,7 +131,6 @@ public class GameManager : MonoBehaviour
     }
     public void SetScore(int score)
     {
-        """private void SetScore(int score)""";
         score = score;
         if (score_text)
         {
@@ -149,7 +140,6 @@ public class GameManager : MonoBehaviour
     }
     public void SetLives(int lives)
     {
-        """private void SetLives(int lives)""";
         lives = max(lives, 0);
         if (lives_text)
         {
@@ -159,7 +149,6 @@ public class GameManager : MonoBehaviour
     }
     public void OnPlayerKilled(object player)
     {
-        """public void OnPlayerKilled(Player player)""";
         _set_lives(lives - 1);
         if (player)
         {
@@ -179,7 +168,6 @@ public class GameManager : MonoBehaviour
     }
     public void OnInvaderKilled(object invader)
     {
-        """public void OnInvaderKilled(Invader invader)""";
         invader.gameObject.active = false;
         _set_score(score + invader.score);
         if (invaders && invaders.get_alive_count() == 0)
@@ -189,12 +177,10 @@ public class GameManager : MonoBehaviour
     }
     public void OnMysteryShipKilled(object mysteryShip)
     {
-        """public void OnMysteryShipKilled(MysteryShip mysteryShip)""";
         _set_score(score + mystery_ship.score);
     }
     public void OnBoundaryReached()
     {
-        """public void OnBoundaryReached()""";
         if (invaders && invaders.gameObject.active)
         {
             invaders.gameObject.active = false;
@@ -203,8 +189,6 @@ public class GameManager : MonoBehaviour
     }
     public void SetupUi()
     {
-        """Create UI — maps to [SerializeField] references in C#.""";
-        from src.engine.lifecycle import LifecycleManager;
         var lm = LifecycleManager.instance();
         var canvas_go = new GameObject("UICanvas");
         var canvas = canvas_go.add_component(Canvas);
@@ -246,13 +230,12 @@ public class GameManager : MonoBehaviour
     }
     public void UpdateTitle()
     {
-        try:;
+        try
         {
-            from src.engine.rendering.display import DisplayManager;
             var dm = DisplayManager.instance();
             dm._title = f"Space Invaders — Score: {score} | Lives: {lives}";
         }
-        except Exception:;
+        catch (Exception)
     }
     public static void Reset()
     {

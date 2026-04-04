@@ -31,7 +31,6 @@ public class Invader : MonoBehaviour
     }
     public void AnimateSprite()
     {
-        """private void AnimateSprite()""";
         animation_frame += 1;
         if (animation_frame >= animation_sprites.Count)
         {
@@ -44,11 +43,9 @@ public class Invader : MonoBehaviour
     }
      void OnTriggerEnter2D(Collider2D other)
     {
-        from space_invaders_python.player import LAYER_LASER, LAYER_BOUNDARY;
         if (other.layer == LAYER_LASER)
         {
             // GameManager.Instance.OnInvaderKilled(this)
-            from space_invaders_python.game_manager import GameManager;
             if (GameManager.instance != null)
             {
                 GameManager.instance.on_invader_killed(self);
@@ -57,7 +54,6 @@ public class Invader : MonoBehaviour
         // else if (other.gameObject.layer == LayerMask.NameToLayer("Boundary"))
         else if (other.layer == LAYER_BOUNDARY)
         {
-            from space_invaders_python.game_manager import GameManager;
             if (GameManager.instance != null)
             {
                 GameManager.instance.on_boundary_reached();

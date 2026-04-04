@@ -18,13 +18,11 @@ public class Bunker : MonoBehaviour
     }
     public void ResetBunker()
     {
-        """public void ResetBunker()""";
         _cells = _original_cells.Select(row => row[:]).ToList();
         game_object.active = true;
     }
     public void CheckCollision(object otherCollider, object hitPoint)
     {
-        """public bool CheckCollision(BoxCollider2D other, Vector3 hitPoint)""";
         if (other_collider && hasattr(other_collider, "size"))
         {
             Vector2 offset = new Vector2(other_collider.size.x / 2, other_collider.size.y / 2);
@@ -40,7 +38,6 @@ public class Bunker : MonoBehaviour
     }
     public void Splat(object hitPoint)
     {
-        """private bool Splat(Vector3 hitPoint)""";
         var result = _check_point(hit_point);
         if (result == null)
         {
@@ -64,7 +61,6 @@ public class Bunker : MonoBehaviour
     }
     public void CheckPoint(object hitPoint)
     {
-        """private bool CheckPoint(Vector3 hitPoint, out int px, out int py)""";
         if (box_collider == null)
         {
             return null;
@@ -86,7 +82,6 @@ public class Bunker : MonoBehaviour
     }
      void OnTriggerEnter2D(Collider2D other)
     {
-        from space_invaders_python.player import LAYER_INVADER;
         if (other.layer == LAYER_INVADER)
         {
             // gameObject.SetActive(false)

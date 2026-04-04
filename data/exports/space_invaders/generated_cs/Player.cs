@@ -33,8 +33,6 @@ public class Player : MonoBehaviour
     }
     public void InstantiateLaser()
     {
-        """Equivalent of Instantiate(laserPrefab, transform.position, Quaternion.identity).""";
-        from space_invaders_python.projectile import Projectile;
         var laser = new GameObject("Laser", tag="Laser");
         laser.layer = LAYER_LASER;
         laser.transform.position = new Vector2(;
@@ -64,7 +62,6 @@ public class Player : MonoBehaviour
         if (other.layer == LAYER_MISSILE || other.layer == LAYER_INVADER)
         {
             // GameManager.Instance.OnPlayerKilled(this)
-            from space_invaders_python.game_manager import GameManager;
             if (GameManager.instance != null)
             {
                 GameManager.instance.on_player_killed(self);

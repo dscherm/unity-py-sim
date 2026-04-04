@@ -25,7 +25,6 @@ public class Projectile : MonoBehaviour
     }
     public void CheckCollision(Collider2D other)
     {
-        from space_invaders_python.bunker import Bunker;
         var bunker = other.get_component(Bunker) if hasattr(other, "get_component") else null;
         if (bunker == null || bunker.check_collision(box_collider, transform.position))
         {

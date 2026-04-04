@@ -43,7 +43,6 @@ public class MysteryShip : MonoBehaviour
     }
     public void MoveRight()
     {
-        """private void MoveRight()""";
         var pos = transform.position;
         transform.position = new Vector2(;
         {
@@ -58,7 +57,6 @@ public class MysteryShip : MonoBehaviour
     }
     public void MoveLeft()
     {
-        """private void MoveLeft()""";
         var pos = transform.position;
         transform.position = new Vector2(;
         {
@@ -73,7 +71,6 @@ public class MysteryShip : MonoBehaviour
     }
     public void Spawn()
     {
-        """private void Spawn()""";
         direction *= -1;
         if (direction == 1)
         {
@@ -87,7 +84,6 @@ public class MysteryShip : MonoBehaviour
     }
     public void Despawn()
     {
-        """private void Despawn()""";
         spawned = false;
         if (direction == 1)
         {
@@ -102,12 +98,10 @@ public class MysteryShip : MonoBehaviour
     }
      void OnTriggerEnter2D(Collider2D other)
     {
-        from space_invaders_python.player import LAYER_LASER;
         if (other.layer == LAYER_LASER)
         {
             _despawn();
             // GameManager.Instance.OnMysteryShipKilled(this)
-            from space_invaders_python.game_manager import GameManager;
             if (GameManager.instance != null)
             {
                 GameManager.instance.on_mystery_ship_killed(self);
