@@ -123,10 +123,47 @@ def _infer_attributes(cls: PyClass) -> list[str]:
     return attrs
 
 
+def _build_symbol_table(cls: PyClass) -> dict[str, str]:
+    """Build a mapping of Python names → C# names for fields, methods, and params."""
+    symbols: dict[str, str] = {}
+
+    # Map field names: snake_case → camelCase
+    for field in cls.fields:
+        py_name = field.name
+        cs_name = snake_to_camel(py_name)
+        symbols[py_name] = cs_name
+        # Also map _private variants
+        if not py_name.startswith("_"):
+            symbols[f"_{py_name}"] = cs_name
+
+    # Map method names: snake_case → PascalCase (or lifecycle mapping)
+    for method in cls.methods:
+        py_name = method.name
+        if py_name in _lifecycle_map_reverse:
+            symbols[py_name] = _lifecycle_map_reverse[py_name]
+        else:
+            symbols[py_name] = snake_to_pascal(py_name)
+        # Also map _private variants
+        if not py_name.startswith("_"):
+            symbols[f"_{py_name}"] = symbols[py_name]
+        else:
+            symbols[py_name] = snake_to_pascal(py_name.lstrip("_"))
+
+    return symbols
+
+
+# Thread-local symbol table for the current class being translated
+_current_symbols: dict[str, str] = {}
+
+
 def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     """Translate a MonoBehaviour subclass using the Jinja2 template."""
+    global _current_symbols
     extra_using = _infer_using_directives(cls, parsed)
     attributes = _infer_attributes(cls)
+
+    # Build symbol table for consistent naming in method bodies
+    _current_symbols = _build_symbol_table(cls)
 
     serialized_fields = []
     private_fields = []
@@ -429,6 +466,13 @@ def _translate_py_statement(line: str) -> str:
         cs_target = _translate_py_expression(target)
         cs_value = _translate_py_expression(value)
         return f"{cs_target} {op}= {cs_value};"
+
+    # gameObject.active = X -> gameObject.SetActive(X)
+    active_match = re.match(r"^([\w.]*gameObject|[\w.]*game_object)\.active\s*=\s*(.+)$", line)
+    if active_match:
+        target = _translate_py_expression(active_match.group(1))
+        value = _translate_py_expression(active_match.group(2))
+        return f"{target}.SetActive({value});"
 
     # Tuple unpacking: a, b = expr -> (handled as comment — C# needs destructuring)
     if re.match(r"^\w+,\s*\w+\s*=\s*", line):
@@ -768,7 +812,9 @@ def _translate_py_expression(expr: str) -> str:
 
     # game_object -> gameObject (with or without dot prefix)
     expr = re.sub(r"\bgame_object\b", "gameObject", expr)
-    expr = expr.replace("gameObject.active", "gameObject.activeSelf")
+    # gameObject.active = X -> gameObject.SetActive(X)
+    # Handle in statement translator instead — here just fix reads
+    expr = re.sub(r"gameObject\.active\b(?!\s*=)", "gameObject.activeSelf", expr)
 
     # .add_component(T) -> .AddComponent<T>()
     expr = re.sub(r"\.add_component\((\w+)\)", r".AddComponent<\1>()", expr)
@@ -838,9 +884,9 @@ def _translate_py_expression(expr: str) -> str:
     # String quotes: '...' -> "..."
     expr = re.sub(r"'([^']*)'", r'"\1"', expr)
 
-    # Float literals: ensure f suffix where needed
-    # 5.0 -> 5f (only bare floats, not in method calls)
-    expr = re.sub(r"\b(\d+\.0)\b", lambda m: m.group(1)[:-2] + "f", expr)
+    # Float literals: add f suffix to all decimal number literals
+    # 5.0 -> 5f, 0.5 -> 0.5f, -6.5 -> -6.5f
+    expr = re.sub(r"(?<![a-zA-Z_])(\d+\.\d+)(?!f)\b", r"\1f", expr)
 
     # True/False/None -> true/false/null
     expr = expr.replace("True", "true").replace("False", "false")
@@ -886,12 +932,32 @@ def _translate_py_expression(expr: str) -> str:
     expr = re.sub(r"\.Select\(\s*=>", ".Select(_ =>", expr)
 
     # sum(1 for x in list) already handled by LINQ
-    # Python casts: int(x) -> (int)(x), float(x) -> (float)(x)
+    # Python casts: int(x) -> (int)(x), float(x) -> (float)(x), str(x) -> x.ToString()
     expr = re.sub(r"\bint\(([^)]+)\)", r"(int)(\1)", expr)
     expr = re.sub(r"\bfloat\(([^)]+)\)", r"(float)(\1)", expr)
+    expr = re.sub(r"\bstr\(([^)]+)\)", r"\1.ToString()", expr)
 
     # Python floor division: // -> /
     expr = expr.replace("//", "/")
+
+    # Enum casing: UPPER_CASE enum values -> PascalCase
+    for py_enum, cs_enum in [
+        ("RigidbodyType2D.KINEMATIC", "RigidbodyType2D.Kinematic"),
+        ("RigidbodyType2D.STATIC", "RigidbodyType2D.Static"),
+        ("RigidbodyType2D.DYNAMIC", "RigidbodyType2D.Dynamic"),
+        ("ForceMode2D.FORCE", "ForceMode2D.Force"),
+        ("ForceMode2D.IMPULSE", "ForceMode2D.Impulse"),
+        ("TextAnchor.UPPER_LEFT", "TextAnchor.UpperLeft"),
+        ("TextAnchor.UPPER_CENTER", "TextAnchor.UpperCenter"),
+        ("TextAnchor.UPPER_RIGHT", "TextAnchor.UpperRight"),
+        ("TextAnchor.MIDDLE_LEFT", "TextAnchor.MiddleLeft"),
+        ("TextAnchor.MIDDLE_CENTER", "TextAnchor.MiddleCenter"),
+        ("TextAnchor.MIDDLE_RIGHT", "TextAnchor.MiddleRight"),
+    ]:
+        expr = expr.replace(py_enum, cs_enum)
+
+    # OnTriggerEnter2D: other.layer -> other.gameObject.layer (Collider2D has no .layer)
+    expr = re.sub(r"\bother\.layer\b", "other.gameObject.layer", expr)
 
     # Simulator-only calls — strip entirely
     # .build() is simulator physics setup
@@ -928,8 +994,17 @@ def _translate_py_expression(expr: str) -> str:
     expr = re.sub(r'Input\.GetKeyDown\("(\w+)"\)', lambda m: f"Input.GetKeyDown({_key_string_to_keycode(m)})", expr)
     expr = re.sub(r'Input\.GetKeyUp\("(\w+)"\)', lambda m: f"Input.GetKeyUp({_key_string_to_keycode(m)})", expr)
 
-    # Convert remaining snake_case method calls: _method_name( -> MethodName(
-    # Matches _snake_case( and snake_case( patterns that aren't Unity API
+    # Apply symbol table: replace known Python names with C# equivalents
+    # This ensures field/method references in bodies match declarations
+    if _current_symbols:
+        # Sort by length descending to match longer names first (avoid partial matches)
+        for py_name, cs_name in sorted(_current_symbols.items(), key=lambda x: -len(x[0])):
+            if py_name == cs_name:
+                continue
+            # Replace as whole word: \b doesn't work with _ prefix, use lookaround
+            expr = re.sub(rf"(?<![.\w]){re.escape(py_name)}(?!\w)", cs_name, expr)
+
+    # Convert remaining snake_case method calls not in symbol table
     def _snake_method_to_pascal(m):
         name = m.group(1)
         parts = name.lstrip('_').split('_')
@@ -937,7 +1012,7 @@ def _translate_py_expression(expr: str) -> str:
         return pascal + '('
     expr = re.sub(r"\b_([a-z][a-z_]*)\(", _snake_method_to_pascal, expr)
 
-    # Convert .snake_case field access to .camelCase (generic catch-all)
+    # Convert .snake_case field access to .camelCase (for external objects not in symbol table)
     def _snake_field_to_camel(m):
         dot = m.group(1)
         name = m.group(2)
@@ -945,9 +1020,6 @@ def _translate_py_expression(expr: str) -> str:
         camel = parts[0] + ''.join(p.capitalize() for p in parts[1:])
         return dot + camel
     expr = re.sub(r"(\.)([a-z]+_[a-z_]+)(?!\()", _snake_field_to_camel, expr)
-
-    # Convert _private_field standalone to camelCase
-    expr = re.sub(r"\b_([a-z][a-z_]*[a-z])\b(?!\()", lambda m: snake_to_camel(m.group(1)), expr)
 
     return expr
 
