@@ -165,12 +165,29 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     # Build symbol table for consistent naming in method bodies
     _current_symbols = _build_symbol_table(cls)
 
+    # Add module-level constants to symbol table (they stay UPPER_CASE)
+    for mc in parsed.module_constants:
+        _current_symbols[mc.name] = mc.name  # Keep UPPER_CASE as-is
+
     serialized_fields = []
     private_fields = []
     static_fields = []
 
+    # Add module-level constants as static fields (only simple types)
+    for mc in parsed.module_constants:
+        mc_type = _infer_constant_type(mc.default_value)
+        if not mc_type:
+            continue  # Skip complex types (lists, dicts) that can't be static fields
+        mc_default = _py_value_to_csharp(mc.default_value, mc_type)
+        if mc_default:
+            static_fields.append({
+                "csharp_type": mc_type,
+                "csharp_name": mc.name,
+                "default": mc_default,
+            })
+
     for field in cls.fields:
-        csharp_type = _py_type_to_csharp(field.type_annotation, is_field=True)
+        csharp_type = _py_type_to_csharp(field.type_annotation, is_field=True, default_value=field.default_value or "")
         csharp_name = snake_to_camel(field.name)
         default = _py_value_to_csharp(field.default_value, csharp_type) if field.default_value else None
 
@@ -213,7 +230,7 @@ def _translate_plain_class(cls: PyClass, parsed: PyFile) -> str:
     lines.append("{")
 
     for field in cls.fields:
-        csharp_type = _py_type_to_csharp(field.type_annotation, is_field=True)
+        csharp_type = _py_type_to_csharp(field.type_annotation, is_field=True, default_value=field.default_value or "")
         csharp_name = snake_to_camel(field.name)
         mod = "public static" if field.is_class_level else "private"
         default = _py_value_to_csharp(field.default_value, csharp_type) if field.default_value else None
@@ -234,6 +251,8 @@ def _translate_plain_class(cls: PyClass, parsed: PyFile) -> str:
 
 def _translate_method(method: PyMethod) -> dict:
     """Translate a PyMethod to a C# method dict for the template."""
+    global _current_symbols
+
     # Name
     if method.name in _lifecycle_map_reverse:
         csharp_name = _lifecycle_map_reverse[method.name]
@@ -244,25 +263,33 @@ def _translate_method(method: PyMethod) -> dict:
     if method.is_static:
         access = "public static"
     elif method.is_lifecycle:
-        access = "void"  # Lifecycle methods don't need access modifier prefix
-        # Actually Unity lifecycle methods use just "void"
+        access = "void"
         return_type = ""
     else:
         access = "public"
 
-    # Return type
-    return_type = "IEnumerator" if method.is_coroutine else "void"
+    # Return type — infer from body
+    return_type = "IEnumerator" if method.is_coroutine else _infer_return_type(method)
 
-    # Parameters
+    # Parameters — add to symbol table for this method's scope
+    saved_symbols = dict(_current_symbols)
     params = []
     for p in method.parameters:
         csharp_type = _py_type_to_csharp(p.type_annotation) if p.type_annotation else _infer_param_type(p.name, method)
         csharp_param_name = snake_to_camel(p.name)
         params.append(f"{csharp_type} {csharp_param_name}")
+        # Add param to symbol table
+        _current_symbols[p.name] = csharp_param_name
     params_str = ", ".join(params)
+
+    # Extract local variable names and add to symbol table
+    _add_locals_to_symbols(method.body_source)
 
     # Body
     body = _translate_body(method.body_source)
+
+    # Restore symbol table (remove method-scoped names)
+    _current_symbols = saved_symbols
 
     # Fix access for lifecycle methods
     if method.is_lifecycle:
@@ -275,6 +302,69 @@ def _translate_method(method: PyMethod) -> dict:
         "params": params_str,
         "body": body,
     }
+
+
+def _add_locals_to_symbols(body_source: str) -> None:
+    """Extract local variable assignments and add to symbol table."""
+    global _current_symbols
+    for line in body_source.split("\n"):
+        stripped = line.strip()
+        # Match: var_name = expression (not self.var_name)
+        m = re.match(r"^([a-z_]\w*)\s*=\s*", stripped)
+        if m and not stripped.startswith("self."):
+            py_name = m.group(1)
+            if py_name not in _current_symbols and "_" in py_name:
+                _current_symbols[py_name] = snake_to_camel(py_name)
+        # Match for-loop variables: for var_name in ...
+        m = re.match(r"^for\s+(\w+)\s+in\s+", stripped)
+        if m:
+            py_name = m.group(1)
+            if py_name not in _current_symbols and "_" in py_name:
+                _current_symbols[py_name] = snake_to_camel(py_name)
+        # Match: for idx, var in enumerate(...)
+        m = re.match(r"^for\s+(\w+),\s*(\w+)\s+in\s+", stripped)
+        if m:
+            for py_name in [m.group(1), m.group(2)]:
+                if py_name not in _current_symbols and "_" in py_name:
+                    _current_symbols[py_name] = snake_to_camel(py_name)
+
+
+def _infer_constant_type(value: str | None) -> str:
+    """Infer C# type from a constant value."""
+    if value is None:
+        return "object"
+    v = value.strip()
+    if re.match(r"^-?\d+$", v):
+        return "int"
+    if re.match(r"^-?\d+\.\d+$", v):
+        return "float"
+    if v in ("True", "False"):
+        return "bool"
+    if v.startswith("'") or v.startswith('"'):
+        return "string"
+    # Complex types (lists, dicts) — skip, they can't be simple constants
+    return ""
+
+
+def _infer_return_type(method: PyMethod) -> str:
+    """Infer C# return type from method body."""
+    body = method.body_source
+    # Check for return statements with values
+    for line in body.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith("return ") and stripped != "return":
+            value = stripped[7:].strip()
+            if value == "True" or value == "False":
+                return "bool"
+            if re.match(r"^\d+$", value):
+                return "int"
+            if re.match(r"^\d+\.\d+$", value):
+                return "float"
+            if value.startswith("(") and value.endswith(")"):
+                return "object"  # tuple
+            # Default for non-void returns — use object as fallback
+            return "object"
+    return "void"
 
 
 def _infer_param_type(param_name: str, method: PyMethod) -> str:
@@ -1034,9 +1124,14 @@ def _translate_py_condition(cond: str) -> str:
     return cond
 
 
-def _py_type_to_csharp(type_str: str, is_field: bool = False) -> str:
+def _py_type_to_csharp(type_str: str, is_field: bool = False, default_value: str = "") -> str:
     """Convert a Python type annotation to C# type."""
     if not type_str:
+        # Try to infer from default value
+        if default_value:
+            inferred = _infer_constant_type(default_value)
+            if inferred:
+                return inferred
         return "object" if is_field else "var"
     return _type_mapper.python_to_csharp(type_str)
 

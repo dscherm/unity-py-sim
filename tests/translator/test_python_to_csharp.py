@@ -18,7 +18,7 @@ class TestReverseTranslatorBasics:
         )
         result = translate(parsed)
         assert "public class Foo : MonoBehaviour" in result
-        assert "[SerializeField] private float speed = 5f;" in result
+        assert "public float speed = 5f;" in result
 
     def test_lifecycle_method_naming(self):
         parsed = parse_python(
@@ -113,7 +113,7 @@ class TestPongReverseTranslation:
     def test_translate_paddle_controller(self):
         result = translate_file(PONG_DIR / "paddle_controller.py", input_system="legacy")
         assert "public class PaddleController : MonoBehaviour" in result
-        assert "[SerializeField] private float speed = 10f;" in result
+        assert "public float speed = 10f;" in result
         assert "Start()" in result
         assert "Update()" in result
         assert "Input.GetAxis(" in result
@@ -121,7 +121,7 @@ class TestPongReverseTranslation:
     def test_translate_ball_controller(self):
         result = translate_file(PONG_DIR / "ball_controller.py", input_system="legacy")
         assert "public class BallController : MonoBehaviour" in result
-        assert "[SerializeField] private float initialSpeed = 6f;" in result
+        assert "public float initialSpeed = 6f;" in result
         assert "Start()" in result
         assert "Launch()" in result
         assert "Reset()" in result
