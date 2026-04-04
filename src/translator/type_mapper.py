@@ -77,11 +77,19 @@ class TypeMapper:
             base = self.python_to_csharp(t[:-7].strip())
             return f"{base}?"
 
-        # list[T] -> List<T> or T[]
+        # list[T] -> T[]
         list_match = re.match(r"list\[(.+)\]", t)
         if list_match:
             inner = self.python_to_csharp(list_match.group(1))
             return f"{inner}[]"
+
+        # bare 'list' without type param -> object[]
+        if t == "list":
+            return "object[]"
+
+        # tuple -> object (no direct C# equivalent for bare tuple)
+        if t == "tuple":
+            return "object"
 
         # dict[K, V] -> Dictionary<K, V>
         dict_match = re.match(r"dict\[(.+),\s*(.+)\]", t)

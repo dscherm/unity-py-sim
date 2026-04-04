@@ -377,10 +377,10 @@ def _translate_py_statement(line: str) -> str:
     if line == "try:":
         return "try"
     if line.startswith("except") and line.endswith(":"):
-        exc = line[6:].strip().rstrip(":")
+        exc = line[6:].strip().rstrip(":").strip()
         if exc:
-            return f"catch ({exc.split(' as ')[0]})"
-        return "catch"
+            return f"catch ({exc.split(' as ')[0]}) {{ }}"
+        return "catch { }"
 
     # Comments
     if line.startswith("#"):
@@ -430,12 +430,18 @@ def _translate_py_statement(line: str) -> str:
         cs_value = _translate_py_expression(value)
         return f"{cs_target} {op}= {cs_value};"
 
+    # Tuple unpacking: a, b = expr -> (handled as comment — C# needs destructuring)
+    if re.match(r"^\w+,\s*\w+\s*=\s*", line):
+        return f"// TODO: tuple unpacking: {line}"
+
     # Assignment
     assign_match = re.match(r"^([\w.]+)\s*=\s*(.+)$", line)
     if assign_match:
         target, value = assign_match.groups()
         cs_target = _translate_py_expression(target)
         cs_value = _translate_py_expression(value)
+        if cs_value == "__STRIP__":
+            return ""
         # Infer type for variable declarations
         if "." not in target and not target.startswith("self"):
             cs_type = _infer_expression_type(value)
@@ -746,6 +752,20 @@ def _translate_py_expression(expr: str) -> str:
     # Standalone 'self' -> 'this'
     expr = re.sub(r"\bself\b", "this", expr)
 
+    # f-strings: f"text {var}" -> $"text {var}"
+    expr = re.sub(r'\bf"', '$"', expr)
+    expr = re.sub(r"\bf'", "$'", expr)
+
+    # 'or' / 'and' in expressions (outside conditions — conditions handle these separately)
+    expr = re.sub(r"\bor\b", "||", expr)
+    expr = re.sub(r"\band\b", "&&", expr)
+
+    # 'is not None' -> '!= null', 'is None' -> '== null', 'is X' -> '== X'
+    expr = expr.replace(" is not None", " != null")
+    expr = expr.replace(" is None", " == null")
+    expr = re.sub(r"\bis not\b", "!=", expr)
+    expr = re.sub(r"\bis\b(?!\s*null)", "==", expr)
+
     # game_object -> gameObject (with or without dot prefix)
     expr = re.sub(r"\bgame_object\b", "gameObject", expr)
     expr = expr.replace("gameObject.active", "gameObject.activeSelf")
@@ -850,6 +870,28 @@ def _translate_py_expression(expr: str) -> str:
     expr = re.sub(r"\bmax\(", "Mathf.Max(", expr)
     expr = re.sub(r"\bmin\(", "Mathf.Min(", expr)
     expr = re.sub(r"\babs\(", "Mathf.Abs(", expr)
+
+    # Python list operations:
+    # row[:] -> row.Clone() (array copy)
+    expr = re.sub(r"(\w+)\[:\]", r"(\1.Clone() as bool[])", expr)
+
+    # [True] * N -> new bool[N] (filled with true via Enumerable)
+    expr = re.sub(r"\[true\]\s*\*\s*(\w+)", r"Enumerable.Repeat(true, \1).ToArray()", expr)
+    expr = re.sub(r"\[false\]\s*\*\s*(\w+)", r"Enumerable.Repeat(false, \1).ToArray()", expr)
+
+    # range(N) standalone -> Enumerable.Range(0, N)
+    expr = re.sub(r"\brange\((\w+)\)", r"Enumerable.Range(0, \1)", expr)
+
+    # Fix lambda with no param: .Select( => -> .Select(_ =>
+    expr = re.sub(r"\.Select\(\s*=>", ".Select(_ =>", expr)
+
+    # sum(1 for x in list) already handled by LINQ
+    # Python casts: int(x) -> (int)(x), float(x) -> (float)(x)
+    expr = re.sub(r"\bint\(([^)]+)\)", r"(int)(\1)", expr)
+    expr = re.sub(r"\bfloat\(([^)]+)\)", r"(float)(\1)", expr)
+
+    # Python floor division: // -> /
+    expr = expr.replace("//", "/")
 
     # Simulator-only calls — strip entirely
     # .build() is simulator physics setup
@@ -1013,6 +1055,16 @@ def _infer_using_directives(cls: PyClass, parsed: PyFile) -> list[str]:
     if "random" in " ".join(parsed.imports):
         # No extra using needed — Random is in UnityEngine
         pass
+
+    # Add UnityEngine.UI if UI types are used
+    import_text = " ".join(parsed.imports)
+    if "Text" in all_text or "Canvas" in all_text or "Button" in all_text or "Image" in all_text:
+        if "ui" in import_text.lower() or "Text" in " ".join(f.type_annotation for f in cls.fields):
+            extra.add("UnityEngine.UI")
+
+    # Add System.Linq if Enumerable is used (from list comprehension translation)
+    if "Enumerable" in all_text or "[:]" in all_text:
+        extra.add("System.Linq")
 
     # Add UnityEngine.InputSystem when new input system is active and Input is used
     if _config.input_system == "new":
