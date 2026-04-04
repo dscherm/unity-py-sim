@@ -63,18 +63,50 @@ def translate(
     _config.unity_version = unity_version
     _config.input_system = input_system
 
+    # Build enum value mapping for UPPER_SNAKE -> PascalCase conversion in expressions
+    global _enum_values
+    _enum_values = {}
+    for cls in parsed.classes:
+        if cls.is_enum:
+            for f in cls.fields:
+                if f.is_class_level and f.name.isupper():
+                    pascal = _upper_snake_to_pascal(f.name)
+                    _enum_values[f"{cls.name}.{f.name}"] = f"{cls.name}.{pascal}"
+
     results = []
     for cls in parsed.classes:
         results.append(_translate_class(cls, parsed))
-    code = "\n".join(results).rstrip() + "\n"
+
+    # Hoist all 'using' directives to the top of the file so multi-class
+    # files don't have using statements scattered between class definitions
+    all_using: list[str] = []
+    class_bodies: list[str] = []
+    for block in results:
+        lines = block.split("\n")
+        usings = []
+        body_lines = []
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith("using ") and stripped.endswith(";"):
+                usings.append(stripped)
+            elif stripped:
+                body_lines.append(line)
+        all_using.extend(usings)
+        class_bodies.append("\n".join(body_lines))
+
+    # Deduplicate and sort using directives
+    unique_using = sorted(set(all_using))
+    using_block = "\n".join(unique_using)
+    code = using_block + "\n" + "\n".join(class_bodies).rstrip() + "\n"
 
     if namespace:
-        # Indent all lines inside the namespace
+        # Indent class bodies inside the namespace, using stays outside
+        body_only = "\n".join(class_bodies).rstrip() + "\n"
         indented = "\n".join(
             ("    " + line if line.strip() else line)
-            for line in code.split("\n")
+            for line in body_only.split("\n")
         )
-        code = f"namespace {namespace}\n{{\n{indented}}}\n"
+        code = using_block + "\n" + f"namespace {namespace}\n{{\n{indented}}}\n"
 
     return code
 
@@ -161,8 +193,11 @@ def _discover_dynamic_fields(cls: PyClass) -> list[PyField]:
     dynamic: dict[str, str] = {}
 
     for method in cls.methods:
-        # Match both self.field = value AND self.field: Type = value
-        for m in re.finditer(r"self\.(\w+)(?:\s*:\s*([^=]+?))?\s*=\s*(.+)", method.body_source):
+        # Match both self.field = value AND self.field: Type = value (single line only)
+        for line in method.body_source.split("\n"):
+            m = re.match(r".*self\.(\w+)(?:\s*:\s*([^=\n]+?))?\s*=\s*(.+)", line)
+            if not m:
+                continue
             field_name = m.group(1)
             type_annotation = (m.group(2) or "").strip()
             value = m.group(3).strip()
@@ -209,6 +244,12 @@ def _infer_type_from_value(value: str) -> str:
         return "Vector3"
     if v == "None" or v == "null":
         return ""  # Can't infer
+    # Color tuple: (R, G, B)
+    if re.match(r"^\(\d+,\s*\d+,\s*\d+\)$", v):
+        return "Color32"
+    # List of color tuples: [(R,G,B), ...]
+    if re.match(r"^\[.*\(\d+,\s*\d+,\s*\d+\).*\]$", v):
+        return "Color32[]"
     # Method reference: self._method_name → Action delegate
     if re.match(r"self\.\w+", v) and "(" not in v:
         return "System.Action"
@@ -295,12 +336,15 @@ _current_symbols: dict[str, str] = {}
 _declared_vars: set[str] = set()
 _enumerate_inject: str | None = None
 _bool_fields: set[str] = set()  # C# names of fields with bool type
+_array_fields: set[str] = set()  # C# names of fields with array types (use .Length not .Count)
+_enum_values: dict[str, str] = {}  # "EnumType.UPPER_SNAKE" -> "EnumType.PascalCase"
 
 
 def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     """Translate a MonoBehaviour subclass using the Jinja2 template."""
-    global _current_symbols, _bool_fields
+    global _current_symbols, _bool_fields, _array_fields
     _bool_fields = set()
+    _array_fields = set()
     extra_using = _infer_using_directives(cls, parsed)
     attributes = _infer_attributes(cls)
 
@@ -347,6 +391,9 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
         # Track bool fields so condition translator can avoid != null
         if csharp_type == "bool":
             _bool_fields.add(csharp_name)
+        # Track array fields so len() translator can use .Length not .Count
+        if csharp_type.endswith("[]"):
+            _array_fields.add(csharp_name)
 
         entry = {
             "csharp_type": csharp_type,
@@ -437,9 +484,17 @@ def _translate_method(method: PyMethod) -> dict:
 
     # Parameters — add to symbol table for this method's scope
     saved_symbols = dict(_current_symbols)
+    # Trigger callbacks: Unity receives Collider2D, not GameObject
+    # In the Python simulator, triggers receive GameObject directly — override the annotation
+    _trigger_methods = {"on_trigger_enter_2d", "on_trigger_exit_2d", "on_trigger_stay_2d"}
     params = []
     for p in method.parameters:
-        csharp_type = _py_type_to_csharp(p.type_annotation) if p.type_annotation else _infer_param_type(p.name, method)
+        if method.name in _trigger_methods and p.name in ("other", "collider"):
+            csharp_type = "Collider2D"
+        elif p.type_annotation:
+            csharp_type = _py_type_to_csharp(p.type_annotation)
+        else:
+            csharp_type = _infer_param_type(p.name, method)
         csharp_param_name = snake_to_camel(p.name)
         params.append(f"{csharp_type} {csharp_param_name}")
         # Add param to symbol table
@@ -513,6 +568,12 @@ def _infer_constant_type(value: str | None) -> str:
         return "bool"
     if v.startswith("'") or v.startswith('"'):
         return "string"
+    # Color tuple: (R, G, B)
+    if re.match(r"^\(\d+,\s*\d+,\s*\d+\)$", v):
+        return "Color32"
+    # List of color tuples
+    if re.match(r"^\[.*\(\d+,\s*\d+,\s*\d+\).*\]$", v):
+        return "Color32[]"
     # Complex types (lists, dicts) — skip, they can't be simple constants
     return ""
 
@@ -863,6 +924,9 @@ def _translate_py_statement(line: str) -> str:
         cs_value = _translate_py_expression(value)
         if cs_value == "__STRIP__":
             return ""
+        # Strip simulator-only property assignments
+        if re.search(r"\.(clipRef|assetRef)\s*$", cs_target):
+            return ""
         # Infer type for variable declarations (skip if already declared)
         if "." not in target and not target.startswith("self"):
             if cs_target in _declared_vars:
@@ -920,7 +984,8 @@ def _translate_for_loop(line: str) -> str:
         # We store it for injection
         global _enumerate_inject
         _enumerate_inject = f"var {val_var} = {collection}[{idx_var}];"
-        return f"for (int {idx_var} = 0; {idx_var} < {collection}.Count; {idx_var}++)"
+        prop = ".Length" if collection in _array_fields else ".Count"
+        return f"for (int {idx_var} = 0; {idx_var} < {collection}{prop}; {idx_var}++)"
 
     # Match: var in collection (foreach)
     foreach_match = re.match(r"(\w+)\s+in\s+(.+)$", body)
@@ -977,7 +1042,9 @@ def _translate_len_calls(expr: str) -> str:
         if depth == 0:
             inner = expr[paren_start + 1:pos - 1]
             inner_translated = _translate_py_expression(inner)
-            expr = expr[:start] + f"{inner_translated}.Count" + expr[pos:]
+            # Use .Length for arrays, .Count for Lists
+            prop = ".Length" if inner_translated in _array_fields else ".Count"
+            expr = expr[:start] + f"{inner_translated}{prop}" + expr[pos:]
         else:
             break
     return expr
@@ -1318,10 +1385,11 @@ def _translate_py_expression(expr: str) -> str:
     expr = expr.replace("new Vector3.zero", "Vector3.zero")
 
     # Color tuple literals: (R, G, B) -> new Color32(R, G, B, 255)
-    color_match = re.match(r"^\((\d+),\s*(\d+),\s*(\d+)\)$", expr)
-    if color_match:
-        r, g, b = color_match.groups()
-        expr = f"new Color32({r}, {g}, {b}, 255)"
+    # Handle standalone and inline (inside arrays, arguments, etc.)
+    def _color_tuple_repl(m):
+        r, g, b = m.group(1), m.group(2), m.group(3)
+        return f"new Color32({r}, {g}, {b}, 255)"
+    expr = re.sub(r"\((\d+),\s*(\d+),\s*(\d+)\)", _color_tuple_repl, expr)
 
     # Python builtins -> C# equivalents
     expr = re.sub(r"\bmax\(", "Mathf.Max(", expr)
@@ -1355,6 +1423,7 @@ def _translate_py_expression(expr: str) -> str:
     expr = expr.replace("//", "/")
 
     # Enum casing: UPPER_CASE enum values -> PascalCase
+    # Built-in Unity enums (hardcoded)
     for py_enum, cs_enum in [
         ("RigidbodyType2D.KINEMATIC", "RigidbodyType2D.Kinematic"),
         ("RigidbodyType2D.STATIC", "RigidbodyType2D.Static"),
@@ -1369,6 +1438,21 @@ def _translate_py_expression(expr: str) -> str:
         ("TextAnchor.MIDDLE_RIGHT", "TextAnchor.MiddleRight"),
     ]:
         expr = expr.replace(py_enum, cs_enum)
+    # User-defined enums from the same file (dynamic)
+    for py_enum, cs_enum in _enum_values.items():
+        expr = expr.replace(py_enum, cs_enum)
+    # Catch remaining EnumType.UPPER_SNAKE patterns not in the map
+    # Exclude known Unity types (Mathf, Vector2, etc.) whose constants are already correct
+    _NON_ENUM_TYPES = {"Mathf", "Vector2", "Vector3", "Quaternion", "Color", "Color32",
+                       "Physics2D", "KeyCode", "Input", "Time", "Random", "Debug", "Screen"}
+    def _enum_upper_to_pascal(m):
+        enum_type = m.group(1)
+        if enum_type in _NON_ENUM_TYPES:
+            return m.group(0)  # Don't touch Unity constants
+        value = m.group(2)
+        pascal = _upper_snake_to_pascal(value)
+        return f"{enum_type}.{pascal}"
+    expr = re.sub(r"(\b[A-Z]\w+)\.([A-Z][A-Z_]+)\b", _enum_upper_to_pascal, expr)
 
     # OnTriggerEnter2D: other.layer -> other.gameObject.layer (Collider2D has no .layer)
     expr = re.sub(r"\bother\.layer\b", "other.gameObject.layer", expr)
@@ -1378,17 +1462,29 @@ def _translate_py_expression(expr: str) -> str:
     if re.match(r"^[\w.]+\.build\(\)$", expr):
         return "__STRIP__"
     expr = re.sub(r"\.build\(\)", "", expr)
+    # _sync_from_transform() — simulator-only physics sync (catch before and after naming)
+    if "_sync_from_transform" in expr or "SyncFromTransform()" in expr or "syncFromTransform()" in expr:
+        return "__STRIP__"
     # LifecycleManager.instance().register_component(...) — simulator only
     if "LifecycleManager" in expr:
         return "__STRIP__"
     # PhysicsManager — simulator-internal (Unity handles physics automatically)
     if "PhysicsManager" in expr:
         return "__STRIP__"
+    # DisplayManager — simulator-internal (Unity handles display)
+    if "DisplayManager" in expr:
+        return "__STRIP__"
     # hasattr() — Python-only runtime check, no C# equivalent
     if "hasattr(" in expr:
         return "__STRIP__"
     # pymunk internals: _space, _shape, _body (simulator physics implementation details)
     if "_space." in expr or "_shape" in expr:
+        return "__STRIP__"
+    # Simulator-only property assignments: clip_ref, asset_ref (become clipRef, assetRef)
+    # In Unity, audio clips are assigned via inspector, not by string reference
+    if re.match(r"^[\w.]+\.clipRef\s*=", expr):
+        return "__STRIP__"
+    if re.match(r"^[\w.]+\.assetRef\s*=", expr):
         return "__STRIP__"
 
     # Instantiate() — convert Python prefab pattern to Unity pattern
@@ -1607,6 +1703,21 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
     # Empty dict: {} -> null
     if value == "{}":
         return "null"
+
+    # Color tuples: (R, G, B) -> new Color32(R, G, B, 255)
+    color_match = re.match(r"^\((\d+),\s*(\d+),\s*(\d+)\)$", value)
+    if color_match:
+        r, g, b = color_match.groups()
+        return f"new Color32({r}, {g}, {b}, 255)"
+
+    # List of color tuples: [(R,G,B), ...] -> new Color32[] { new Color32(...), ... }
+    list_colors = re.match(r"^\[(.+)\]$", value)
+    if list_colors:
+        inner = list_colors.group(1)
+        tuples = re.findall(r"\((\d+),\s*(\d+),\s*(\d+)\)", inner)
+        if tuples:
+            elements = ", ".join(f"new Color32({r}, {g}, {b}, 255)" for r, g, b in tuples)
+            return f"new Color32[] {{ {elements} }}"
 
     return value
 

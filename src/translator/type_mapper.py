@@ -93,10 +93,14 @@ class TypeMapper:
         if t == "list":
             return "List<object>"
 
-        # tuple[T1, T2] -> (T1, T2) C# value tuple
+        # tuple[int, int, int] -> Color32 (RGB color in game context)
+        # tuple[T1, T2] -> (T1, T2) C# value tuple for other cases
         tuple_match = re.match(r"tuple\[(.+)\]", t)
         if tuple_match:
             args = self._split_generic_args(tuple_match.group(1))
+            # 3 or 4 ints = color (RGB or RGBA)
+            if len(args) in (3, 4) and all(a.strip() == "int" for a in args):
+                return "Color32"
             cs_args = ", ".join(self.python_to_csharp(a) for a in args)
             return f"({cs_args})"
 
