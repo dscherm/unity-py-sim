@@ -4,6 +4,7 @@ Line-by-line port of: zigurous/Invaders.cs
 """
 
 import random
+from dataclasses import dataclass, field
 
 from src.engine.core import MonoBehaviour, GameObject
 from src.engine.math.vector import Vector2, Vector3
@@ -11,16 +12,23 @@ from src.engine.time_manager import Time
 from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
 from src.engine.physics.collider import BoxCollider2D
 from src.engine.rendering.renderer import SpriteRenderer
+from src.engine.serialization import serializable
 
 
+@serializable
+@dataclass
+class InvaderRowConfig:
+    """[System.Serializable] — configuration for one row of invaders."""
+    animation_sprites: list[tuple[int, int, int]] = field(default_factory=list)
+    score: int = 10
 
-# Row configs: animation colors and score (maps to Invader[] prefabs in C#)
-ROW_CONFIG = [
-    {"animation_sprites": [(50, 255, 50), (30, 200, 30)], "score": 10},
-    {"animation_sprites": [(50, 255, 50), (30, 200, 30)], "score": 10},
-    {"animation_sprites": [(50, 200, 255), (30, 150, 200)], "score": 20},
-    {"animation_sprites": [(50, 200, 255), (30, 150, 200)], "score": 20},
-    {"animation_sprites": [(255, 100, 100), (200, 60, 60)], "score": 30},
+
+ROW_CONFIG: list[InvaderRowConfig] = [
+    InvaderRowConfig(animation_sprites=[(50, 255, 50), (30, 200, 30)], score=10),
+    InvaderRowConfig(animation_sprites=[(50, 255, 50), (30, 200, 30)], score=10),
+    InvaderRowConfig(animation_sprites=[(50, 200, 255), (30, 150, 200)], score=20),
+    InvaderRowConfig(animation_sprites=[(50, 200, 255), (30, 150, 200)], score=20),
+    InvaderRowConfig(animation_sprites=[(255, 100, 100), (200, 60, 60)], score=30),
 ]
 
 
@@ -82,13 +90,13 @@ class Invaders(MonoBehaviour):
                 col.is_trigger = True
 
                 sr = invader_go.add_component(SpriteRenderer)
-                sr.color = config["animation_sprites"][0]
+                sr.color = config.animation_sprites[0]
                 sr.size = Vector2(1.5, 1.0)
                 sr.sorting_order = 2
 
                 inv = invader_go.add_component(Invader)
-                inv.score = config["score"]
-                inv.animation_sprites = config["animation_sprites"]
+                inv.score = config.score
+                inv.animation_sprites = config.animation_sprites
                 # Vector3 position = rowPosition; position.x += 2f * j
                 position = Vector3(row_position.x + 2.0 * j, row_position.y, 0)
                 # invader.transform.localPosition = position
