@@ -1,7 +1,7 @@
+using System;
+using UnityEngine;
 namespace Breakout
 {
-    using UnityEngine;
-    using System;
     public class Brick : MonoBehaviour
     {
         public int points = 10;

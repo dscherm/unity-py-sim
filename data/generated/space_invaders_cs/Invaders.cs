@@ -1,14 +1,12 @@
+using System.Collections.Generic;
+using UnityEngine;
 namespace SpaceInvaders
 {
-    using UnityEngine;
-
     public class InvaderRowConfig
     {
-        public static (int, int, int)[] animationSprites = new List<object>();
+        public static Color32[] animationSprites = new List<object>();
         public static int score = 10;
     }
-    using UnityEngine;
-    using System.Collections.Generic;
     public class Invaders : MonoBehaviour
     {
         public float speedCurveMax = 5f;
@@ -19,7 +17,7 @@ namespace SpaceInvaders
         public float missileSpawnRate = 1f;
         public float MissileTimer = 0f;
         public List<GameObject> InvaderChildren = new List<GameObject>();
-        public static InvaderRowConfig[] ROWConfig = [InvaderRowConfig(animation_sprites=[(50, 255, 50), (30, 200, 30)], score=10), InvaderRowConfig(animation_sprites=[(50, 255, 50), (30, 200, 30)], score=10), InvaderRowConfig(animation_sprites=[(50, 200, 255), (30, 150, 200)], score=20), InvaderRowConfig(animation_sprites=[(50, 200, 255), (30, 150, 200)], score=20), InvaderRowConfig(animation_sprites=[(255, 100, 100), (200, 60, 60)], score=30)];
+        public static InvaderRowConfig[] ROWConfig = new Color32[] { new Color32(50, 255, 50, 255), new Color32(30, 200, 30, 255), new Color32(50, 255, 50, 255), new Color32(30, 200, 30, 255), new Color32(50, 200, 255, 255), new Color32(30, 150, 200, 255), new Color32(50, 200, 255, 255), new Color32(30, 150, 200, 255), new Color32(255, 100, 100, 255), new Color32(200, 60, 60, 255) };
          void Awake()
         {
             initialPosition = new Vector3( transform.position.x, transform.position.y, 0);
@@ -35,12 +33,12 @@ namespace SpaceInvaders
                 Vector2 centerOffset = new Vector2(-width * 0.5f, -height * 0.5f);
                 // Vector3 rowPosition = new Vector3(centerOffset.x, (2f * i) + centerOffset.y, 0f)
                 Vector3 rowPosition = new Vector3(centerOffset.x, (2.0f * i) + centerOffset.y, 0);
-                InvaderRowConfig config = Invaders.ROW_CONFIG[i % Invaders.ROW_CONFIG.Count];
+                InvaderRowConfig config = Invaders.RowConfig[i % Invaders.RowConfig.Count];
                 for (int j = 0; j < columns; j++)
                 {
                     // Invader invader = Instantiate(prefabs[i], transform)
                     GameObject invaderGo = new GameObject($"Invader_{i}_{j}");
-                    invaderGo.layer = Layers.INVADER;
+                    invaderGo.layer = Layers.Invader;
                     Rigidbody2D rb = invaderGo.AddComponent<Rigidbody2D>();
                     rb.bodyType = RigidbodyType2D.Kinematic;
                     BoxCollider2D col = invaderGo.AddComponent<BoxCollider2D>();
@@ -63,7 +61,6 @@ namespace SpaceInvaders
         }
          void Start()
         {
-
         }
         public void MissileAttack()
         {
@@ -92,7 +89,7 @@ namespace SpaceInvaders
         {
             Vector2 pos = new Vector2(position.x, position.y - 0.5f);
             GameObject missile = Instantiate(missilePrefab, pos, Quaternion.identity);
-            missile.layer = Layers.MISSILE;
+            missile.layer = Layers.Missile;
         }
          void Update()
         {
@@ -155,7 +152,7 @@ namespace SpaceInvaders
         }
         public void ResetInvaders()
         {
-            direction = new Vector3(1, 0, 0);
+            direction = new Vector3new Color32(1, 0, 0, 255);
             transform.position = new Vector2(initialPosition.x, initialPosition.y);
             for (int idx = 0; idx < InvaderChildren.Count; idx++)
             {

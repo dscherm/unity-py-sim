@@ -1,7 +1,7 @@
+using UnityEngine.InputSystem;
+using UnityEngine;
 namespace Breakout
 {
-    using UnityEngine;
-    using UnityEngine.InputSystem;
     [RequireComponent(typeof(Rigidbody2D))]
     public class PaddleController : MonoBehaviour
     {
@@ -12,7 +12,6 @@ namespace Breakout
          void Start()
         {
             rb = GetComponent<Rigidbody2D>();
-            rb.SyncFromTransform();
         }
          void Update()
         {

@@ -1,7 +1,7 @@
+using System.Collections.Generic;
+using UnityEngine;
 namespace SpaceInvaders
 {
-    using UnityEngine;
-    using System.Collections.Generic;
     [RequireComponent(typeof(SpriteRenderer))]
     public class Invader : MonoBehaviour
     {
@@ -9,7 +9,7 @@ namespace SpaceInvaders
         public int score = 10;
         public int animationFrame = 0;
         public float Timer = 0f;
-        public (int, int, int)[] animationSprites;
+        public Color32[] animationSprites;
         public SpriteRenderer spriteRenderer;
          void Awake()
         {
@@ -21,7 +21,6 @@ namespace SpaceInvaders
         }
          void Start()
         {
-
         }
          void Update()
         {
@@ -35,7 +34,7 @@ namespace SpaceInvaders
         public void AnimateSprite()
         {
             animationFrame += 1;
-            if (animationFrame >= animationSprites.Count)
+            if (animationFrame >= animationSprites.Length)
             {
                 animationFrame = 0;
             }
@@ -44,9 +43,9 @@ namespace SpaceInvaders
                 spriteRenderer.color = animationSprites[animationFrame];
             }
         }
-         void OnTriggerEnter2D(GameObject other)
+         void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.gameObject.layer == Layers.LASER)
+            if (other.gameObject.layer == Layers.Laser)
             {
                 // GameManager.Instance.OnInvaderKilled(this)
                 if (GameManager.instance != null)
@@ -55,7 +54,7 @@ namespace SpaceInvaders
                 }
             }
             // else if (other.gameObject.layer == LayerMask.NameToLayer("Boundary"))
-            else if (other.gameObject.layer == Layers.BOUNDARY)
+            else if (other.gameObject.layer == Layers.Boundary)
             {
                 if (GameManager.instance != null)
                 {

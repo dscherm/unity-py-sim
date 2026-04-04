@@ -1,6 +1,6 @@
+using UnityEngine;
 namespace SpaceInvaders
 {
-    using UnityEngine;
     public class MysteryShip : MonoBehaviour
     {
         public float speed = 5f;
@@ -88,9 +88,9 @@ namespace SpaceInvaders
             InvokeTimer = 0.0f;
             InvokePending = true;
         }
-         void OnTriggerEnter2D(GameObject other)
+         void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.gameObject.layer == Layers.LASER)
+            if (other.gameObject.layer == Layers.Laser)
             {
                 Despawn();
                 // GameManager.Instance.OnMysteryShipKilled(this)

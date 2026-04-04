@@ -1,9 +1,9 @@
+using System.Linq;
+using System;
+using UnityEngine.UI;
+using UnityEngine;
 namespace Breakout
 {
-    using UnityEngine;
-    using System;
-    using System.Linq;
-    using UnityEngine.UI;
     public class GameManager : MonoBehaviour
     {
         public Canvas Canvas;
@@ -121,7 +121,6 @@ namespace Breakout
             }
             try
             {
-                DisplayManager dm = DisplayManager.Instance();
                 dm._title = ( $"Breakout — Score: {GameManager.score}  |  Lives: {GameManager.lives}" );
             }
             catch (Exception) { }

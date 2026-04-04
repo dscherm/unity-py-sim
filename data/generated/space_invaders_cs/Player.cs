@@ -1,7 +1,7 @@
+using UnityEngine.InputSystem;
+using UnityEngine;
 namespace SpaceInvaders
 {
-    using UnityEngine;
-
     public class Layers
     {
         public static int LASER = 8;
@@ -9,8 +9,6 @@ namespace SpaceInvaders
         public static int INVADER = 10;
         public static int BOUNDARY = 11;
     }
-    using UnityEngine;
-    using UnityEngine.InputSystem;
     public class Player : MonoBehaviour
     {
         public float speed = 5f;
@@ -41,12 +39,12 @@ namespace SpaceInvaders
         {
             Vector2 pos = new Vector2(transform.position.x, transform.position.y + 0.5f);
             GameObject laser = Instantiate(laserPrefab, pos, Quaternion.identity);
-            laser.layer = Layers.LASER;
+            laser.layer = Layers.Laser;
             return laser;
         }
-         void OnTriggerEnter2D(GameObject other)
+         void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.gameObject.layer == Layers.MISSILE || other.gameObject.layer == Layers.INVADER)
+            if (other.gameObject.layer == Layers.Missile || other.gameObject.layer == Layers.Invader)
             {
                 // GameManager.Instance.OnPlayerKilled(this)
                 if (GameManager.instance != null)

@@ -1,6 +1,6 @@
+using UnityEngine;
 namespace SpaceInvaders
 {
-    using UnityEngine;
     [RequireComponent(typeof(BoxCollider2D))]
     public class Projectile : MonoBehaviour
     {
@@ -18,11 +18,11 @@ namespace SpaceInvaders
             float dy = speed * Time.deltaTime * direction.y;
             transform.position = new Vector2(pos.x + dx, pos.y + dy);
         }
-         void OnTriggerEnter2D(GameObject other)
+         void OnTriggerEnter2D(Collider2D other)
         {
             CheckCollision(other);
         }
-         void OnTriggerStay2D(GameObject other)
+         void OnTriggerStay2D(Collider2D other)
         {
             CheckCollision(other);
         }

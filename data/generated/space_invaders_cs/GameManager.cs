@@ -1,10 +1,10 @@
+using System.Collections.Generic;
+using System;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
+using UnityEngine;
 namespace SpaceInvaders
 {
-    using UnityEngine;
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine.InputSystem;
-    using UnityEngine.UI;
     [RequireComponent(typeof(Bunker))]
     [RequireComponent(typeof(Invaders))]
     [RequireComponent(typeof(MysteryShip))]
@@ -23,7 +23,7 @@ namespace SpaceInvaders
         public Invaders invaders;
         public MysteryShip mysteryShip;
         public System.Action InvokeCallback;
-        public self._invoke_pending InvokeDelay;
+        public float InvokeDelay;
         public Text StatusText;
         public static GameManager instance = null;
          void Awake()
@@ -238,7 +238,6 @@ namespace SpaceInvaders
         {
             try
             {
-                DisplayManager dm = DisplayManager.Instance();
                 dm._title = $"Space Invaders — Score: {score} | Lives: {lives}";
             }
             catch (Exception) { }

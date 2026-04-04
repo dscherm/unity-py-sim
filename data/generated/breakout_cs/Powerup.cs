@@ -1,3 +1,5 @@
+using System.Collections;
+using UnityEngine;
 namespace Breakout
 {
     public enum PowerupType
@@ -6,16 +8,12 @@ namespace Breakout
         ExtraLife,
         SpeedBall
     }
-    using UnityEngine;
-
     public class PowerupConfig
     {
         public static PowerupType powerupType = PowerupType.WIDE_PADDLE;
-        public static (int, int, int) color = (255, 255, 255);
+        public static Color32 color = new Color32(255, 255, 255, 255);
         public static float weight = 0f;
     }
-    using UnityEngine;
-    using System.Collections;
     public class Powerup : MonoBehaviour
     {
         public float fallSpeed = 3f;
@@ -45,23 +43,20 @@ namespace Breakout
         {
             AudioSource audio = paddle.GetComponent<AudioSource>();
             if (audio != null)
-            {
-                audio.clipRef = "powerup_collect";
-            }
-            if (powerupType == PowerupType.EXTRA_LIFE)
+            if (powerupType == PowerupType.ExtraLife)
             {
                 GameManager.lives += 1;
                 GameManager.UpdateDisplay();
             }
-            else if (powerupType == PowerupType.WIDE_PADDLE)
+            else if (powerupType == PowerupType.WidePaddle)
             {
                 SpriteRenderer sr = paddle.GetComponent<SpriteRenderer>();
                 if (sr != null)
                 {
                     Vector2 originalSize = new Vector2(sr.size.x, sr.size.y);
-                    (int, int, int) originalColor = sr.color;
+                    Color32 originalColor = sr.color;
                     sr.size = new Vector2(3.0f, 0.4f);
-                    sr.color = GetColor(PowerupType.WIDE_PADDLE);
+                    sr.color = GetColor(PowerupType.WidePaddle);
                     // Revert after 10 seconds via coroutine
                     GameManager gm = GameManager.GetInstance();
                     if (gm != null)
@@ -70,7 +65,7 @@ namespace Breakout
                     }
                 }
             }
-            else if (powerupType == PowerupType.SPEED_BALL)
+            else if (powerupType == PowerupType.SpeedBall)
             {
                 GameObject ball = GameObject.Find("Ball");
                 if (ball != null)
@@ -90,7 +85,7 @@ namespace Breakout
                 }
             }
         }
-        public IEnumerator RevertPaddle(SpriteRenderer sr, Vector2 originalSize, (int, int, int) originalColor)
+        public IEnumerator RevertPaddle(SpriteRenderer sr, Vector2 originalSize, Color32 originalColor)
         {
             yield return new WaitForSeconds(10.0f);
             if (sr != null && sr.gameObject && sr.gameObject.activeSelf)

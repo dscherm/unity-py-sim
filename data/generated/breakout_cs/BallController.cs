@@ -1,7 +1,7 @@
+using UnityEngine.InputSystem;
+using UnityEngine;
 namespace Breakout
 {
-    using UnityEngine;
-    using UnityEngine.InputSystem;
     [RequireComponent(typeof(Rigidbody2D))]
     public class BallController : MonoBehaviour
     {
@@ -15,7 +15,6 @@ namespace Breakout
          void Start()
         {
             rb = GetComponent<Rigidbody2D>();
-            rb.SyncFromTransform();
             paddle = GameObject.Find("Paddle");
         }
          void Update()
@@ -76,9 +75,6 @@ namespace Breakout
             if (collision.gameObject.tag == "Paddle")
             {
                 if (audio != null)
-                {
-                    audio.clipRef = "paddle_hit";
-                }
                 // Angle based on hit position
                 Vector2 paddlePos = collision.gameObject.transform.position;
                 float hitX = transform.position.x - paddlePos.x;
@@ -92,9 +88,6 @@ namespace Breakout
             else if (collision.gameObject.tag == "Brick")
             {
                 if (audio != null)
-                {
-                    audio.clipRef = "brick_hit";
-                }
                 // Reflect off brick
                 Vector2 vel = rb.linearVelocity;
                 // Simple: reflect Y
