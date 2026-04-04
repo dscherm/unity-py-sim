@@ -1,0 +1,38 @@
+namespace Breakout
+{
+    using UnityEngine;
+    using System;
+    public class Brick : MonoBehaviour
+    {
+        public int points = 10;
+        public int health = 1;
+         void OnCollisionEnter2D(Collision2D collision)
+        {
+            if (collision.gameObject.tag == "Ball" || collision.gameObject.name == "Ball")
+            {
+                health -= 1;
+                if (health <= 0)
+                {
+                    Destroy();
+                }
+            }
+        }
+        public void Destroy()
+        {
+            GameManager.AddScore(points);
+            maybe_spawn_powerup(transform.position);
+            gameObject.SetActive(false);
+            collider: BoxCollider2D | null = GetComponent<BoxCollider2D>();
+            if (collider != null && true && collider._shape)
+            {
+                pm: PhysicsManager = PhysicsManager.Instance();
+                try
+                {
+                    pm._space.Remove(collider._shape, collider._shape.body);
+                }
+                catch (Exception) { }
+            }
+            GameManager.OnBrickDestroyed();
+        }
+    }
+}
