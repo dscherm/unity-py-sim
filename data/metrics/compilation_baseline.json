@@ -1,9 +1,9 @@
 {
   "mode": "syntax check",
   "total": 37,
-  "passed": 16,
-  "failed": 21,
-  "pass_rate": 0.432,
+  "passed": 37,
+  "failed": 0,
+  "pass_rate": 1.0,
   "pairs": [
     {
       "id": "001_paddle_controller",
@@ -40,60 +40,41 @@
     {
       "id": "005_paddle_controller",
       "game": "breakout",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L27: Python docstring: \"\"\"Release the ball from the paddle.\"\"\";"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
       "id": "006_ball_controller",
       "game": "breakout",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L32: Python 'from...import' statement: from src.engine.input_manager import Input;",
-        "L58: Python 'from...import' statement: from breakout_python.game_manager import GameManager;",
-        "L87: Python docstring: \"\"\"Launch ball upward at a slight random angle.\"\"\";",
-        "L95: Python docstring: \"\"\"Reset ball to paddle.\"\"\";"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
       "id": "007_brick",
       "game": "breakout",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L19: Python docstring: \"\"\"Remove brick from game.\"\"\";",
-        "L20: Python 'from...import' statement: from breakout_python.game_manager import GameManager;",
-        "L21: Python 'from...import' statement: from breakout_python.powerup import maybe_spawn_powerup;",
-        "L22: Python 'from...import' statement: from src.engine.lifecycle import LifecycleManager;",
-        "L29: Python 'from...import' statement: from src.engine.physics.physics_manager import PhysicsManager;"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
       "id": "008_game_manager",
       "game": "breakout",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L49: Python 'import' statement: import pygame;",
-        "L57: Python 'except' keyword: except Exception:;"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
       "id": "009_powerup",
       "game": "breakout",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L37: Python 'from...import' statement: from breakout_python.game_manager import GameManager;",
-        "L59: Python 'from...import' statement: from breakout_python.ball_controller import BallController;"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
@@ -117,43 +98,33 @@
     {
       "id": "012_bird",
       "game": "angry_birds",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L27: Python docstring: \"\"\"Called by slingshot when bird is released.\"\"\";"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
       "id": "013_slingshot",
       "game": "angry_birds",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L43: Python 'from...import' statement: from src.engine.rendering.display import DisplayManager;",
-        "L72: Python 'from...import' statement: from src.engine.rendering.display import DisplayManager;",
-        "L131: Python 'from...import' statement: from src.engine.time_manager import Time;"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
       "id": "014_brick",
       "game": "angry_birds",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L39: Python 'from...import' statement: from src.engine.rendering.renderer import SpriteRenderer;"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
       "id": "015_pig",
       "game": "angry_birds",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L44: Python 'from...import' statement: from src.engine.rendering.renderer import SpriteRenderer;"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
@@ -167,93 +138,65 @@
     {
       "id": "017_game_manager",
       "game": "angry_birds",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L47: Python 'from...import' statement: from src.engine.input_manager import Input;",
-        "L80: Python 'from...import' statement: from src.engine.scene import SceneManager;",
-        "L140: Python docstring: \"\"\"Create UI canvas with status and score text.\"\"\";",
-        "L141: Python 'from...import' statement: from src.engine.lifecycle import LifecycleManager;",
-        "L212: Python 'from...import' statement: from src.engine.rendering.display import DisplayManager;"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
       "id": "018_fsm",
       "game": "fsm_platformer",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L10: Python docstring: \"\"\"Register a transition that can fire from this state.\"\"\";",
-        "L16: Python docstring: \"\"\"Check all transitions; return the first valid target state, or null.\"\"\";",
-        "L29: Python docstring: \"\"\"Called when the FSM transitions into this state. Resets time_state.\"\"\";",
-        "L35: Python docstring: \"\"\"Called when the FSM transitions out of this state.\"\"\";",
-        "L40: Python docstring: \"\"\"Execute per-frame logic for this state.;"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
       "id": "019_command",
       "game": "fsm_platformer",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L9: Python docstring: \"\"\"Return true if this command can execute in the current game state.\"\"\";",
-        "L15: Python docstring: \"\"\"Called when this command becomes the active command.\"\"\";",
-        "L20: Python docstring: \"\"\"Execute per-frame logic for this command.\"\"\";",
-        "L26: Python docstring: \"\"\"Called when this command is replaced by another.\"\"\";",
-        "L37: Python docstring: \"\"\"Switch to a new command, calling lifecycle hooks.\"\"\";"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
       "id": "020_player_idle_state",
       "game": "fsm_platformer",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L13: Python 'from...import' statement: from fsm_platformer_python.player_input_handler import PlayerInputHandler;"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
       "id": "021_player_running_state",
       "game": "fsm_platformer",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L8: Python 'from...import' statement: from fsm_platformer_python.player_input_handler import PlayerInputHandler;"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
       "id": "022_player_jumping_state",
       "game": "fsm_platformer",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L13: Python 'from...import' statement: from fsm_platformer_python.player_input_handler import PlayerInputHandler;"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
       "id": "023_player_falling_state",
       "game": "fsm_platformer",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L8: Python 'from...import' statement: from fsm_platformer_python.player_input_handler import PlayerInputHandler;"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
       "id": "024_player_landing_state",
       "game": "fsm_platformer",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L13: Python 'from...import' statement: from fsm_platformer_python.player_input_handler import PlayerInputHandler;"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
@@ -323,31 +266,25 @@
     {
       "id": "033_player_input_handler",
       "game": "fsm_platformer",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L91: Python docstring: \"\"\"Return the current FSM state class name for display.\"\"\";"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
       "id": "034_enemy_idle_state",
       "game": "fsm_platformer",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L8: Python 'from...import' statement: from fsm_platformer_python.enemy_behaviour import EnemyBehaviour;"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
       "id": "035_enemy_walk_state",
       "game": "fsm_platformer",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L9: Python 'from...import' statement: from fsm_platformer_python.enemy_behaviour import EnemyBehaviour;"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     },
     {
@@ -361,11 +298,9 @@
     {
       "id": "037_enemy_behaviour",
       "game": "fsm_platformer",
-      "passed": false,
-      "syntax_passed": false,
-      "syntax_errors": [
-        "L30: Python docstring: \"\"\"Return the current FSM state class name for display.\"\"\";"
-      ],
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
       "syntax_warnings": []
     }
   ]

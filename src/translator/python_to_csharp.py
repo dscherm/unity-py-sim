@@ -266,6 +266,8 @@ def _translate_body(body: str) -> str:
         indent = len(raw_line) - len(raw_line.lstrip())
         indent_level = indent // 4
         translated = _translate_py_statement(stripped)
+        if not translated:
+            continue  # Skip stripped docstrings, inline imports, etc.
         entries.append((indent_level, translated))
 
     if not entries:
@@ -302,6 +304,27 @@ def _translate_body(body: str) -> str:
 
 def _translate_py_statement(line: str) -> str:
     """Translate a single Python statement to C#."""
+    # Docstrings — strip them entirely
+    if line.startswith('"""') or line.startswith("'''"):
+        return ""
+    if line.endswith('"""') or line.endswith("'''"):
+        return ""
+
+    # Inline imports — strip (these are Python-only, C# uses using directives)
+    if line.startswith("from ") and " import " in line:
+        return ""
+    if line.startswith("import ") and not line.startswith("import "):
+        return ""
+
+    # try/except → try/catch
+    if line == "try:":
+        return "try"
+    if line.startswith("except") and line.endswith(":"):
+        exc = line[6:].strip().rstrip(":")
+        if exc:
+            return f"catch ({exc.split(' as ')[0]})"
+        return "catch"
+
     # Comments
     if line.startswith("#"):
         return f"// {line[1:].strip()}"
