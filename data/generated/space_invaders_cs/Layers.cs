@@ -1,4 +1,4 @@
-namespace spaceinvaders
+namespace Spaceinvaders
 {
     using UnityEngine;
 
@@ -40,7 +40,7 @@ namespace spaceinvaders
         public GameObject InstantiateLaser()
         {
             Vector2 pos = new Vector2(transform.position.x, transform.position.y + 0.5f);
-            GameObject laser = Instantiate("Laser", position=pos);
+            GameObject laser = Instantiate(laserPrefab, pos, Quaternion.identity);
             laser.layer = Layers.LASER;
             return laser;
         }

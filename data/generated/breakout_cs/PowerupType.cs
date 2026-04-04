@@ -1,4 +1,4 @@
-namespace breakout
+namespace Breakout
 {
     public enum PowerupType
     {

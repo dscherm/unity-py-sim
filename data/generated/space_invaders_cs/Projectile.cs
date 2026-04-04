@@ -1,4 +1,4 @@
-namespace spaceinvaders
+namespace Spaceinvaders
 {
     using UnityEngine;
     [RequireComponent(typeof(BoxCollider2D))]

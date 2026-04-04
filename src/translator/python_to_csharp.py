@@ -641,11 +641,22 @@ def _translate_body(body: str) -> str:
 
     # Second pass: translate each logical line
     entries: list[tuple[int, str]] = []
+    strip_block_indent: int | None = None  # When set, skip lines deeper than this
     for indent_level, logical_line in logical_lines:
+        # If we're stripping a block, skip until indent returns to block level
+        if strip_block_indent is not None:
+            if indent_level > strip_block_indent:
+                continue  # Skip indented body of stripped block
+            else:
+                strip_block_indent = None  # Block ended, resume
+
         if not logical_line or logical_line == "pass" or logical_line == "super().__init__()":
             continue
         translated = _translate_py_statement(logical_line)
         if not translated:
+            continue
+        if translated == "__STRIP_BLOCK__":
+            strip_block_indent = indent_level
             continue
         entries.append((indent_level, translated))
         # Inject enumerate variable declaration after the for-loop line
@@ -722,6 +733,9 @@ def _translate_py_statement(line: str) -> str:
     if line.startswith("if ") and line.endswith(":"):
         cond = line[3:-1].strip()
         cond = _translate_py_condition(cond)
+        # If condition contains stripped simulator code, skip entire block
+        if "__STRIP__" in cond:
+            return "__STRIP_BLOCK__"
         return f"if ({cond})"
     if line.startswith("elif ") and line.endswith(":"):
         cond = line[5:-1].strip()
@@ -1338,6 +1352,25 @@ def _translate_py_expression(expr: str) -> str:
     # LifecycleManager.instance().register_component(...) — simulator only
     if "LifecycleManager" in expr:
         return "__STRIP__"
+    # PhysicsManager — simulator-internal (Unity handles physics automatically)
+    if "PhysicsManager" in expr:
+        return "__STRIP__"
+    # hasattr() — Python-only runtime check, no C# equivalent
+    if "hasattr(" in expr:
+        return "__STRIP__"
+    # pymunk internals: _space, _shape, _body (simulator physics implementation details)
+    if "_space." in expr or "_shape" in expr:
+        return "__STRIP__"
+
+    # Instantiate() — convert Python prefab pattern to Unity pattern
+    # Instantiate("Name", position=pos, tag="Tag") → Instantiate(namePrefab, pos, Quaternion.identity)
+    inst_match = re.match(r'^Instantiate\("(\w+)"(?:,\s*position=(\w+))?(?:,\s*tag="(\w+)")?\)', expr)
+    if inst_match:
+        prefab_name = inst_match.group(1)
+        pos_var = inst_match.group(2) or "transform.position"
+        # In Unity, prefab is a serialized field reference: camelCase + Prefab
+        prefab_field = prefab_name[0].lower() + prefab_name[1:] + "Prefab"
+        expr = f"Instantiate({prefab_field}, {pos_var}, Quaternion.identity)"
 
     # Trailing commas in constructor args: (x, y, ) -> (x, y)
     expr = re.sub(r",\s*\)", ")", expr)

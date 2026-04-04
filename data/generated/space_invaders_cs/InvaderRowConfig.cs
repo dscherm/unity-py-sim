@@ -1,4 +1,4 @@
-namespace spaceinvaders
+namespace Spaceinvaders
 {
     using UnityEngine;
 
@@ -91,7 +91,7 @@ namespace spaceinvaders
         public void InstantiateMissile(Vector2 position)
         {
             Vector2 pos = new Vector2(position.x, position.y - 0.5f);
-            GameObject missile = Instantiate("Missile", position=pos);
+            GameObject missile = Instantiate(missilePrefab, pos, Quaternion.identity);
             missile.layer = Layers.MISSILE;
         }
          void Update()

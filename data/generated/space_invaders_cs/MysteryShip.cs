@@ -1,4 +1,4 @@
-namespace spaceinvaders
+namespace Spaceinvaders
 {
     using UnityEngine;
     public class MysteryShip : MonoBehaviour

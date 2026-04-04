@@ -1,4 +1,4 @@
-namespace breakout
+namespace Breakout
 {
     using UnityEngine;
     using UnityEngine.InputSystem;
