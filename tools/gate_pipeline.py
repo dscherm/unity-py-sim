@@ -189,9 +189,26 @@ print(f'FILES:{file_count} CHECKS:{total_checks} VIOLATIONS:{total_violations} P
     return True, {"files": files, "checks": checks, "violations": violations, "pass_pct": pct}
 
 
+def step_behavioral() -> tuple[bool, dict]:
+    """Step 5: Behavioral gate — assert on game state."""
+    print("\n--- Step 5: Behavioral Gate ---")
+    ok, output = run_cmd(
+        [sys.executable, "tools/behavioral_gate.py"],
+        "behavioral-gate", timeout=60
+    )
+    # Extract summary line
+    lines = output.strip().split("\n")
+    summary = [l for l in lines if "BEHAVIORAL GATE" in l and ("PASSED" in l or "FAILED" in l)]
+    if summary:
+        print(f"  {summary[-1].strip()}")
+    else:
+        print(f"  {'PASSED' if ok else 'FAILED'}")
+    return ok, {"passed": ok, "output_tail": "\n".join(lines[-5:])}
+
+
 def step_playtest() -> tuple[bool, dict]:
-    """Step 5: Run all 5 games headless."""
-    print("\n--- Step 5: Headless Playtest ---")
+    """Step 6: Run all 5 games headless (crash detection)."""
+    print("\n--- Step 6: Headless Playtest ---")
     results = {}
     all_clean = True
 
@@ -248,7 +265,13 @@ def main():
         all_results["convention"] = data
 
     if not translate_only:
-        # Step 5: Playtest
+        # Step 5: Behavioral gate
+        ok, data = step_behavioral()
+        all_results["behavioral"] = data
+        if not ok:
+            failed_steps.append("behavioral")
+
+        # Step 6: Playtest
         ok, data = step_playtest()
         all_results["playtest"] = data
         if not ok:
