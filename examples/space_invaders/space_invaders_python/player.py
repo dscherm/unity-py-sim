@@ -2,6 +2,7 @@
 
 Line-by-line port of: zigurous/Player.cs
 """
+from __future__ import annotations
 
 from src.engine.core import MonoBehaviour, GameObject
 from src.engine.math.vector import Vector2, Vector3
@@ -30,16 +31,16 @@ class Player(MonoBehaviour):
     """[RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(BoxCollider2D))]"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.speed: float = 5.0
         # public Projectile laserPrefab — we instantiate directly instead
-        self.laser_prefab = None  # prefab reference (not used — we build inline)
+        self.laser_prefab: GameObject | None = None  # prefab reference (not used — we build inline)
         self._laser: GameObject | None = None  # private Projectile laser
 
-    def update(self):
+    def update(self) -> None:
         # Vector3 position = transform.position
-        position = self.transform.position
+        position: Vector2 = self.transform.position
 
         # if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
         if Input.get_key("a") or Input.get_key("left"):
@@ -49,8 +50,8 @@ class Player(MonoBehaviour):
 
         # Clamp: position.x = Mathf.Clamp(position.x, leftEdge.x, rightEdge.x)
         # ViewportToWorldPoint approximated by screen bounds
-        left_edge = -6.5
-        right_edge = 6.5
+        left_edge: float = -6.5
+        right_edge: float = 6.5
         position = Vector2(
             max(left_edge, min(right_edge, position.x)),
             position.y,
@@ -67,12 +68,12 @@ class Player(MonoBehaviour):
 
     def _instantiate_laser(self) -> GameObject:
         """Instantiate(laserPrefab, transform.position, Quaternion.identity)"""
-        pos = Vector2(self.transform.position.x, self.transform.position.y + 0.5)
-        laser = Instantiate("Laser", position=pos, tag="Laser")
+        pos: Vector2 = Vector2(self.transform.position.x, self.transform.position.y + 0.5)
+        laser: GameObject = Instantiate("Laser", position=pos, tag="Laser")
         laser.layer = Layers.LASER
         return laser
 
-    def on_trigger_enter_2d(self, other):
+    def on_trigger_enter_2d(self, other: GameObject) -> None:
         # if (other.gameObject.layer == LayerMask.NameToLayer("Missile") ||
         #     other.gameObject.layer == LayerMask.NameToLayer("Invader"))
         if other.layer == Layers.MISSILE or other.layer == Layers.INVADER:

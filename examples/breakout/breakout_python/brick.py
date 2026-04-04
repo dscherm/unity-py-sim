@@ -1,23 +1,25 @@
 """Brick — destroyable block in the grid."""
+from __future__ import annotations
 
 from src.engine.core import MonoBehaviour, GameObject
 from src.engine.physics.collider import BoxCollider2D
+from src.engine.physics.physics_manager import Collision2D
 
 
 class Brick(MonoBehaviour):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.points: int = 10
         self.health: int = 1
 
-    def on_collision_enter_2d(self, collision):
+    def on_collision_enter_2d(self, collision: Collision2D) -> None:
         if collision.game_object.tag == "Ball" or collision.game_object.name == "Ball":
             self.health -= 1
             if self.health <= 0:
                 self.destroy()
 
-    def destroy(self):
+    def destroy(self) -> None:
         """Remove brick from game."""
         from breakout_python.game_manager import GameManager
         from breakout_python.powerup import maybe_spawn_powerup
@@ -29,10 +31,10 @@ class Brick(MonoBehaviour):
 
         self.game_object.active = False
         # Remove physics body
-        collider = self.get_component(BoxCollider2D)
+        collider: BoxCollider2D | None = self.get_component(BoxCollider2D)
         if collider and hasattr(collider, '_shape') and collider._shape:
             from src.engine.physics.physics_manager import PhysicsManager
-            pm = PhysicsManager.instance()
+            pm: PhysicsManager = PhysicsManager.instance()
             try:
                 pm._space.remove(collider._shape, collider._shape.body)
             except Exception:

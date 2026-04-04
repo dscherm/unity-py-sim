@@ -2,6 +2,7 @@
 
 Line-by-line port of: zigurous/Projectile.cs
 """
+from __future__ import annotations
 
 from src.engine.core import MonoBehaviour, GameObject
 from src.engine.math.vector import Vector2, Vector3
@@ -13,31 +14,31 @@ class Projectile(MonoBehaviour):
     """[RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(BoxCollider2D))]"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.direction: Vector3 = Vector3(0, 1, 0)  # Vector3.up
         self.speed: float = 20.0
 
-    def awake(self):
-        self.box_collider = self.get_component(BoxCollider2D)
+    def awake(self) -> None:
+        self.box_collider: BoxCollider2D | None = self.get_component(BoxCollider2D)
 
-    def update(self):
+    def update(self) -> None:
         # transform.position += speed * Time.deltaTime * direction
-        pos = self.transform.position
-        dx = self.speed * Time.delta_time * self.direction.x
-        dy = self.speed * Time.delta_time * self.direction.y
+        pos: Vector2 = self.transform.position
+        dx: float = self.speed * Time.delta_time * self.direction.x
+        dy: float = self.speed * Time.delta_time * self.direction.y
         self.transform.position = Vector2(pos.x + dx, pos.y + dy)
 
-    def on_trigger_enter_2d(self, other):
+    def on_trigger_enter_2d(self, other: GameObject) -> None:
         self._check_collision(other)
 
-    def on_trigger_stay_2d(self, other):
+    def on_trigger_stay_2d(self, other: GameObject) -> None:
         self._check_collision(other)
 
-    def _check_collision(self, other):
+    def _check_collision(self, other: GameObject) -> None:
         # Bunker bunker = other.gameObject.GetComponent<Bunker>();
         from space_invaders_python.bunker import Bunker
-        bunker = other.get_component(Bunker) if hasattr(other, 'get_component') else None
+        bunker: Bunker | None = other.get_component(Bunker) if hasattr(other, 'get_component') else None
 
         # if (bunker == null || bunker.CheckCollision(boxCollider, transform.position))
         if bunker is None or bunker.check_collision(self.box_collider, self.transform.position):
