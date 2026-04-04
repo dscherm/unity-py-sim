@@ -1360,3 +1360,169 @@ Bunker.cs (destructible shields), MysteryShip.cs, GameManager.cs.
   "passes": true
 }
 ```
+
+---
+
+## Phase: Simulator Redesign — Unity-Native Patterns
+
+Goal: Redesign src/engine/ so Python code naturally translates to working Unity C#.
+The translator achieves 0 compile errors but games don't run because the Python
+simulator uses different runtime patterns than Unity. Close the runtime gap by
+making the Python API surface match Unity's C# API 1:1.
+
+Key insight: the problem is in the SIMULATOR, not the TRANSLATOR.
+
+### Task 1: Auto-registration lifecycle — remove LifecycleManager.register_component()
+
+```json
+{
+  "category": "engine",
+  "priority": 1,
+  "description": "Components auto-register when added via add_component(). Remove all manual register_component() calls from examples.",
+  "steps": [
+    "Make add_component() automatically register with LifecycleManager",
+    "Remove all LifecycleManager.register_component() calls from examples/",
+    "Remove LifecycleManager.instance() calls from game code (keep internal)",
+    "Update translator to NOT strip LifecycleManager (it won't exist in game code)",
+    "Run all 5 example games headless to verify no regressions",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 2: Auto-build colliders — remove .build() calls
+
+```json
+{
+  "category": "engine",
+  "priority": 2,
+  "description": "Colliders auto-build their physics shapes when properties are set. Remove all .build() calls from examples.",
+  "steps": [
+    "Make BoxCollider2D.size setter trigger auto-rebuild of pymunk shape",
+    "Make CircleCollider2D.radius setter trigger auto-rebuild",
+    "Make PolygonCollider2D.points setter trigger auto-rebuild",
+    "Remove all .build() calls from examples/",
+    "Update translator to NOT strip .build() (it won't exist in game code)",
+    "Run all examples headless, run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 3: Prefab registry and Instantiate() pattern
+
+```json
+{
+  "category": "engine",
+  "priority": 3,
+  "description": "Add prefab registry and Instantiate() function matching Unity's pattern",
+  "steps": [
+    "Create src/engine/prefab.py with PrefabRegistry and Instantiate() function",
+    "Prefab: a template GameObject with pre-configured components",
+    "PrefabRegistry.register(name, setup_func) — register a prefab builder",
+    "Instantiate(prefab_name, position, rotation) — clone prefab, return new GO",
+    "Update Space Invaders to use Instantiate() for lasers, missiles, invader grid",
+    "Translator maps Instantiate() → UnityEngine.Object.Instantiate()",
+    "Run all examples headless, run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 4: Serializable data classes — replace dicts with typed classes
+
+```json
+{
+  "category": "engine",
+  "priority": 4,
+  "description": "Replace Python dict game data with typed dataclasses that translate to C# serializable structs",
+  "steps": [
+    "Create @serializable decorator for dataclasses (maps to [System.Serializable] in C#)",
+    "Replace ROW_CONFIG list-of-dicts with list of InvaderRowConfig dataclass instances",
+    "Replace all dict-based game config patterns in examples with typed dataclasses",
+    "Translator emits [System.Serializable] public class for @serializable dataclasses",
+    "All game data expressible as typed fields, not dict keys",
+    "Run all examples headless, run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 5: Class-level constants — remove module-level constants
+
+```json
+{
+  "category": "engine",
+  "priority": 5,
+  "description": "Move all module-level constants into classes as static fields",
+  "steps": [
+    "Move LAYER_LASER, LAYER_MISSILE etc. into a Layers class or onto the using class",
+    "Move GRID_ROWS, GRID_COLS, CELL_SIZE into Bunker as class constants",
+    "Move ROW_CONFIG into Invaders as class field",
+    "Remove all module-level constant definitions from example files",
+    "Translator no longer needs cross-file constant injection (constants are in-class)",
+    "Run all examples headless, run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 6: Full type annotations on all Python code
+
+```json
+{
+  "category": "engine",
+  "priority": 6,
+  "description": "Add complete type annotations to every field, parameter, and return type in all examples",
+  "steps": [
+    "Add return type annotations to every method (-> int, -> bool, -> None, etc.)",
+    "Add parameter type annotations to every method parameter",
+    "Add field type annotations to every __init__ field",
+    "Replace bare 'list' with 'list[SpecificType]' everywhere",
+    "Run mypy or pyright on all examples to verify annotation completeness",
+    "Translator produces correct types from annotations without inference fallbacks",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 7: End-to-end validation — Space Invaders Python → Unity playable
+
+```json
+{
+  "category": "validation",
+  "priority": 7,
+  "description": "Translate redesigned Space Invaders to C#, deploy to Unity, verify it RUNS (not just compiles)",
+  "steps": [
+    "Run translate_project() on redesigned Space Invaders Python",
+    "Deploy 7 C# files to Unity project",
+    "check_compile_errors → 0 errors",
+    "Build scene via CoPlay editor script",
+    "Play game → invaders move, player fires, collisions work, score updates",
+    "Record final pipeline metrics: syntax %, type %, runtime %",
+    "If runtime issues remain, fix and document"
+  ],
+  "passes": false
+}
+```
+
+### Task 8: Second game validation — Breakout Python → Unity playable
+
+```json
+{
+  "category": "validation",
+  "priority": 8,
+  "description": "Validate redesign works on a second game — translate Breakout to Unity and verify playable",
+  "steps": [
+    "Update Breakout example to use redesigned patterns (Instantiate, auto-register, typed data)",
+    "Run translate_project() on Breakout",
+    "Deploy to Unity, build scene, play",
+    "Verify: paddle moves, ball bounces, bricks break, score works",
+    "Compare: Breakout translation score before vs after redesign",
+    "Record metrics"
+  ],
+  "passes": false
+}
+```
