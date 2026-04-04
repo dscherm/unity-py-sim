@@ -42,6 +42,9 @@
     "Input.GetKey": "Input.get_key",
     "Input.GetKeyDown": "Input.get_key_down",
     "Input.GetKeyUp": "Input.get_key_up",
+    "Input.GetMouseButton": "Input.get_mouse_button",
+    "Input.GetMouseButtonDown": "Input.get_mouse_button_down",
+    "Input.GetMouseButtonUp": "Input.get_mouse_button_up",
     "Time.deltaTime": "Time.delta_time",
     "Time.fixedDeltaTime": "Time.fixed_delta_time",
     "Time.time": "Time.time",
@@ -49,11 +52,92 @@
     "Mathf.Lerp": "Mathf.lerp",
     "Mathf.Clamp": "Mathf.clamp",
     "Mathf.Abs": "Mathf.abs",
+    "Mathf.Max": "max",
+    "Mathf.Min": "min",
     "Random.value": "random.random()",
     "Random.Range": "random.uniform"
   },
+  "property_mappings": {
+    "angularVelocity": "angular_velocity",
+    "gravityScale": "gravity_scale",
+    "bodyType": "body_type",
+    "sortingOrder": "sorting_order",
+    "orthographicSize": "orthographic_size",
+    "backgroundColor": "background_color",
+    "sqrMagnitude": "sqr_magnitude",
+    "mousePosition": "mouse_position",
+    "gameObject": "game_object",
+    "activeSelf": "active",
+    "isTrigger": "is_trigger"
+  },
+  "enum_mappings": {
+    "RigidbodyType2D.KINEMATIC": "RigidbodyType2D.Kinematic",
+    "RigidbodyType2D.STATIC": "RigidbodyType2D.Static",
+    "RigidbodyType2D.DYNAMIC": "RigidbodyType2D.Dynamic",
+    "ForceMode2D.FORCE": "ForceMode2D.Force",
+    "ForceMode2D.IMPULSE": "ForceMode2D.Impulse",
+    "TextAnchor.UPPER_LEFT": "TextAnchor.UpperLeft",
+    "TextAnchor.UPPER_CENTER": "TextAnchor.UpperCenter",
+    "TextAnchor.UPPER_RIGHT": "TextAnchor.UpperRight",
+    "TextAnchor.MIDDLE_LEFT": "TextAnchor.MiddleLeft",
+    "TextAnchor.MIDDLE_CENTER": "TextAnchor.MiddleCenter",
+    "TextAnchor.MIDDLE_RIGHT": "TextAnchor.MiddleRight",
+    "TextAnchor.LOWER_LEFT": "TextAnchor.LowerLeft",
+    "TextAnchor.LOWER_CENTER": "TextAnchor.LowerCenter",
+    "TextAnchor.LOWER_RIGHT": "TextAnchor.LowerRight"
+  },
+  "keycode_mappings": {
+    "a": "KeyCode.A", "b": "KeyCode.B", "c": "KeyCode.C", "d": "KeyCode.D",
+    "e": "KeyCode.E", "f": "KeyCode.F", "g": "KeyCode.G", "h": "KeyCode.H",
+    "i": "KeyCode.I", "j": "KeyCode.J", "k": "KeyCode.K", "l": "KeyCode.L",
+    "m": "KeyCode.M", "n": "KeyCode.N", "o": "KeyCode.O", "p": "KeyCode.P",
+    "q": "KeyCode.Q", "r": "KeyCode.R", "s": "KeyCode.S", "t": "KeyCode.T",
+    "u": "KeyCode.U", "v": "KeyCode.V", "w": "KeyCode.W", "x": "KeyCode.X",
+    "y": "KeyCode.Y", "z": "KeyCode.Z",
+    "space": "KeyCode.Space", "escape": "KeyCode.Escape", "return": "KeyCode.Return",
+    "left": "KeyCode.LeftArrow", "right": "KeyCode.RightArrow",
+    "up": "KeyCode.UpArrow", "down": "KeyCode.DownArrow",
+    "tab": "KeyCode.Tab", "left_shift": "KeyCode.LeftShift",
+    "right_shift": "KeyCode.RightShift"
+  },
+  "builtin_translations": {
+    "max(": "Mathf.Max(",
+    "min(": "Mathf.Min(",
+    "abs(": "Mathf.Abs(",
+    "print(": "Debug.Log(",
+    "len(": ".Count"
+  },
+  "python_cast_to_csharp": {
+    "int(X)": "(int)(X)",
+    "float(X)": "(float)(X)",
+    "str(X)": "X.ToString()",
+    "bool(X)": "(bool)(X)"
+  },
+  "string_method_mappings": {
+    ".zfill(N)": ".PadLeft(N, '0')",
+    ".upper()": ".ToUpper()",
+    ".lower()": ".ToLower()",
+    ".strip()": ".Trim()",
+    ".split(X)": ".Split(X)",
+    ".startswith(X)": ".StartsWith(X)",
+    ".endswith(X)": ".EndsWith(X)",
+    ".replace(X, Y)": ".Replace(X, Y)"
+  },
+  "collection_mappings": {
+    ".append(": ".Add(",
+    ".remove(": ".Remove(",
+    ".extend(": ".AddRange(",
+    ".insert(": ".Insert("
+  },
+  "simulator_only_patterns": [
+    ".build()",
+    "LifecycleManager.instance()",
+    "LifecycleManager",
+    "PhysicsManager.instance()",
+    "DisplayManager.instance()"
+  ],
   "literal_transforms": {
-    "float_suffix": "remove_f",
+    "float_suffix": "add_f_to_decimals",
     "true": "True",
     "false": "False",
     "null": "None",
@@ -61,5 +145,16 @@
     "Vector3.zero": "Vector3(0, 0, 0)",
     "Vector2.one": "Vector2(1, 1)",
     "Vector3.one": "Vector3(1, 1, 1)"
+  },
+  "constructor_types": [
+    "Vector2", "Vector3", "Quaternion", "GameObject", "Color", "Color32"
+  ],
+  "trigger_callback_fix": {
+    "note": "In py-unity-sim, on_trigger_enter_2d receives GameObject directly. In Unity, it receives Collider2D. When translating, other.layer must become other.gameObject.layer",
+    "other.layer": "other.gameObject.layer"
+  },
+  "gameobject_active_pattern": {
+    "read": "gameObject.activeSelf",
+    "write": "gameObject.SetActive(value)"
   }
 }
