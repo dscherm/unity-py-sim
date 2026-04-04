@@ -58,16 +58,16 @@ class Invader(MonoBehaviour):
             self.sprite_renderer.color = self.animation_sprites[self.animation_frame]
 
     def on_trigger_enter_2d(self, other):
-        from space_invaders_python.player import LAYER_LASER, LAYER_BOUNDARY
+        from space_invaders_python.player import Layers
 
         # if (other.gameObject.layer == LayerMask.NameToLayer("Laser"))
-        if other.layer == LAYER_LASER:
+        if other.layer == Layers.LASER:
             # GameManager.Instance.OnInvaderKilled(this)
             from space_invaders_python.game_manager import GameManager
             if GameManager.instance is not None:
                 GameManager.instance.on_invader_killed(self)
         # else if (other.gameObject.layer == LayerMask.NameToLayer("Boundary"))
-        elif other.layer == LAYER_BOUNDARY:
+        elif other.layer == Layers.BOUNDARY:
             from space_invaders_python.game_manager import GameManager
             if GameManager.instance is not None:
                 GameManager.instance.on_boundary_reached()

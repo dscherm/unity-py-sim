@@ -22,9 +22,9 @@ from src.engine.math.vector import Vector2
 from src.engine.input_manager import Input
 from src.engine.app import run
 
-from space_invaders_python.player import Player, LAYER_BOUNDARY
+from space_invaders_python.player import Player, Layers
 from space_invaders_python.invaders import Invaders
-from space_invaders_python.bunker import Bunker, GRID_COLS, GRID_ROWS, CELL_SIZE
+from space_invaders_python.bunker import Bunker
 from space_invaders_python.mystery_ship import MysteryShip
 from space_invaders_python.game_manager import GameManager
 from space_invaders_python.prefabs import register_prefabs
@@ -83,12 +83,12 @@ def setup_scene():
         rb_b.body_type = RigidbodyType2D.STATIC
 
         col_b = bunker_go.add_component(BoxCollider2D)
-        col_b.size = Vector2(GRID_COLS * CELL_SIZE, GRID_ROWS * CELL_SIZE)
+        col_b.size = Vector2(Bunker.GRID_COLS * Bunker.CELL_SIZE, Bunker.GRID_ROWS * Bunker.CELL_SIZE)
         col_b.is_trigger = True
 
         sr_b = bunker_go.add_component(SpriteRenderer)
         sr_b.color = (50, 200, 50)
-        sr_b.size = Vector2(GRID_COLS * CELL_SIZE, GRID_ROWS * CELL_SIZE)
+        sr_b.size = Vector2(Bunker.GRID_COLS * Bunker.CELL_SIZE, Bunker.GRID_ROWS * Bunker.CELL_SIZE)
         sr_b.sorting_order = 1
         sr_b.asset_ref = "bunker"
 
@@ -117,7 +117,7 @@ def setup_scene():
         ("BoundaryBottom", Vector2(0, -7.5), Vector2(20, 1)),
     ]:
         boundary = GameObject(name, tag="Boundary")
-        boundary.layer = LAYER_BOUNDARY
+        boundary.layer = Layers.BOUNDARY
         boundary.transform.position = pos
         rb_bnd = boundary.add_component(Rigidbody2D)
         rb_bnd.body_type = RigidbodyType2D.STATIC

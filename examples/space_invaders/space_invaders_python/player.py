@@ -11,11 +11,19 @@ from src.engine.prefab import Instantiate
 
 
 
-# Layer constants matching Unity LayerMask.NameToLayer
-LAYER_LASER = 8
-LAYER_MISSILE = 9
-LAYER_INVADER = 10
-LAYER_BOUNDARY = 11
+class Layers:
+    """Layer constants — maps to Unity LayerMask.NameToLayer values."""
+    LASER: int = 8
+    MISSILE: int = 9
+    INVADER: int = 10
+    BOUNDARY: int = 11
+
+
+# Backwards compatibility — module-level aliases (will be removed in Task 6)
+LAYER_LASER = Layers.LASER
+LAYER_MISSILE = Layers.MISSILE
+LAYER_INVADER = Layers.INVADER
+LAYER_BOUNDARY = Layers.BOUNDARY
 
 
 class Player(MonoBehaviour):
@@ -61,13 +69,13 @@ class Player(MonoBehaviour):
         """Instantiate(laserPrefab, transform.position, Quaternion.identity)"""
         pos = Vector2(self.transform.position.x, self.transform.position.y + 0.5)
         laser = Instantiate("Laser", position=pos, tag="Laser")
-        laser.layer = LAYER_LASER
+        laser.layer = Layers.LASER
         return laser
 
     def on_trigger_enter_2d(self, other):
         # if (other.gameObject.layer == LayerMask.NameToLayer("Missile") ||
         #     other.gameObject.layer == LayerMask.NameToLayer("Invader"))
-        if other.layer == LAYER_MISSILE or other.layer == LAYER_INVADER:
+        if other.layer == Layers.MISSILE or other.layer == Layers.INVADER:
             # GameManager.Instance.OnPlayerKilled(this)
             from space_invaders_python.game_manager import GameManager
             if GameManager.instance is not None:

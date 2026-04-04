@@ -11,15 +11,14 @@ from src.engine.rendering.renderer import SpriteRenderer
 from src.engine.physics.collider import BoxCollider2D
 
 
-# Grid dimensions (replaces Texture2D pixel grid)
-GRID_COLS = 16
-GRID_ROWS = 12
-CELL_SIZE = 0.125  # world units per cell
-
-
 class Bunker(MonoBehaviour):
     """[RequireComponent(typeof(SpriteRenderer))]
     [RequireComponent(typeof(BoxCollider2D))]"""
+
+    # Grid dimensions (replaces Texture2D pixel grid in C#)
+    GRID_COLS: int = 16
+    GRID_ROWS: int = 12
+    CELL_SIZE: float = 0.125  # world units per cell
 
     def __init__(self):
         super().__init__()
@@ -40,7 +39,7 @@ class Bunker(MonoBehaviour):
         # boxCollider = GetComponent<BoxCollider2D>()
         self.box_collider = self.get_component(BoxCollider2D)
         # originalTexture = spriteRenderer.sprite.texture
-        self._original_cells = [[True] * GRID_COLS for _ in range(GRID_ROWS)]
+        self._original_cells = [[True] * Bunker.GRID_COLS for _ in range(Bunker.GRID_ROWS)]
 
         self.reset_bunker()
 
@@ -79,7 +78,7 @@ class Bunker(MonoBehaviour):
         for y in range(self.splat_radius * 2):
             for x in range(self.splat_radius * 2):
                 cx, cy = px + x, py + y
-                if 0 <= cy < GRID_ROWS and 0 <= cx < GRID_COLS:
+                if 0 <= cy < Bunker.GRID_ROWS and 0 <= cx < Bunker.GRID_COLS:
                     self._cells[cy][cx] = False
 
         return True
@@ -101,17 +100,17 @@ class Bunker(MonoBehaviour):
         local_y += bh / 2
 
         # Transform to grid coordinates
-        px = int(local_x / bw * GRID_COLS)
-        py = int(local_y / bh * GRID_ROWS)
+        px = int(local_x / bw * Bunker.GRID_COLS)
+        py = int(local_y / bh * Bunker.GRID_ROWS)
 
         # Return true if pixel is not empty
-        if 0 <= px < GRID_COLS and 0 <= py < GRID_ROWS and self._cells[py][px]:
+        if 0 <= px < Bunker.GRID_COLS and 0 <= py < Bunker.GRID_ROWS and self._cells[py][px]:
             return (px, py)
         return None
 
     def on_trigger_enter_2d(self, other):
-        from space_invaders_python.player import LAYER_INVADER
+        from space_invaders_python.player import Layers
         # if (other.gameObject.layer == LayerMask.NameToLayer("Invader"))
-        if other.layer == LAYER_INVADER:
+        if other.layer == Layers.INVADER:
             # gameObject.SetActive(false)
             self.game_object.active = False

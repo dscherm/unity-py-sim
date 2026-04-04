@@ -23,16 +23,15 @@ class InvaderRowConfig:
     score: int = 10
 
 
-ROW_CONFIG: list[InvaderRowConfig] = [
-    InvaderRowConfig(animation_sprites=[(50, 255, 50), (30, 200, 30)], score=10),
-    InvaderRowConfig(animation_sprites=[(50, 255, 50), (30, 200, 30)], score=10),
-    InvaderRowConfig(animation_sprites=[(50, 200, 255), (30, 150, 200)], score=20),
-    InvaderRowConfig(animation_sprites=[(50, 200, 255), (30, 150, 200)], score=20),
-    InvaderRowConfig(animation_sprites=[(255, 100, 100), (200, 60, 60)], score=30),
-]
-
-
 class Invaders(MonoBehaviour):
+
+    ROW_CONFIG: list[InvaderRowConfig] = [
+        InvaderRowConfig(animation_sprites=[(50, 255, 50), (30, 200, 30)], score=10),
+        InvaderRowConfig(animation_sprites=[(50, 255, 50), (30, 200, 30)], score=10),
+        InvaderRowConfig(animation_sprites=[(50, 200, 255), (30, 150, 200)], score=20),
+        InvaderRowConfig(animation_sprites=[(50, 200, 255), (30, 150, 200)], score=20),
+        InvaderRowConfig(animation_sprites=[(255, 100, 100), (200, 60, 60)], score=30),
+    ]
 
     def __init__(self):
         super().__init__()
@@ -73,14 +72,15 @@ class Invaders(MonoBehaviour):
             # Vector3 rowPosition = new Vector3(centerOffset.x, (2f * i) + centerOffset.y, 0f)
             row_position = Vector3(center_offset.x, (2.0 * i) + center_offset.y, 0)
 
-            config = ROW_CONFIG[i % len(ROW_CONFIG)]
+            config = Invaders.ROW_CONFIG[i % len(Invaders.ROW_CONFIG)]
 
             for j in range(self.columns):
                 # Invader invader = Instantiate(prefabs[i], transform)
                 from space_invaders_python.invader import Invader
+                from space_invaders_python.player import Layers
 
                 invader_go = GameObject(f"Invader_{i}_{j}", tag="Invader")
-                invader_go.layer = 10  # LAYER_INVADER
+                invader_go.layer = Layers.INVADER
 
                 rb = invader_go.add_component(Rigidbody2D)
                 rb.body_type = RigidbodyType2D.KINEMATIC
@@ -134,12 +134,12 @@ class Invaders(MonoBehaviour):
 
     def _instantiate_missile(self, position):
         """Instantiate(missilePrefab, invader.position, Quaternion.identity)"""
-        from space_invaders_python.player import LAYER_MISSILE
+        from space_invaders_python.player import Layers
         from src.engine.prefab import Instantiate
 
         pos = Vector2(position.x, position.y - 0.5)
         missile = Instantiate("Missile", position=pos, tag="Missile")
-        missile.layer = LAYER_MISSILE
+        missile.layer = Layers.MISSILE
 
     def update(self):
         # Speed scaling based on percent killed

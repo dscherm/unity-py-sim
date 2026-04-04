@@ -36,8 +36,8 @@ from src.engine.tweening import TweenManager
 from space_invaders_python.player import Player, LAYER_LASER, LAYER_MISSILE, LAYER_INVADER, LAYER_BOUNDARY
 from space_invaders_python.projectile import Projectile
 from space_invaders_python.invader import Invader
-from space_invaders_python.invaders import Invaders, ROW_CONFIG
-from space_invaders_python.bunker import Bunker, GRID_COLS, GRID_ROWS, CELL_SIZE
+from space_invaders_python.invaders import Invaders
+from space_invaders_python.bunker import Bunker
 from space_invaders_python.mystery_ship import MysteryShip
 from space_invaders_python.game_manager import GameManager
 
@@ -114,12 +114,12 @@ def _setup_full_scene():
         rb_b = bunker_go.add_component(Rigidbody2D)
         rb_b.body_type = RigidbodyType2D.STATIC
         col_b = bunker_go.add_component(BoxCollider2D)
-        col_b.size = Vector2(GRID_COLS * CELL_SIZE, GRID_ROWS * CELL_SIZE)
+        col_b.size = Vector2(Bunker.GRID_COLS * Bunker.CELL_SIZE, Bunker.GRID_ROWS * Bunker.CELL_SIZE)
         col_b.is_trigger = True
         col_b.build()
         sr_b = bunker_go.add_component(SpriteRenderer)
         sr_b.color = (50, 200, 50)
-        sr_b.size = Vector2(GRID_COLS * CELL_SIZE, GRID_ROWS * CELL_SIZE)
+        sr_b.size = Vector2(Bunker.GRID_COLS * Bunker.CELL_SIZE, Bunker.GRID_ROWS * Bunker.CELL_SIZE)
         bunker = bunker_go.add_component(Bunker)
         lm.register_component(bunker)
 
@@ -538,13 +538,13 @@ class TestBunkerContract:
         rb.body_type = RigidbodyType2D.STATIC
 
         col_b = bunker_go.add_component(BoxCollider2D)
-        col_b.size = Vector2(GRID_COLS * CELL_SIZE, GRID_ROWS * CELL_SIZE)
+        col_b.size = Vector2(Bunker.GRID_COLS * Bunker.CELL_SIZE, Bunker.GRID_ROWS * Bunker.CELL_SIZE)
         col_b.is_trigger = True
         col_b.build()
 
         sr = bunker_go.add_component(SpriteRenderer)
         sr.color = (50, 200, 50)
-        sr.size = Vector2(GRID_COLS * CELL_SIZE, GRID_ROWS * CELL_SIZE)
+        sr.size = Vector2(Bunker.GRID_COLS * Bunker.CELL_SIZE, Bunker.GRID_ROWS * Bunker.CELL_SIZE)
 
         bunker = bunker_go.add_component(Bunker)
         lm.register_component(bunker)
@@ -563,7 +563,7 @@ class TestBunkerContract:
 
     def test_initial_all_cells_alive(self):
         bunker, _ = self._make_bunker()
-        assert self._alive_count(bunker) == GRID_COLS * GRID_ROWS
+        assert self._alive_count(bunker) == Bunker.GRID_COLS * Bunker.GRID_ROWS
 
     def test_check_collision_damages_cells(self):
         bunker, col_b = self._make_bunker()
@@ -598,9 +598,9 @@ class TestBunkerContract:
     def test_reset_bunker_restores_all_cells(self):
         bunker, col_b = self._make_bunker()
         bunker.check_collision(col_b, Vector2(0, 0))
-        assert self._alive_count(bunker) < GRID_COLS * GRID_ROWS
+        assert self._alive_count(bunker) < Bunker.GRID_COLS * Bunker.GRID_ROWS
         bunker.reset_bunker()
-        assert self._alive_count(bunker) == GRID_COLS * GRID_ROWS
+        assert self._alive_count(bunker) == Bunker.GRID_COLS * Bunker.GRID_ROWS
 
 
 # ===========================================================================
@@ -718,7 +718,7 @@ class TestProjectileContract:
         rb = bunker_go.add_component(Rigidbody2D)
         rb.body_type = RigidbodyType2D.STATIC
         col_b = bunker_go.add_component(BoxCollider2D)
-        col_b.size = Vector2(GRID_COLS * CELL_SIZE, GRID_ROWS * CELL_SIZE)
+        col_b.size = Vector2(Bunker.GRID_COLS * Bunker.CELL_SIZE, Bunker.GRID_ROWS * Bunker.CELL_SIZE)
         col_b.is_trigger = True
         col_b.build()
         sr = bunker_go.add_component(SpriteRenderer)
@@ -996,7 +996,7 @@ class TestMutationBunkerDamage:
         rb = bunker_go.add_component(Rigidbody2D)
         rb.body_type = RigidbodyType2D.STATIC
         col_b = bunker_go.add_component(BoxCollider2D)
-        col_b.size = Vector2(GRID_COLS * CELL_SIZE, GRID_ROWS * CELL_SIZE)
+        col_b.size = Vector2(Bunker.GRID_COLS * Bunker.CELL_SIZE, Bunker.GRID_ROWS * Bunker.CELL_SIZE)
         col_b.is_trigger = True
         col_b.build()
         sr = bunker_go.add_component(SpriteRenderer)
@@ -1104,7 +1104,7 @@ class TestEdgeCases:
         rb = bunker_go.add_component(Rigidbody2D)
         rb.body_type = RigidbodyType2D.STATIC
         col_b = bunker_go.add_component(BoxCollider2D)
-        col_b.size = Vector2(GRID_COLS * CELL_SIZE, GRID_ROWS * CELL_SIZE)
+        col_b.size = Vector2(Bunker.GRID_COLS * Bunker.CELL_SIZE, Bunker.GRID_ROWS * Bunker.CELL_SIZE)
         col_b.is_trigger = True
         col_b.build()
         sr = bunker_go.add_component(SpriteRenderer)
@@ -1156,7 +1156,7 @@ class TestEdgeCases:
         rb = bunker_go.add_component(Rigidbody2D)
         rb.body_type = RigidbodyType2D.STATIC
         col_b = bunker_go.add_component(BoxCollider2D)
-        col_b.size = Vector2(GRID_COLS * CELL_SIZE, GRID_ROWS * CELL_SIZE)
+        col_b.size = Vector2(Bunker.GRID_COLS * Bunker.CELL_SIZE, Bunker.GRID_ROWS * Bunker.CELL_SIZE)
         col_b.is_trigger = True
         col_b.build()
         sr = bunker_go.add_component(SpriteRenderer)
@@ -1167,8 +1167,8 @@ class TestEdgeCases:
         lm.process_start_queue()
 
         # Destroy all cells first
-        for r in range(GRID_ROWS):
-            for c in range(GRID_COLS):
+        for r in range(Bunker.GRID_ROWS):
+            for c in range(Bunker.GRID_COLS):
                 bunker._cells[r][c] = False
 
         proj_go = GameObject("Laser")

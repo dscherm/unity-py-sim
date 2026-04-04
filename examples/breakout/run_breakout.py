@@ -27,21 +27,30 @@ from breakout_python.paddle_controller import PaddleController
 from breakout_python.ball_controller import BallController
 from breakout_python.brick import Brick
 from breakout_python.game_manager import GameManager
+from src.engine.serialization import serializable
+from dataclasses import dataclass
 
 
-# Brick colors by row (bottom to top)
-ROW_COLORS = [
-    (220, 50, 50),    # red — 30 pts
-    (220, 50, 50),    # red
-    (220, 140, 40),   # orange — 20 pts
-    (220, 140, 40),   # orange
-    (50, 180, 50),    # green — 10 pts
-    (50, 180, 50),    # green
-    (50, 120, 220),   # blue — 10 pts
-    (50, 120, 220),   # blue
-]
+@serializable
+@dataclass
+class BrickRowConfig:
+    """[System.Serializable] — color and points for one row of bricks."""
+    color: tuple[int, int, int] = (255, 255, 255)
+    points: int = 10
 
-ROW_POINTS = [30, 30, 20, 20, 10, 10, 10, 10]
+
+class LevelConfig:
+    """Level configuration — brick rows, layout constants."""
+    ROWS: list[BrickRowConfig] = [
+        BrickRowConfig(color=(220, 50, 50), points=30),    # red
+        BrickRowConfig(color=(220, 50, 50), points=30),    # red
+        BrickRowConfig(color=(220, 140, 40), points=20),   # orange
+        BrickRowConfig(color=(220, 140, 40), points=20),   # orange
+        BrickRowConfig(color=(50, 180, 50), points=10),    # green
+        BrickRowConfig(color=(50, 180, 50), points=10),    # green
+        BrickRowConfig(color=(50, 120, 220), points=10),   # blue
+        BrickRowConfig(color=(50, 120, 220), points=10),   # blue
+    ]
 
 
 class QuitHandler(MonoBehaviour):
@@ -111,7 +120,7 @@ def setup_scene():
 
     # Brick grid
     cols = 10
-    rows = len(ROW_COLORS)
+    rows = len(LevelConfig.ROWS)
     brick_w = 1.3
     brick_h = 0.5
     gap = 0.1
@@ -136,7 +145,7 @@ def setup_scene():
             col_brick.material = bounce_mat
 
             sr_brick = brick_go.add_component(SpriteRenderer)
-            sr_brick.color = ROW_COLORS[row]
+            sr_brick.color = LevelConfig.ROWS[row].color
             sr_brick.size = Vector2(brick_w, brick_h)
             sr_brick.asset_ref = "brick"
 
@@ -144,7 +153,7 @@ def setup_scene():
             brick_audio.clip_ref = "brick_break"
 
             brick_comp = brick_go.add_component(Brick)
-            brick_comp.points = ROW_POINTS[row]
+            brick_comp.points = LevelConfig.ROWS[row].points
 
     # Game manager
     gm_go = GameObject("GameManager")

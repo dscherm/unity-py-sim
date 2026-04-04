@@ -106,9 +106,9 @@ class MysteryShip(MonoBehaviour):
         self._invoke_pending = True
 
     def on_trigger_enter_2d(self, other):
-        from space_invaders_python.player import LAYER_LASER
+        from space_invaders_python.player import Layers
         # if (other.gameObject.layer == LayerMask.NameToLayer("Laser"))
-        if other.layer == LAYER_LASER:
+        if other.layer == Layers.LASER:
             self._despawn()
             # GameManager.Instance.OnMysteryShipKilled(this)
             from space_invaders_python.game_manager import GameManager
