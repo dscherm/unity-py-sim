@@ -238,21 +238,47 @@ def _infer_field_types(cls: PyClass) -> dict[str, str]:
                 if field_name not in type_map:
                     type_map[field_name] = "GameObject"
 
-    # 4. Fix array→List when .append() is used on the field
+    # 4. Fix array→List when .append() is used, and infer element type
     all_body = " ".join(m.body_source for m in cls.methods)
     for field in cls.fields:
-        if field.name in type_map:
-            t = type_map[field.name]
-            # Check if .append() is called on this field
-            if f"self.{field.name}.append(" in all_body:
-                # Convert list[T] → List<T>
+        field_name = field.name
+        if f"self.{field_name}.append(" in all_body:
+            # Find what's being appended
+            append_match = re.search(rf"self\.{re.escape(field_name)}\.append\((\w+)\)", all_body)
+            appended_var = append_match.group(1) if append_match else None
+
+            # Infer element type from the appended variable
+            element_type = None
+            if appended_var:
+                # Check if appended var comes from get_component(T)
+                comp_match = re.search(rf"{re.escape(appended_var)}\s*=\s*\w+\.get_component\((\w+)\)", all_body)
+                if comp_match:
+                    element_type = comp_match.group(1)
+
+            t = type_map.get(field_name, field.type_annotation or "")
+            if element_type:
+                type_map[field_name] = f"List<{element_type}>"
+            elif "list[" in t:
                 list_match = re.match(r"list\[(.+)\]", t)
                 if list_match:
                     inner = list_match.group(1)
-                    type_map[field.name] = f"List<{inner}>"
-                elif t.endswith("[]"):
-                    inner = t[:-2]
-                    type_map[field.name] = f"List<{inner}>"
+                    type_map[field_name] = f"List<{inner}>"
+            elif t.endswith("[]"):
+                inner = t[:-2]
+                type_map[field_name] = f"List<{inner}>"
+            elif t in ("list", "List<object>", ""):
+                if element_type:
+                    type_map[field_name] = f"List<{element_type}>"
+
+    # 5. Detect callable fields (self.field = self.method — no parens → Action)
+    for method in cls.methods:
+        for m in re.finditer(r"self\.(\w+)\s*=\s*self\.(\w+)\s*$", method.body_source, re.MULTILINE):
+            field_name = m.group(1)
+            target_name = m.group(2)
+            # If target is a method name (no parens = method reference)
+            method_names = {meth.name for meth in cls.methods}
+            if target_name in method_names or target_name.lstrip("_") in method_names:
+                type_map[field_name] = "System.Action"
 
     return type_map
 
@@ -386,8 +412,15 @@ def _translate_method(method: PyMethod) -> dict:
     else:
         access = "public"
 
-    # Return type — infer from body
-    return_type = "IEnumerator" if method.is_coroutine else _infer_return_type(method)
+    # Return type — prefer annotation, then infer from body
+    if method.is_coroutine:
+        return_type = "IEnumerator"
+    elif method.return_annotation:
+        return_type = _py_type_to_csharp(method.return_annotation)
+        if return_type == "var":
+            return_type = "object"  # var not valid for return types
+    else:
+        return_type = _infer_return_type(method)
 
     # Parameters — add to symbol table for this method's scope
     saved_symbols = dict(_current_symbols)
@@ -723,7 +756,8 @@ def _translate_py_statement(line: str) -> str:
         return f"{cs_target} {op}= {cs_value};"
 
     # gameObject.active = X -> gameObject.SetActive(X)
-    active_match = re.match(r"^([\w.]*gameObject|[\w.]*game_object)\.active\s*=\s*(.+)$", line)
+    # ANY .active = X assignment → .SetActive(X) (Unity pattern)
+    active_match = re.match(r"^([\w.]+)\.active\s*=\s*(.+)$", line)
     if active_match:
         target = _translate_py_expression(active_match.group(1))
         value = _translate_py_expression(active_match.group(2))
@@ -748,7 +782,10 @@ def _translate_py_statement(line: str) -> str:
         else:
             # Single value — use C# tuple deconstruction
             val = _translate_py_expression(rhs)
-            return f"var ({cs_a}, {cs_b}) = {val};"
+            _declared_vars.add(cs_a)
+            _declared_vars.add(cs_b)
+            # Handle nullable tuples: result.Value for (T1,T2)? types
+            return f"var ({cs_a}, {cs_b}) = {val}.Value;"
 
     # Assignment
     assign_match = re.match(r"^([\w.]+)\s*=\s*(.+)$", line)
@@ -1485,7 +1522,7 @@ def _infer_using_directives(cls: PyClass, parsed: PyFile) -> list[str]:
 
     # Add System.Collections.Generic if List<> is used
     field_types = " ".join(f.type_annotation for f in cls.fields)
-    if "list" in field_types or "dict" in field_types:
+    if "list" in field_types or "dict" in field_types or "List<" in all_text or "List<" in field_types:
         extra.add("System.Collections.Generic")
 
     # Add UnityEngine.InputSystem when new input system is active and Input is used

@@ -93,9 +93,17 @@ class TypeMapper:
         if t == "list":
             return "List<object>"
 
-        # tuple -> object (no direct C# equivalent for bare tuple)
+        # tuple[T1, T2] -> (T1, T2) C# value tuple
+        tuple_match = re.match(r"tuple\[(.+)\]", t)
+        if tuple_match:
+            args = self._split_generic_args(tuple_match.group(1))
+            cs_args = ", ".join(self.python_to_csharp(a) for a in args)
+            return f"({cs_args})"
+
+        # bare tuple -> Color32 when used as color, otherwise object
+        # In Unity game context, bare tuples are almost always RGB colors
         if t == "tuple":
-            return "object"
+            return "Color32"
 
         # dict[K, V] -> Dictionary<K, V>
         dict_match = re.match(r"dict\[(.+),\s*(.+)\]", t)

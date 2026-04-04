@@ -30,6 +30,7 @@ class PyMethod:
     name: str
     parameters: list[PyParameter] = field(default_factory=list)
     body_source: str = ""
+    return_annotation: str = ""
     is_static: bool = False
     is_lifecycle: bool = False
     is_coroutine: bool = False
@@ -183,10 +184,14 @@ def _parse_method(func: ast.FunctionDef, source_lines: list[str]) -> PyMethod:
     # Detect coroutines — methods containing yield statements
     is_coroutine = _has_yield(func)
 
+    # Return type annotation (e.g., -> int, -> bool, -> GameObject)
+    return_annotation = _annotation_to_str(func.returns) if func.returns else ""
+
     return PyMethod(
         name=func.name,
         parameters=params,
         body_source=body_source,
+        return_annotation=return_annotation,
         is_static=is_static,
         is_lifecycle=func.name in _LIFECYCLE_METHODS,
         is_coroutine=is_coroutine,

@@ -135,8 +135,12 @@ def _post_process(cs_code: str, global_types: dict[str, str], global_constants: 
     # Inject cross-file constants that are referenced but not defined in this class
     const_lines = []
     for const_name, const_value in global_constants.items():
-        # Only inject if referenced in the code and not already defined
-        if const_name in cs_code and f" {const_name} =" not in cs_code and f" {const_name};" not in cs_code:
+        # Only inject if referenced in the code and not already declared as a field/const
+        already_declared = (f"const int {const_name}" in cs_code or
+                           f"const float {const_name}" in cs_code or
+                           f"static int {const_name}" in cs_code or
+                           f"static float {const_name}" in cs_code)
+        if const_name in cs_code and not already_declared:
             # Infer type from value
             v = const_value.strip()
             if re.match(r"^-?\d+$", v):
@@ -145,6 +149,10 @@ def _post_process(cs_code: str, global_types: dict[str, str], global_constants: 
                 const_lines.append(f"    private const float {const_name} = {v}f;")
             elif v.startswith("'") or v.startswith('"'):
                 const_lines.append(f'    private const string {const_name} = "{v[1:-1]}";')
+            elif v.startswith("[") or v.startswith("{"):
+                # Complex constant — emit as placeholder + TODO
+                const_lines.append(f"    // TODO: populate {const_name} with game data")
+                const_lines.append(f"    private static readonly object[] {const_name} = new object[0];")
 
     if const_lines:
         # Insert after the class opening brace
@@ -163,10 +171,37 @@ def _post_process(cs_code: str, global_types: dict[str, str], global_constants: 
     cs_code = re.sub(r"\s*var lm = [^;]*;", "", cs_code)
     cs_code = re.sub(r"\s*lm\.[^;]*;", "", cs_code)
 
-    # Fix .Length on List<> → .Count
-    cs_code = re.sub(r"(List<\w+>.*?)\.Length\b", r"\1.Count", cs_code)
-    # Simpler: just fix any .Length after a variable that's a List
-    cs_code = cs_code.replace(".Length;", ".Count;")
+    # Fix .Count → .Length for array-typed fields
+    for line in cs_code.split("\n"):
+        m = re.match(r"\s*(?:public|private)\s+(\w+\[\])\s+(\w+)", line)
+        if m:
+            field_name = m.group(2)
+            cs_code = cs_code.replace(f"{field_name}.Count", f"{field_name}.Length")
+        # Also fix object[] .Count → .Length
+        m2 = re.match(r"\s*(?:public|private)\s+(?:static\s+)?(?:readonly\s+)?object\[\]\s+(\w+)", line)
+        if m2:
+            field_name = m2.group(1)
+            cs_code = cs_code.replace(f"{field_name}.Count", f"{field_name}.Length")
+
+    # Comment out lines that reference ROW_CONFIG or variables derived from it
+    if "ROW_CONFIG" in cs_code:
+        lines = cs_code.split("\n")
+        fixed_lines = []
+        commented_vars = set()
+        for line in lines:
+            stripped = line.strip()
+            # Comment out ROW_CONFIG indexing and length
+            if "ROW_CONFIG" in stripped:
+                fixed_lines.append(line.replace(stripped, f"// TODO: {stripped}"))
+                # Track variable assigned from ROW_CONFIG
+                m = re.match(r"var\s+(\w+)\s*=\s*ROW_CONFIG", stripped)
+                if m:
+                    commented_vars.add(m.group(1))
+            elif any(f"{v}[" in stripped or f"{v}." in stripped for v in commented_vars):
+                fixed_lines.append(line.replace(stripped, f"// TODO: {stripped}"))
+            else:
+                fixed_lines.append(line)
+        cs_code = "\n".join(fixed_lines)
 
     # Fix GRIDCOLS → GRID_COLS (underscore stripped by camelCase converter)
     cs_code = cs_code.replace("GRIDCOLS", "GRID_COLS")
