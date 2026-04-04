@@ -685,8 +685,27 @@ def _translate_py_expression(expr: str) -> str:
     # self.X -> just X (instance field access)
     expr = re.sub(r"\bself\.", "", expr)
 
-    # .game_object -> .gameObject
-    expr = expr.replace(".game_object", ".gameObject")
+    # game_object -> gameObject (with or without dot prefix)
+    expr = re.sub(r"\bgame_object\b", "gameObject", expr)
+    expr = expr.replace("gameObject.active", "gameObject.activeSelf")
+
+    # .add_component(T) -> .AddComponent<T>()
+    expr = re.sub(r"\.add_component\((\w+)\)", r".AddComponent<\1>()", expr)
+
+    # .get_component(T) (not self — already stripped) -> .GetComponent<T>()
+    expr = re.sub(r"\.get_component\((\w+)\)", r".GetComponent<\1>()", expr)
+
+    # hasattr(x, "y") -> true (C# doesn't have hasattr; assume true for compiled code)
+    expr = re.sub(r"hasattr\([^,]+,\s*['\"][^'\"]+['\"]\)", "true", expr)
+
+    # Python ternary: x if cond else y -> cond ? x : y
+    ternary = re.match(r"^(.+?)\s+if\s+(.+?)\s+else\s+(.+)$", expr)
+    if ternary:
+        value_true = ternary.group(1).strip()
+        cond = ternary.group(2).strip()
+        value_false = ternary.group(3).strip()
+        cond = _translate_py_condition(cond)
+        expr = f"{cond} ? {value_true} : {value_false}"
 
     # List operations: .append(x) -> .Add(x), .remove(x) -> .Remove(x)
     expr = re.sub(r"\.append\(", ".Add(", expr)
@@ -760,6 +779,27 @@ def _translate_py_expression(expr: str) -> str:
     expr = expr.replace("new Vector2.zero", "Vector2.zero")
     expr = expr.replace("new Vector3.zero", "Vector3.zero")
 
+    # Convert remaining snake_case method calls: _method_name( -> MethodName(
+    # Matches _snake_case( and snake_case( patterns that aren't Unity API
+    def _snake_method_to_pascal(m):
+        name = m.group(1)
+        parts = name.lstrip('_').split('_')
+        pascal = ''.join(p.capitalize() for p in parts if p)
+        return pascal + '('
+    expr = re.sub(r"\b_([a-z][a-z_]*)\(", _snake_method_to_pascal, expr)
+
+    # Convert .snake_case field access to .camelCase (generic catch-all)
+    def _snake_field_to_camel(m):
+        dot = m.group(1)
+        name = m.group(2)
+        parts = name.split('_')
+        camel = parts[0] + ''.join(p.capitalize() for p in parts[1:])
+        return dot + camel
+    expr = re.sub(r"(\.)([a-z]+_[a-z_]+)(?!\()", _snake_field_to_camel, expr)
+
+    # Convert _private_field standalone to camelCase
+    expr = re.sub(r"\b_([a-z][a-z_]*[a-z])\b(?!\()", lambda m: snake_to_camel(m.group(1)), expr)
+
     return expr
 
 
@@ -804,6 +844,11 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
     # Int with float type: 5 -> 5f
     if csharp_type == "float" and value.isdigit():
         return value + "f"
+
+    # Constructor calls: Vector2(...) -> new Vector2(...)
+    for ctor in ("Vector2", "Vector3", "Quaternion", "Color"):
+        if value.startswith(f"{ctor}("):
+            return f"new {value}"
 
     return value
 
