@@ -161,13 +161,20 @@ def _discover_dynamic_fields(cls: PyClass) -> list[PyField]:
     dynamic: dict[str, str] = {}
 
     for method in cls.methods:
-        for m in re.finditer(r"self\.(\w+)\s*=\s*(.+)", method.body_source):
+        # Match both self.field = value AND self.field: Type = value
+        for m in re.finditer(r"self\.(\w+)(?:\s*:\s*([^=]+?))?\s*=\s*(.+)", method.body_source):
             field_name = m.group(1)
-            value = m.group(2).strip()
+            type_annotation = (m.group(2) or "").strip()
+            value = m.group(3).strip()
             if field_name not in known_fields and field_name not in dynamic:
-                # Try to infer type from assignment value
-                inferred = _infer_type_from_value(value)
-                dynamic[field_name] = inferred
+                # Use explicit type annotation if present, otherwise infer from value
+                if type_annotation:
+                    # Strip | None suffix for the field type
+                    clean_type = re.sub(r"\s*\|\s*None\s*$", "", type_annotation).strip()
+                    dynamic[field_name] = clean_type
+                else:
+                    inferred = _infer_type_from_value(value)
+                    dynamic[field_name] = inferred
 
     return [PyField(name=name, type_annotation=ann, default_value=None, is_class_level=False)
             for name, ann in dynamic.items()]
@@ -287,11 +294,13 @@ def _infer_field_types(cls: PyClass) -> dict[str, str]:
 _current_symbols: dict[str, str] = {}
 _declared_vars: set[str] = set()
 _enumerate_inject: str | None = None
+_bool_fields: set[str] = set()  # C# names of fields with bool type
 
 
 def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     """Translate a MonoBehaviour subclass using the Jinja2 template."""
-    global _current_symbols
+    global _current_symbols, _bool_fields
+    _bool_fields = set()
     extra_using = _infer_using_directives(cls, parsed)
     attributes = _infer_attributes(cls)
 
@@ -334,6 +343,10 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
             csharp_type = _py_type_to_csharp(field.type_annotation, is_field=True, default_value=field.default_value or "")
         csharp_name = snake_to_camel(field.name)
         default = _py_value_to_csharp(field.default_value, csharp_type) if field.default_value else None
+
+        # Track bool fields so condition translator can avoid != null
+        if csharp_type == "bool":
+            _bool_fields.add(csharp_name)
 
         entry = {
             "csharp_type": csharp_type,
@@ -1164,6 +1177,22 @@ def _translate_py_expression(expr: str) -> str:
     expr = expr.replace("Time.delta_time", "Time.deltaTime")
     expr = expr.replace("Time.fixed_delta_time", "Time.fixedDeltaTime")
 
+    # Python math module -> Unity Mathf
+    expr = re.sub(r"\bmath\.pi\b", "Mathf.PI", expr)
+    expr = re.sub(r"\bmath\.inf\b", "Mathf.Infinity", expr)
+    expr = re.sub(r"\bmath\.cos\(", "Mathf.Cos(", expr)
+    expr = re.sub(r"\bmath\.sin\(", "Mathf.Sin(", expr)
+    expr = re.sub(r"\bmath\.tan\(", "Mathf.Tan(", expr)
+    expr = re.sub(r"\bmath\.acos\(", "Mathf.Acos(", expr)
+    expr = re.sub(r"\bmath\.asin\(", "Mathf.Asin(", expr)
+    expr = re.sub(r"\bmath\.atan2\(", "Mathf.Atan2(", expr)
+    expr = re.sub(r"\bmath\.atan\(", "Mathf.Atan(", expr)
+    expr = re.sub(r"\bmath\.sqrt\(", "Mathf.Sqrt(", expr)
+    expr = re.sub(r"\bmath\.floor\(", "Mathf.Floor(", expr)
+    expr = re.sub(r"\bmath\.ceil\(", "Mathf.Ceil(", expr)
+    expr = re.sub(r"\bmath\.log\(", "Mathf.Log(", expr)
+    expr = re.sub(r"\bmath\.pow\(", "Mathf.Pow(", expr)
+
     # random -> Random
     expr = re.sub(r"random\.random\(\)", "Random.value", expr)
     expr = re.sub(r"random\.uniform\(", "Random.Range(", expr)
@@ -1375,10 +1404,19 @@ def _translate_py_expression(expr: str) -> str:
     # Trailing commas in constructor args: (x, y, ) -> (x, y)
     expr = re.sub(r",\s*\)", ")", expr)
 
-    # new GameObject("name", tag="Tag") -> new GameObject("name") with separate tag set
-    # For now just strip keyword args from constructors
+    # Strip all Python keyword arguments from function calls
+    # color=(R,G,B) → new Color32(R,G,B,255) first, then strip remaining kwargs
+    def _translate_color_kwarg(m):
+        r, g, b = m.group(1), m.group(2), m.group(3)
+        return f", new Color32({r}, {g}, {b}, 255)"
+    expr = re.sub(r",\s*color=\((\d+),\s*(\d+),\s*(\d+)\)", _translate_color_kwarg, expr)
+    # duration=N → just N (positional)
+    expr = re.sub(r",\s*duration=(\w+)", r", \1f", expr)
+    # tag="X" → strip (handled at GameObject level)
     expr = re.sub(r",\s*tag=\"[^\"]+\"", "", expr)
     expr = re.sub(r",\s*tag='[^']+'", "", expr)
+    # Generic remaining kwargs: key=value → just value (fallback)
+    expr = re.sub(r",\s*\w+=([^,)]+)", r", \1", expr)
 
     # Input.GetKey("a") -> Input.GetKey(KeyCode.A)
     def _key_string_to_keycode(m):
@@ -1466,14 +1504,19 @@ def _translate_py_condition(cond: str) -> str:
 
     # Object truthiness: bare object names in && / || should get != null
     # e.g., "spriteRenderer && animationSprites" → "spriteRenderer != null && animationSprites != null"
+    # But bool fields should stay as bare identifiers (no != null)
     parts = re.split(r"\s*(&&|\|\|)\s*", cond)
     fixed_parts = []
     for part in parts:
         if part in ("&&", "||"):
             fixed_parts.append(part)
         elif re.match(r"^[a-zA-Z_]\w*$", part.strip()) and part.strip() not in ("true", "false", "null"):
-            # Bare identifier — add != null for truthiness
-            fixed_parts.append(f"{part.strip()} != null")
+            ident = part.strip()
+            # Bool fields stay as bare truthiness checks (no != null)
+            if ident in _bool_fields:
+                fixed_parts.append(ident)
+            else:
+                fixed_parts.append(f"{ident} != null")
         else:
             fixed_parts.append(part)
     cond = " ".join(fixed_parts)
