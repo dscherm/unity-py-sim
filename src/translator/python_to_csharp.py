@@ -133,7 +133,7 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     static_fields = []
 
     for field in cls.fields:
-        csharp_type = _py_type_to_csharp(field.type_annotation)
+        csharp_type = _py_type_to_csharp(field.type_annotation, is_field=True)
         csharp_name = snake_to_camel(field.name)
         default = _py_value_to_csharp(field.default_value, csharp_type) if field.default_value else None
 
@@ -176,7 +176,7 @@ def _translate_plain_class(cls: PyClass, parsed: PyFile) -> str:
     lines.append("{")
 
     for field in cls.fields:
-        csharp_type = _py_type_to_csharp(field.type_annotation)
+        csharp_type = _py_type_to_csharp(field.type_annotation, is_field=True)
         csharp_name = snake_to_camel(field.name)
         mod = "public static" if field.is_class_level else "private"
         default = _py_value_to_csharp(field.default_value, csharp_type) if field.default_value else None
@@ -251,41 +251,91 @@ def _infer_param_type(param_name: str, method: PyMethod) -> str:
     return "object"
 
 
+def _join_multiline(raw_lines: list[str]) -> list[tuple[int, str]]:
+    """Join Python multi-line expressions into single logical lines.
+
+    Handles:
+    - Open parentheses/brackets spanning lines
+    - Backslash line continuations
+    - Preserves indent of the FIRST line in a group
+    """
+    result: list[tuple[int, str]] = []
+    current = ""
+    current_indent = 0
+    paren_depth = 0
+
+    for raw_line in raw_lines:
+        stripped = raw_line.strip()
+        if not stripped:
+            continue
+
+        if current == "":
+            # Start of a new logical line — record indent
+            indent = len(raw_line) - len(raw_line.lstrip())
+            current_indent = indent // 4
+
+        # Handle backslash continuation
+        if stripped.endswith("\\"):
+            current += stripped[:-1].strip() + " "
+            continue
+
+        current += stripped
+
+        # Count parens/brackets to detect multi-line expressions
+        for ch in stripped:
+            if ch in "([":
+                paren_depth += 1
+            elif ch in ")]":
+                paren_depth -= 1
+
+        if paren_depth <= 0:
+            paren_depth = 0
+            result.append((current_indent, current.strip()))
+            current = ""
+        else:
+            current += " "
+
+    # Flush any remaining
+    if current.strip():
+        result.append((current_indent, current.strip()))
+
+    return result
+
+
 def _translate_body(body: str) -> str:
     """Translate Python method body to C#, adding braces for indented blocks."""
     if not body.strip():
         return ""
 
     raw_lines = body.split("\n")
-    # First pass: collect (indent_level, translated_line) pairs
+
+    # First pass: join multi-line expressions into logical lines
+    logical_lines = _join_multiline(raw_lines)
+
+    # Second pass: translate each logical line
     entries: list[tuple[int, str]] = []
-    for raw_line in raw_lines:
-        stripped = raw_line.strip()
-        if not stripped or stripped == "pass" or stripped == "super().__init__()":
+    for indent_level, logical_line in logical_lines:
+        if not logical_line or logical_line == "pass" or logical_line == "super().__init__()":
             continue
-        indent = len(raw_line) - len(raw_line.lstrip())
-        indent_level = indent // 4
-        translated = _translate_py_statement(stripped)
+        translated = _translate_py_statement(logical_line)
         if not translated:
-            continue  # Skip stripped docstrings, inline imports, etc.
+            continue
         entries.append((indent_level, translated))
 
     if not entries:
         return ""
 
-    # Second pass: emit with braces on indentation changes
+    # Third pass: emit with braces on indentation changes
     lines = []
     base_indent = "        "
     prev_indent = entries[0][0]
     indent_stack: list[int] = []
 
     for i, (level, text) in enumerate(entries):
-        # Check if previous line opened a block (if/else/while)
         if level > prev_indent:
             lines.append(f"{base_indent}{'    ' * prev_indent}{{")
             indent_stack.append(prev_indent)
         elif level < prev_indent:
-            # Close blocks
             while indent_stack and indent_stack[-1] >= level:
                 close_level = indent_stack.pop()
                 lines.append(f"{base_indent}{'    ' * close_level}}}")
@@ -294,7 +344,6 @@ def _translate_body(body: str) -> str:
         lines.append(f"{cs_indent}{text}")
         prev_indent = level
 
-    # Close any remaining open blocks
     while indent_stack:
         close_level = indent_stack.pop()
         lines.append(f"{base_indent}{'    ' * close_level}}}")
@@ -304,16 +353,24 @@ def _translate_body(body: str) -> str:
 
 def _translate_py_statement(line: str) -> str:
     """Translate a single Python statement to C#."""
+    # Strip inline comments: code  # comment -> code
+    if "  #" in line:
+        line = line[:line.index("  #")].rstrip()
+    if not line:
+        return ""
+
     # Docstrings — strip them entirely
     if line.startswith('"""') or line.startswith("'''"):
         return ""
     if line.endswith('"""') or line.endswith("'''"):
         return ""
+    if '"""' in line:
+        return ""
 
     # Inline imports — strip (these are Python-only, C# uses using directives)
     if line.startswith("from ") and " import " in line:
         return ""
-    if line.startswith("import ") and not line.startswith("import "):
+    if re.match(r"^import\s+\w+", line):
         return ""
 
     # try/except → try/catch
@@ -387,6 +444,8 @@ def _translate_py_statement(line: str) -> str:
 
     # Expression (method call, etc.)
     expr = _translate_py_expression(line)
+    if expr == "__STRIP__":
+        return ""
     return f"{expr};"
 
 
@@ -684,6 +743,8 @@ def _translate_py_expression(expr: str) -> str:
     expr = expr.replace("self.transform", "transform")
     # self.X -> just X (instance field access)
     expr = re.sub(r"\bself\.", "", expr)
+    # Standalone 'self' -> 'this'
+    expr = re.sub(r"\bself\b", "this", expr)
 
     # game_object -> gameObject (with or without dot prefix)
     expr = re.sub(r"\bgame_object\b", "gameObject", expr)
@@ -779,6 +840,52 @@ def _translate_py_expression(expr: str) -> str:
     expr = expr.replace("new Vector2.zero", "Vector2.zero")
     expr = expr.replace("new Vector3.zero", "Vector3.zero")
 
+    # Color tuple literals: (R, G, B) -> new Color32(R, G, B, 255)
+    color_match = re.match(r"^\((\d+),\s*(\d+),\s*(\d+)\)$", expr)
+    if color_match:
+        r, g, b = color_match.groups()
+        expr = f"new Color32({r}, {g}, {b}, 255)"
+
+    # Python builtins -> C# equivalents
+    expr = re.sub(r"\bmax\(", "Mathf.Max(", expr)
+    expr = re.sub(r"\bmin\(", "Mathf.Min(", expr)
+    expr = re.sub(r"\babs\(", "Mathf.Abs(", expr)
+
+    # Simulator-only calls — strip entirely
+    # .build() is simulator physics setup
+    if re.match(r"^[\w.]+\.build\(\)$", expr):
+        return "__STRIP__"
+    expr = re.sub(r"\.build\(\)", "", expr)
+    # LifecycleManager.instance().register_component(...) — simulator only
+    if "LifecycleManager" in expr:
+        return "__STRIP__"
+
+    # Trailing commas in constructor args: (x, y, ) -> (x, y)
+    expr = re.sub(r",\s*\)", ")", expr)
+
+    # new GameObject("name", tag="Tag") -> new GameObject("name") with separate tag set
+    # For now just strip keyword args from constructors
+    expr = re.sub(r",\s*tag=\"[^\"]+\"", "", expr)
+    expr = re.sub(r",\s*tag='[^']+'", "", expr)
+
+    # Input.GetKey("a") -> Input.GetKey(KeyCode.A)
+    def _key_string_to_keycode(m):
+        key = m.group(1)
+        keycode_map = {
+            'a': 'A', 'b': 'B', 'c': 'C', 'd': 'D', 'e': 'E', 'f': 'F',
+            'g': 'G', 'h': 'H', 'i': 'I', 'j': 'J', 'k': 'K', 'l': 'L',
+            'm': 'M', 'n': 'N', 'o': 'O', 'p': 'P', 'q': 'Q', 'r': 'R',
+            's': 'S', 't': 'T', 'u': 'U', 'v': 'V', 'w': 'W', 'x': 'X',
+            'y': 'Y', 'z': 'Z', 'space': 'Space', 'escape': 'Escape',
+            'return': 'Return', 'left': 'LeftArrow', 'right': 'RightArrow',
+            'up': 'UpArrow', 'down': 'DownArrow', 'tab': 'Tab',
+        }
+        kc = keycode_map.get(key, key.capitalize())
+        return f"KeyCode.{kc}"
+    expr = re.sub(r'Input\.GetKey\("(\w+)"\)', lambda m: f"Input.GetKey({_key_string_to_keycode(m)})", expr)
+    expr = re.sub(r'Input\.GetKeyDown\("(\w+)"\)', lambda m: f"Input.GetKeyDown({_key_string_to_keycode(m)})", expr)
+    expr = re.sub(r'Input\.GetKeyUp\("(\w+)"\)', lambda m: f"Input.GetKeyUp({_key_string_to_keycode(m)})", expr)
+
     # Convert remaining snake_case method calls: _method_name( -> MethodName(
     # Matches _snake_case( and snake_case( patterns that aren't Unity API
     def _snake_method_to_pascal(m):
@@ -813,10 +920,10 @@ def _translate_py_condition(cond: str) -> str:
     return cond
 
 
-def _py_type_to_csharp(type_str: str) -> str:
+def _py_type_to_csharp(type_str: str, is_field: bool = False) -> str:
     """Convert a Python type annotation to C# type."""
     if not type_str:
-        return "var"
+        return "object" if is_field else "var"
     return _type_mapper.python_to_csharp(type_str)
 
 
@@ -849,6 +956,14 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
     for ctor in ("Vector2", "Vector3", "Quaternion", "Color"):
         if value.startswith(f"{ctor}("):
             return f"new {value}"
+
+    # Empty list: [] -> null (C# arrays/lists need proper init)
+    if value == "[]":
+        return "null"
+
+    # Empty dict: {} -> null
+    if value == "{}":
+        return "null"
 
     return value
 
