@@ -1508,8 +1508,24 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
         if value.startswith(f"{ctor}("):
             return f"new {value}"
 
-    # Empty list: [] -> null (C# arrays/lists need proper init)
+    # dataclass field(default_factory=...) -> new Type()
+    field_match = re.match(r"field\(default_factory=(\w+)\)", value)
+    if field_match:
+        factory = field_match.group(1)
+        if factory == "list":
+            # Use the C# type to construct: List<T> -> new List<T>()
+            if csharp_type.startswith("List<"):
+                return f"new {csharp_type}()"
+            return f"new List<object>()"
+        elif factory == "dict":
+            return f"new Dictionary<string, object>()"
+        else:
+            return f"new {factory}()"
+
+    # Empty list: [] -> new List<T>() or empty array
     if value == "[]":
+        if csharp_type.startswith("List<"):
+            return f"new {csharp_type}()"
         return "null"
 
     # Empty dict: {} -> null
