@@ -1,4 +1,4 @@
-namespace Breakout
+namespace breakout
 {
     using UnityEngine;
     using System;
@@ -49,8 +49,8 @@ namespace Breakout
         }
         public static void OnBrickDestroyed()
         {
-            remaining: list[GameObject] = GameObject.FindGameObjectsWithTag("Brick");
-            active: list[GameObject] = [go for go in remaining if go.active];
+            GameObject[] remaining = GameObject.FindGameObjectsWithTag("Brick");
+            GameObject[] active = remaining.Where(go => go.active).ToList();
             if (active.Count <= 0)
             {
                 GameManager.gameWon = true;
@@ -59,37 +59,37 @@ namespace Breakout
         }
         public void SetupUi()
         {
-            canvas_go: GameObject = new GameObject("UICanvas");
-            canvas: Canvas = canvas_go.AddComponent<Canvas>();
-            score_go: GameObject = new GameObject("ScoreText");
-            rt_score: RectTransform = score_go.AddComponent<RectTransform>();
-            rt_score.anchorMin = new Vector2(0.0f, 1.0f);
-            rt_score.anchorMax = new Vector2(0.0f, 1.0f);
-            rt_score.anchoredPosition = new Vector2(100, -20);
-            rt_score.sizeDelta = new Vector2(200, 30);
-            scoreText: Text = score_go.AddComponent<Text>();
+            GameObject canvasGo = new GameObject("UICanvas");
+            canvas = canvasGo.AddComponent<Canvas>();
+            GameObject scoreGo = new GameObject("ScoreText");
+            RectTransform rtScore = scoreGo.AddComponent<RectTransform>();
+            rtScore.anchorMin = new Vector2(0.0f, 1.0f);
+            rtScore.anchorMax = new Vector2(0.0f, 1.0f);
+            rtScore.anchoredPosition = new Vector2(100, -20);
+            rtScore.sizeDelta = new Vector2(200, 30);
+            scoreText = scoreGo.AddComponent<Text>();
             scoreText.text = "Score: 0";
             scoreText.fontSize = 20;
             scoreText.color = new Color32(255, 255, 200, 255);
             scoreText.alignment = TextAnchor.UpperLeft;
-            lives_go: GameObject = new GameObject("LivesText");
-            rt_lives: RectTransform = lives_go.AddComponent<RectTransform>();
-            rt_lives.anchorMin = new Vector2(1.0f, 1.0f);
-            rt_lives.anchorMax = new Vector2(1.0f, 1.0f);
-            rt_lives.anchoredPosition = new Vector2(-100, -20);
-            rt_lives.sizeDelta = new Vector2(200, 30);
-            livesText: Text = lives_go.AddComponent<Text>();
+            GameObject livesGo = new GameObject("LivesText");
+            RectTransform rtLives = livesGo.AddComponent<RectTransform>();
+            rtLives.anchorMin = new Vector2(1.0f, 1.0f);
+            rtLives.anchorMax = new Vector2(1.0f, 1.0f);
+            rtLives.anchoredPosition = new Vector2(-100, -20);
+            rtLives.sizeDelta = new Vector2(200, 30);
+            livesText = livesGo.AddComponent<Text>();
             livesText.text = "Lives: 3";
             livesText.fontSize = 20;
             livesText.color = new Color32(255, 200, 200, 255);
             livesText.alignment = TextAnchor.UpperRight;
-            status_go: GameObject = new GameObject("StatusText");
-            rt_status: RectTransform = status_go.AddComponent<RectTransform>();
-            rt_status.anchorMin = new Vector2(0.5f, 1.0f);
-            rt_status.anchorMax = new Vector2(0.5f, 1.0f);
-            rt_status.anchoredPosition = new Vector2(0, -20);
-            rt_status.sizeDelta = new Vector2(300, 30);
-            statusText: Text = status_go.AddComponent<Text>();
+            GameObject statusGo = new GameObject("StatusText");
+            RectTransform rtStatus = statusGo.AddComponent<RectTransform>();
+            rtStatus.anchorMin = new Vector2(0.5f, 1.0f);
+            rtStatus.anchorMax = new Vector2(0.5f, 1.0f);
+            rtStatus.anchoredPosition = new Vector2(0, -20);
+            rtStatus.sizeDelta = new Vector2(300, 30);
+            statusText = statusGo.AddComponent<Text>();
             statusText.text = "Space to Launch";
             statusText.fontSize = 22;
             statusText.color = new Color32(255, 255, 255, 255);
@@ -97,7 +97,7 @@ namespace Breakout
         }
         public static void UpdateDisplay()
         {
-            inst: GameManager | null = GameManager._instance;
+            GameManager inst = GameManager._instance;
             if (inst != null && true)
             {
                 inst._score_text.text = $"Score: {GameManager.score}";

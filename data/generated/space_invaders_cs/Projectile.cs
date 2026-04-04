@@ -1,4 +1,4 @@
-namespace SpaceInvaders
+namespace spaceinvaders
 {
     using UnityEngine;
     [RequireComponent(typeof(BoxCollider2D))]
@@ -8,13 +8,13 @@ namespace SpaceInvaders
         public float speed = 20f;
          void Awake()
         {
-            box_collider: BoxCollider2D | null = GetComponent<BoxCollider2D>();
+            box_collider = GetComponent<BoxCollider2D>();
         }
          void Update()
         {
-            pos: Vector2 = transform.position;
-            dx: float = speed * Time.deltaTime * direction.x;
-            dy: float = speed * Time.deltaTime * direction.y;
+            Vector2 pos = transform.position;
+            float dx = speed * Time.deltaTime * direction.x;
+            float dy = speed * Time.deltaTime * direction.y;
             transform.position = new Vector2(pos.x + dx, pos.y + dy);
         }
          void OnTriggerEnter2D(GameObject other)
@@ -27,7 +27,7 @@ namespace SpaceInvaders
         }
         public void CheckCollision(GameObject other)
         {
-            true ? bunker: Bunker | null = other.GetComponent<Bunker>() : null;
+            Bunker bunker = true ? other.GetComponent<Bunker>() : null;
             if (bunker == null || bunker.CheckCollision(box_collider, transform.position))
             {
                 // Destroy(gameObject)

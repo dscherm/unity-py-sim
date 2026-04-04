@@ -1,4 +1,4 @@
-namespace Breakout
+namespace breakout
 {
     using UnityEngine;
     using UnityEngine.InputSystem;
@@ -12,9 +12,9 @@ namespace Breakout
         public bool showTrajectory = true;
          void Start()
         {
-            rb: Rigidbody2D = GetComponent<Rigidbody2D>();
+            rb = GetComponent<Rigidbody2D>();
             rb.SyncFromTransform();
-            paddle: GameObject | null = GameObject.Find("Paddle");
+            paddle = GameObject.Find("Paddle");
         }
          void Update()
         {
@@ -23,8 +23,8 @@ namespace Breakout
                 // Follow paddle
                 if (paddle != null)
                 {
-                    paddle_pos: Vector2 = paddle.transform.position;
-                    transform.position = new Vector2( paddle_pos.x + paddleOffset.x, paddle_pos.y + paddleOffset.y);
+                    Vector2 paddlePos = paddle.transform.position;
+                    transform.position = new Vector2( paddlePos.x + paddleOffset.x, paddlePos.y + paddleOffset.y);
                     rb.MovePosition(transform.position);
                 }
                 // Launch on space
@@ -34,8 +34,8 @@ namespace Breakout
                 }
                 return;
             }
-            pos: Vector2 = transform.position;
-            vel: Vector2 = rb.linearVelocity;
+            Vector2 pos = transform.position;
+            Vector2 vel = rb.linearVelocity;
             if (pos.x < -7.5f && vel.x < 0)
             {
                 rb.linearVelocity = new Vector2(-vel.x, vel.y);
@@ -59,18 +59,18 @@ namespace Breakout
             }
             if (showTrajectory != null && !attached)
             {
-                var vel = rb.linearVelocity;
+                vel = rb.linearVelocity;
                 if (vel.sqrMagnitude > 0.01f)
                 {
-                    Start: Vector2 = transform.position;
-                    end: Vector2 = new Vector2(Start.x + vel.x * 0.3f, Start.y + vel.y * 0.3f);
+                    Vector2 Start = transform.position;
+                    Vector2 end = new Vector2(Start.x + vel.x * 0.3f, Start.y + vel.y * 0.3f);
                     Debug.DrawLine(Start, end, color=(255, 255, 0), duration=0);
                 }
             }
         }
          void OnCollisionEnter2D(Collision2D collision)
         {
-            audio: AudioSource | null = GetComponent<AudioSource>();
+            AudioSource audio = GetComponent<AudioSource>();
             if (collision.gameObject.tag == "Paddle")
             {
                 if (audio != null)
@@ -78,13 +78,13 @@ namespace Breakout
                     audio.clipRef = "paddle_hit";
                 }
                 // Angle based on hit position
-                paddle_pos: Vector2 = collision.gameObject.transform.position;
-                hit_x: float = transform.position.x - paddle_pos.x;
+                Vector2 paddlePos = collision.gameObject.transform.position;
+                float hitX = transform.position.x - paddlePos.x;
                 // Normalize to -1..1 based on paddle width (~2 units)
-                normalized: float = Mathf.Max(-1.0f, Mathf.Min(1.0f, hit_x / 1.0f));
+                float normalized = Mathf.Max(-1.0f, Mathf.Min(1.0f, hitX / 1.0f));
                 // Angle between 30 and 150 degrees (always upward)
-                angle: float = math.pi * (0.25f + 0.5f * (1.0f - (normalized + 1.0f) / 2.0f));
-                direction: Vector2 = new Vector2(math.Cos(angle), math.Sin(angle)).normalized;
+                float angle = math.pi * (0.25f + 0.5f * (1.0f - (normalized + 1.0f) / 2.0f));
+                Vector2 direction = new Vector2(math.Cos(angle), math.Sin(angle)).normalized;
                 rb.linearVelocity = direction * speed;
             }
             else if (collision.gameObject.tag == "Brick")
@@ -94,7 +94,7 @@ namespace Breakout
                     audio.clipRef = "brick_hit";
                 }
                 // Reflect off brick
-                vel: Vector2 = rb.linearVelocity;
+                Vector2 vel = rb.linearVelocity;
                 // Simple: reflect Y
                 rb.linearVelocity = new Vector2(vel.x, -vel.y);
             }
@@ -102,8 +102,8 @@ namespace Breakout
         public void Launch()
         {
             attached = false;
-            angle: float = math.pi / 2 + Random.Range(-0.3f, 0.3f);
-            direction: Vector2 = new Vector2(math.Cos(angle), math.Sin(angle)).normalized;
+            float angle = math.pi / 2 + Random.Range(-0.3f, 0.3f);
+            Vector2 direction = new Vector2(math.Cos(angle), math.Sin(angle)).normalized;
             rb.linearVelocity = direction * speed;
         }
         public void Reset()
@@ -112,8 +112,8 @@ namespace Breakout
             rb.linearVelocity = Vector2.zero;
             if (paddle != null)
             {
-                paddle_pos: Vector2 = paddle.transform.position;
-                transform.position = new Vector2( paddle_pos.x + paddleOffset.x, paddle_pos.y + paddleOffset.y);
+                Vector2 paddlePos = paddle.transform.position;
+                transform.position = new Vector2( paddlePos.x + paddleOffset.x, paddlePos.y + paddleOffset.y);
                 rb.MovePosition(transform.position);
             }
         }

@@ -1,4 +1,4 @@
-namespace SpaceInvaders
+namespace spaceinvaders
 {
     using UnityEngine;
 
@@ -18,18 +18,18 @@ namespace SpaceInvaders
         public GameObject Laser;
          void Update()
         {
-            position: Vector2 = transform.position;
+            Vector2 position = transform.position;
             if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed)
             {
-                Vector2 position = new Vector2(position.x - speed * Time.deltaTime, position.y);
+                position = new Vector2(position.x - speed * Time.deltaTime, position.y);
             }
             else if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed)
             {
                 position = new Vector2(position.x + speed * Time.deltaTime, position.y);
             }
-            left_edge: float = -6.5f;
-            right_edge: float = 6.5f;
-            position = new Vector2( Mathf.Max(left_edge, Mathf.Min(right_edge, position.x)), position.y);
+            float leftEdge = -6.5f;
+            float rightEdge = 6.5f;
+            position = new Vector2( Mathf.Max(leftEdge, Mathf.Min(rightEdge, position.x)), position.y);
             transform.position = position;
             if ((Laser == null || !Laser.active) && (Keyboard.current.spaceKey.wasPressedThisFrame || Mouse.current.leftButton.wasPressedThisFrame))
             {
@@ -39,8 +39,8 @@ namespace SpaceInvaders
         }
         public GameObject InstantiateLaser()
         {
-            pos: Vector2 = new Vector2(transform.position.x, transform.position.y + 0.5f);
-            laser: GameObject = Instantiate("Laser", position=pos);
+            Vector2 pos = new Vector2(transform.position.x, transform.position.y + 0.5f);
+            GameObject laser = Instantiate("Laser", position=pos);
             laser.layer = Layers.LASER;
             return laser;
         }

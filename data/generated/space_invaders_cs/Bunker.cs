@@ -1,4 +1,4 @@
-namespace SpaceInvaders
+namespace spaceinvaders
 {
     using UnityEngine;
     using System.Collections.Generic;
@@ -8,10 +8,10 @@ namespace SpaceInvaders
     public class Bunker : MonoBehaviour
     {
         public int splatRadius = 2;
-        public List<bool[]> OriginalCells;
+        public List<bool[]> OriginalCells = new List<bool[]>();
+        public List<bool[]> Cells = new List<bool[]>();
         public SpriteRenderer spriteRenderer;
         public BoxCollider2D boxCollider;
-        public List<bool[]> Cells;
         public static int GRIDCols = 16;
         public static int GRIDRows = 12;
         public static float CELLSize = 0.125f;
@@ -31,20 +31,20 @@ namespace SpaceInvaders
         {
             if (otherCollider != null && true)
             {
-                offset: Vector2 = new Vector2(otherCollider.size.x / 2, otherCollider.size.y / 2);
+                Vector2 offset = new Vector2(otherCollider.size.x / 2, otherCollider.size.y / 2);
                 return (Splat(hitPoint) || Splat(new Vector2(hitPoint.x, hitPoint.y - offset.y)) || Splat(new Vector2(hitPoint.x, hitPoint.y + offset.y)) || Splat(new Vector2(hitPoint.x - offset.x, hitPoint.y)) || Splat(new Vector2(hitPoint.x + offset.x, hitPoint.y)));
             }
             return Splat(hitPoint);
         }
         public bool Splat(Vector2 hitPoint)
         {
-            result: tuple[int, int] | null = CheckPoint(hitPoint);
+            (int, int) result = CheckPoint(hitPoint);
             if (result == null)
             {
                 return false;
             }
-            px: int;
-            py: int;
+            int px;
+            int py;
             var (px, py) = result.Value;
             px -= splatRadius;
             py -= splatRadius;
@@ -52,8 +52,8 @@ namespace SpaceInvaders
             {
                 for (int x = 0; x < splatRadius * 2; x++)
                 {
-                    cx: int = px + x;
-                    cy: int = py + y;
+                    int cx = px + x;
+                    int cy = py + y;
                     if (cy >= 0 && cy < Bunker.GRID_ROWS && cx >= 0 && cx < Bunker.GRID_COLS)
                     {
                         Cells[cy][cx] = false;
@@ -68,15 +68,15 @@ namespace SpaceInvaders
             {
                 return null;
             }
-            pos: Vector2 = transform.position;
-            local_x: float = hitPoint.x - pos.x;
-            local_y: float = hitPoint.y - pos.y;
-            bw: float = boxCollider.size.x;
-            bh: float = boxCollider.size.y;
-            local_x += bw / 2;
-            local_y += bh / 2;
-            px: int = (int)(local_x / bw * Bunker.GRID_COLS);
-            py: int = (int)(local_y / bh * Bunker.GRID_ROWS);
+            Vector2 pos = transform.position;
+            float localX = hitPoint.x - pos.x;
+            float localY = hitPoint.y - pos.y;
+            float bw = boxCollider.size.x;
+            float bh = boxCollider.size.y;
+            localX += bw / 2;
+            localY += bh / 2;
+            int px = (int)(localX / bw * Bunker.GRID_COLS);
+            int py = (int)(localY / bh * Bunker.GRID_ROWS);
             if (px >= 0 && px < Bunker.GRID_COLS && py >= 0 && py < Bunker.GRID_ROWS && Cells[py][px])
             {
                 return (px, py);

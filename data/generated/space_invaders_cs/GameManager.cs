@@ -1,4 +1,4 @@
-namespace SpaceInvaders
+namespace spaceinvaders
 {
     using UnityEngine;
     using System;
@@ -11,6 +11,7 @@ namespace SpaceInvaders
     [RequireComponent(typeof(Player))]
     public class GameManager : MonoBehaviour
     {
+        public List<Bunker> bunkers = new List<Bunker>();
         public int score = 0;
         public int lives = 3;
         public float InvokeTimer = 0f;
@@ -21,7 +22,6 @@ namespace SpaceInvaders
         public Player player;
         public Invaders invaders;
         public MysteryShip mysteryShip;
-        public List<Bunker> bunkers;
         public System.Action invokeCallback;
         public static GameManager instance = null;
          void Awake()
@@ -44,24 +44,24 @@ namespace SpaceInvaders
         }
          void Start()
         {
-            player_go: GameObject | null = GameObject.Find("Player");
-            if (player_go != null)
+            GameObject playerGo = GameObject.Find("Player");
+            if (playerGo != null)
             {
-                player = player_go.GetComponent<Player>();
+                player = playerGo.GetComponent<Player>();
             }
-            invaders_go: GameObject | null = GameObject.Find("InvadersGrid");
-            if (invaders_go != null)
+            GameObject invadersGo = GameObject.Find("InvadersGrid");
+            if (invadersGo != null)
             {
-                invaders = invaders_go.GetComponent<Invaders>();
+                invaders = invadersGo.GetComponent<Invaders>();
             }
-            ship_go: GameObject | null = GameObject.Find("MysteryShip");
-            if (ship_go != null)
+            GameObject shipGo = GameObject.Find("MysteryShip");
+            if (shipGo != null)
             {
-                mysteryShip = ship_go.GetComponent<MysteryShip>();
+                mysteryShip = shipGo.GetComponent<MysteryShip>();
             }
             foreach (var go in GameObject.FindGameObjectsWithTag("Bunker"))
             {
-                bunker: Bunker | null = go.GetComponent<Bunker>();
+                Bunker bunker = go.GetComponent<Bunker>();
                 if (bunker != null)
                 {
                     bunkers.Add(bunker);
@@ -163,7 +163,7 @@ namespace SpaceInvaders
             if (lives > 0)
             {
                 invokeCallback = NewRound;
-                invokeDelay: float = 1.0f;
+                invokeDelay = 1.0f;
                 InvokeTimer = 0.0f;
                 InvokePending = true;
             }
@@ -195,38 +195,38 @@ namespace SpaceInvaders
         }
         public void SetupUi()
         {
-            canvas_go: GameObject = new GameObject("UICanvas");
-            canvas: Canvas = canvas_go.AddComponent<Canvas>();
-            score_go: GameObject = new GameObject("ScoreText");
-            rt: RectTransform = score_go.AddComponent<RectTransform>();
+            GameObject canvasGo = new GameObject("UICanvas");
+            Canvas canvas = canvasGo.AddComponent<Canvas>();
+            GameObject scoreGo = new GameObject("ScoreText");
+            RectTransform rt = scoreGo.AddComponent<RectTransform>();
             rt.anchorMin = new Vector2(0, 1);
             rt.anchorMax = new Vector2(0, 1);
             rt.anchoredPosition = new Vector2(80, -15);
             rt.sizeDelta = new Vector2(200, 30);
-            scoreText = score_go.AddComponent<Text>();
+            scoreText = scoreGo.AddComponent<Text>();
             scoreText.text = "0000";
             scoreText.fontSize = 20;
             scoreText.color = new Color32(255, 255, 255, 255);
             scoreText.alignment = TextAnchor.UpperLeft;
-            lives_go: GameObject = new GameObject("LivesText");
-            rt2: RectTransform = lives_go.AddComponent<RectTransform>();
+            GameObject livesGo = new GameObject("LivesText");
+            RectTransform rt2 = livesGo.AddComponent<RectTransform>();
             rt2.anchorMin = new Vector2(1, 1);
             rt2.anchorMax = new Vector2(1, 1);
             rt2.anchoredPosition = new Vector2(-80, -15);
             rt2.sizeDelta = new Vector2(200, 30);
-            livesText = lives_go.AddComponent<Text>();
+            livesText = livesGo.AddComponent<Text>();
             livesText.text = "3";
             livesText.fontSize = 20;
             livesText.color = new Color32(255, 255, 255, 255);
             livesText.alignment = TextAnchor.UpperRight;
-            status_go: GameObject = new GameObject("GameOverUI");
-            gameOverUi = status_go;
-            rt3: RectTransform = status_go.AddComponent<RectTransform>();
+            GameObject statusGo = new GameObject("GameOverUI");
+            gameOverUi = statusGo;
+            RectTransform rt3 = statusGo.AddComponent<RectTransform>();
             rt3.anchorMin = new Vector2(0.5f, 0.5f);
             rt3.anchorMax = new Vector2(0.5f, 0.5f);
             rt3.anchoredPosition = Vector2.zero;
             rt3.sizeDelta = new Vector2(400, 40);
-            statusText: Text = status_go.AddComponent<Text>();
+            statusText = statusGo.AddComponent<Text>();
             statusText.text = "";
             statusText.fontSize = 28;
             statusText.color = new Color32(255, 255, 100, 255);

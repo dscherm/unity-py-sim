@@ -1,4 +1,4 @@
-namespace SpaceInvaders
+namespace spaceinvaders
 {
     using UnityEngine;
     public class MysteryShip : MonoBehaviour
@@ -14,7 +14,7 @@ namespace SpaceInvaders
         public bool InvokePending = false;
          void Start()
         {
-            y: float = transform.position.y;
+            float y = transform.position.y;
             leftDestination = new Vector2(-8.0f, y);
             rightDestination = new Vector2(8.0f, y);
             Despawn();
@@ -45,7 +45,7 @@ namespace SpaceInvaders
         }
         public void MoveRight()
         {
-            pos: Vector2 = transform.position;
+            Vector2 pos = transform.position;
             transform.position = new Vector2( pos.x + speed * Time.deltaTime, pos.y);
             if (transform.position.x >= rightDestination.x)
             {
@@ -54,7 +54,7 @@ namespace SpaceInvaders
         }
         public void MoveLeft()
         {
-            pos: Vector2 = transform.position;
+            Vector2 pos = transform.position;
             transform.position = new Vector2( pos.x - speed * Time.deltaTime, pos.y);
             if (transform.position.x <= leftDestination.x)
             {

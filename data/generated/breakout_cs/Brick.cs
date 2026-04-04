@@ -1,4 +1,4 @@
-namespace Breakout
+namespace breakout
 {
     using UnityEngine;
     using System;
@@ -22,10 +22,10 @@ namespace Breakout
             GameManager.AddScore(points);
             maybe_spawn_powerup(transform.position);
             gameObject.SetActive(false);
-            collider: BoxCollider2D | null = GetComponent<BoxCollider2D>();
+            BoxCollider2D collider = GetComponent<BoxCollider2D>();
             if (collider != null && true && collider._shape)
             {
-                pm: PhysicsManager = PhysicsManager.Instance();
+                PhysicsManager pm = PhysicsManager.Instance();
                 try
                 {
                     pm._space.Remove(collider._shape, collider._shape.body);
