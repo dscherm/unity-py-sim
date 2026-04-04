@@ -152,6 +152,39 @@ def _build_symbol_table(cls: PyClass) -> dict[str, str]:
     return symbols
 
 
+def _infer_field_types(cls: PyClass) -> dict[str, str]:
+    """Infer field types from get_component() calls in start/awake and type annotations."""
+    type_map: dict[str, str] = {}
+
+    # 1. From type annotations (strip | None suffix)
+    for field in cls.fields:
+        if field.type_annotation:
+            t = field.type_annotation.strip()
+            # Strip "| None" suffix
+            if t.endswith("| None"):
+                t = t[:-7].strip()
+            if t and t not in ("", "list", "dict", "object"):
+                type_map[field.name] = t
+
+    # 2. From get_component(T) calls in start/awake
+    for method in cls.methods:
+        if method.name in ("start", "awake"):
+            for m in re.finditer(r"self\.(\w+)\s*=\s*\w+\.get_component\((\w+)\)", method.body_source):
+                field_name = m.group(1)
+                comp_type = m.group(2)
+                type_map[field_name] = comp_type
+
+    # 3. From GameObject.find patterns
+    for method in cls.methods:
+        if method.name in ("start", "awake"):
+            for m in re.finditer(r"self\.(\w+)\s*=\s*GameObject\.find\(", method.body_source):
+                field_name = m.group(1)
+                if field_name not in type_map:
+                    type_map[field_name] = "GameObject"
+
+    return type_map
+
+
 # Thread-local symbol table for the current class being translated
 _current_symbols: dict[str, str] = {}
 
@@ -169,6 +202,9 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     for mc in parsed.module_constants:
         _current_symbols[mc.name] = mc.name  # Keep UPPER_CASE as-is
 
+    # Infer field types from annotations and get_component() calls
+    inferred_types = _infer_field_types(cls)
+
     serialized_fields = []
     private_fields = []
     static_fields = []
@@ -177,7 +213,7 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     for mc in parsed.module_constants:
         mc_type = _infer_constant_type(mc.default_value)
         if not mc_type:
-            continue  # Skip complex types (lists, dicts) that can't be static fields
+            continue
         mc_default = _py_value_to_csharp(mc.default_value, mc_type)
         if mc_default:
             static_fields.append({
@@ -187,7 +223,11 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
             })
 
     for field in cls.fields:
-        csharp_type = _py_type_to_csharp(field.type_annotation, is_field=True, default_value=field.default_value or "")
+        # Use inferred type if available, otherwise fall back to annotation
+        if field.name in inferred_types:
+            csharp_type = _py_type_to_csharp(inferred_types[field.name], is_field=True)
+        else:
+            csharp_type = _py_type_to_csharp(field.type_annotation, is_field=True, default_value=field.default_value or "")
         csharp_name = snake_to_camel(field.name)
         default = _py_value_to_csharp(field.default_value, csharp_type) if field.default_value else None
 
@@ -1027,6 +1067,9 @@ def _translate_py_expression(expr: str) -> str:
     expr = re.sub(r"\bfloat\(([^)]+)\)", r"(float)(\1)", expr)
     expr = re.sub(r"\bstr\(([^)]+)\)", r"\1.ToString()", expr)
 
+    # Python string methods
+    expr = re.sub(r"\.zfill\((\d+)\)", r'.PadLeft(\1, "0"[0])', expr)
+
     # Python floor division: // -> /
     expr = expr.replace("//", "/")
 
@@ -1232,6 +1275,15 @@ def _infer_using_directives(cls: PyClass, parsed: PyFile) -> list[str]:
     # Add System.Linq if Enumerable is used (from list comprehension translation)
     if "Enumerable" in all_text or "[:]" in all_text:
         extra.add("System.Linq")
+
+    # Add System if Exception is used (try/catch)
+    if "except" in all_text or "Exception" in all_text:
+        extra.add("System")
+
+    # Add System.Collections.Generic if List<> is used
+    field_types = " ".join(f.type_annotation for f in cls.fields)
+    if "list" in field_types or "dict" in field_types:
+        extra.add("System.Collections.Generic")
 
     # Add UnityEngine.InputSystem when new input system is active and Input is used
     if _config.input_system == "new":

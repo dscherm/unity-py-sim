@@ -83,9 +83,9 @@ class TypeMapper:
             inner = self.python_to_csharp(list_match.group(1))
             return f"{inner}[]"
 
-        # bare 'list' without type param -> object[]
+        # bare 'list' without type param -> List<object>
         if t == "list":
-            return "object[]"
+            return "List<object>"
 
         # tuple -> object (no direct C# equivalent for bare tuple)
         if t == "tuple":
