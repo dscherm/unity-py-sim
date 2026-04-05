@@ -8,7 +8,7 @@ namespace Breakout
         public float speed = 6f;
         public float maxSpeed = 12f;
         public bool attached = true;
-        public Vector2 paddleOffset = new Vector2(0, 0.6);
+        public Vector2 paddleOffset = new Vector2(0, 0.6f);
         public bool showTrajectory = true;
         public Rigidbody2D rb;
         public GameObject paddle;

@@ -75,9 +75,9 @@ namespace UnityEngine
         public float x, y;
         public float magnitude;
         public float sqrMagnitude;
-        public Vector2 normalized;
+        public Vector2 normalized => default;
 
-        public Vector2(float x, float y) { this.x = x; this.y = y; magnitude = 0; sqrMagnitude = 0; normalized = default; }
+        public Vector2(float x, float y) { this.x = x; this.y = y; magnitude = 0; sqrMagnitude = 0; }
 
         public static Vector2 zero => new Vector2(0, 0);
         public static Vector2 one => new Vector2(1, 1);
@@ -91,6 +91,10 @@ namespace UnityEngine
         public static Vector2 operator *(Vector2 a, float d) => default;
         public static Vector2 operator *(float d, Vector2 a) => default;
         public static float Distance(Vector2 a, Vector2 b) => 0f;
+
+        // Unity has implicit conversion between Vector2 and Vector3
+        public static implicit operator Vector2(Vector3 v) => new Vector2(v.x, v.y);
+        public static implicit operator Vector3(Vector2 v) => new Vector3(v.x, v.y, 0);
     }
 
     public struct Vector3
@@ -98,9 +102,9 @@ namespace UnityEngine
         public float x, y, z;
         public float magnitude;
         public float sqrMagnitude;
-        public Vector3 normalized;
+        public Vector3 normalized => default;
 
-        public Vector3(float x, float y, float z) { this.x = x; this.y = y; this.z = z; magnitude = 0; sqrMagnitude = 0; normalized = default; }
+        public Vector3(float x, float y, float z) { this.x = x; this.y = y; this.z = z; magnitude = 0; sqrMagnitude = 0; }
 
         public static Vector3 zero => new Vector3(0, 0, 0);
         public static Vector3 one => new Vector3(1, 1, 1);
@@ -129,6 +133,14 @@ namespace UnityEngine
         public static Color red => default;
         public static Color green => default;
         public static Color blue => default;
+    }
+
+    public struct Color32
+    {
+        public byte r, g, b, a;
+        public Color32(byte r, byte g, byte b, byte a) { this.r = r; this.g = g; this.b = b; this.a = a; }
+        public static implicit operator Color(Color32 c) => new Color(c.r / 255f, c.g / 255f, c.b / 255f, c.a / 255f);
+        public static implicit operator Color32(Color c) => new Color32((byte)(c.r * 255), (byte)(c.g * 255), (byte)(c.b * 255), (byte)(c.a * 255));
     }
 
     public class Coroutine { }
@@ -188,13 +200,28 @@ namespace UnityEngine
 
     public static class Mathf
     {
+        public const float PI = 3.14159265f;
+        public const float Infinity = float.PositiveInfinity;
         public static float Lerp(float a, float b, float t) => 0f;
         public static float Clamp(float value, float min, float max) => 0f;
         public static float Abs(float f) => 0f;
         public static float Min(float a, float b) => 0f;
         public static float Max(float a, float b) => 0f;
         public static float Sign(float f) => 0f;
-        public const float Infinity = float.PositiveInfinity;
+        public static float Cos(float f) => 0f;
+        public static float Sin(float f) => 0f;
+        public static float Tan(float f) => 0f;
+        public static float Acos(float f) => 0f;
+        public static float Asin(float f) => 0f;
+        public static float Atan(float f) => 0f;
+        public static float Atan2(float y, float x) => 0f;
+        public static float Sqrt(float f) => 0f;
+        public static float Floor(float f) => 0f;
+        public static float Ceil(float f) => 0f;
+        public static float Log(float f) => 0f;
+        public static float Pow(float f, float p) => 0f;
+        public static float Round(float f) => 0f;
+        public static float MoveTowards(float current, float target, float maxDelta) => 0f;
     }
 
     public static class Random
@@ -279,5 +306,49 @@ namespace UnityEngine
     public class HeaderAttribute : System.Attribute
     {
         public HeaderAttribute(string header) { }
+    }
+
+    public class Animator : Component
+    {
+        public void SetTrigger(string name) { }
+        public void SetBool(string name, bool value) { }
+        public void SetFloat(string name, float value) { }
+        public void SetInteger(string name, int value) { }
+    }
+
+    public static class Physics2D
+    {
+        public static RaycastHit2D Raycast(Vector2 origin, Vector2 direction, float distance = float.PositiveInfinity) => default;
+    }
+
+    public struct RaycastHit2D
+    {
+        public Collider2D collider;
+        public Vector2 point;
+        public Vector2 normal;
+        public float distance;
+    }
+}
+
+namespace UnityEngine.UI
+{
+    public class Text : UnityEngine.Component
+    {
+        public string text;
+        public int fontSize;
+        public UnityEngine.Color color;
+    }
+
+    public class Image : UnityEngine.Component
+    {
+        public UnityEngine.Sprite sprite;
+        public UnityEngine.Color color;
+    }
+
+    public class Button : UnityEngine.Component { }
+
+    public class Canvas : UnityEngine.Component
+    {
+        public int sortOrder;
     }
 }

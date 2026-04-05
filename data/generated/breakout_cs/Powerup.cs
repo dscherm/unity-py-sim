@@ -24,7 +24,7 @@ namespace Breakout
             float newY = pos.y - fallSpeed * Time.deltaTime;
             transform.position = new Vector2(pos.x, newY);
             GameObject paddle = GameObject.Find("Paddle");
-            if (paddle != null && paddle.active)
+            if (paddle != null && paddle.activeSelf)
             {
                 Vector2 pp = paddle.transform.position;
                 if ((Mathf.Abs(pos.x - pp.x) < 1.2f && Mathf.Abs(newY - pp.y) < 0.5f))

@@ -29,7 +29,7 @@ namespace SpaceInvaders
             float rightEdge = 6.5f;
             position = new Vector2( Mathf.Max(leftEdge, Mathf.Min(rightEdge, position.x)), position.y);
             transform.position = position;
-            if ((Laser == null || !Laser.active) && (Keyboard.current.spaceKey.wasPressedThisFrame || Mouse.current.leftButton.wasPressedThisFrame))
+            if ((Laser == null || !Laser.activeSelf) && (Keyboard.current.spaceKey.wasPressedThisFrame || Mouse.current.leftButton.wasPressedThisFrame))
             {
                 // laser = Instantiate(laserPrefab, transform.position, Quaternion.identity)
                 Laser = InstantiateLaser();

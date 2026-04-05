@@ -72,7 +72,7 @@ namespace SpaceInvaders
             foreach (var invaderGo in InvaderChildren)
             {
                 // if (!invader.gameObject.activeInHierarchy) continue
-                if (!invaderGo.active)
+                if (!invaderGo.activeSelf)
                 {
                     continue;
                 }
@@ -103,7 +103,7 @@ namespace SpaceInvaders
             transform.position = new Vector2(pos.x + dx, pos.y);
             foreach (var invaderGo in InvaderChildren)
             {
-                if (invaderGo.active)
+                if (invaderGo.activeSelf)
                 {
                     Vector2 invPos = invaderGo.transform.position;
                     invaderGo.transform.position = new Vector2(invPos.x + dx, invPos.y);
@@ -113,7 +113,7 @@ namespace SpaceInvaders
             float rightEdge = 6.5f;
             foreach (var invaderGo in InvaderChildren)
             {
-                if (!invaderGo.active)
+                if (!invaderGo.activeSelf)
                 {
                     continue;
                 }
@@ -143,7 +143,7 @@ namespace SpaceInvaders
             transform.position = new Vector2(pos.x, pos.y - 1.0f);
             foreach (var invaderGo in InvaderChildren)
             {
-                if (invaderGo.active)
+                if (invaderGo.activeSelf)
                 {
                     Vector2 invPos = invaderGo.transform.position;
                     invaderGo.transform.position = new Vector2(invPos.x, invPos.y - 1.0f);
@@ -173,7 +173,7 @@ namespace SpaceInvaders
             int count = 0;
             foreach (var invaderGo in InvaderChildren)
             {
-                if (invaderGo.active)
+                if (invaderGo.activeSelf)
                 {
                     count += 1;
                 }

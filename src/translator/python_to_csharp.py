@@ -426,8 +426,8 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
 
 def _translate_plain_class(cls: PyClass, parsed: PyFile) -> str:
     """Translate a non-MonoBehaviour class to C#."""
-    # Reuse the same logic but without MonoBehaviour base
-    lines = ["using UnityEngine;", ""]
+    # using directives are hoisted by translate() — just emit the class body
+    lines = ["using UnityEngine;"]
     base = cls.base_classes[0] if cls.base_classes else ""
     base_str = f" : {base}" if base else ""
     lines.append(f"public class {cls.name}{base_str}")
@@ -574,6 +574,10 @@ def _infer_constant_type(value: str | None) -> str:
     # List of color tuples
     if re.match(r"^\[.*\(\d+,\s*\d+,\s*\d+\).*\]$", v):
         return "Color32[]"
+    # Constructor types: Vector2(...), Vector3(...), etc.
+    for ctor in ("Vector2", "Vector3", "Quaternion", "Color"):
+        if v.startswith(f"{ctor}("):
+            return ctor
     # Complex types (lists, dicts) — skip, they can't be simple constants
     return ""
 
@@ -1292,7 +1296,7 @@ def _translate_py_expression(expr: str) -> str:
     expr = re.sub(r"\bgame_object\b", "gameObject", expr)
     # gameObject.active = X -> gameObject.SetActive(X)
     # Handle in statement translator instead — here just fix reads
-    expr = re.sub(r"gameObject\.active\b(?!\s*=)", "gameObject.activeSelf", expr)
+    expr = re.sub(r"\.active\b(?!\s*=)(?!Self)", ".activeSelf", expr)
 
     # .add_component(T) -> .AddComponent<T>()
     expr = re.sub(r"\.add_component\((\w+)\)", r".AddComponent<\1>()", expr)
@@ -1675,10 +1679,12 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
     if csharp_type == "float" and value.isdigit():
         return value + "f"
 
-    # Constructor calls: Vector2(...) -> new Vector2(...)
+    # Constructor calls: Vector2(...) -> new Vector2(...) with float suffixes
     for ctor in ("Vector2", "Vector3", "Quaternion", "Color"):
         if value.startswith(f"{ctor}("):
-            return f"new {value}"
+            # Add f suffix to decimal literals inside constructor args
+            fixed = re.sub(r"(?<![a-zA-Z_])(\d+\.\d+)(?!f)\b", r"\1f", value)
+            return f"new {fixed}"
 
     # dataclass field(default_factory=...) -> new Type()
     field_match = re.match(r"field\(default_factory=(\w+)\)", value)

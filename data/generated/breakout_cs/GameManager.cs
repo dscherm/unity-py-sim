@@ -54,7 +54,7 @@ namespace Breakout
         public static void OnBrickDestroyed()
         {
             GameObject[] remaining = GameObject.FindGameObjectsWithTag("Brick");
-            GameObject[] active = remaining.Where(go => go.active).ToList();
+            GameObject[] active = remaining.Where(go => go.activeSelf).ToList();
             if (active.Count <= 0)
             {
                 GameManager.gameWon = true;
