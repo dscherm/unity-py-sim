@@ -350,14 +350,16 @@ _declared_vars: set[str] = set()
 _enumerate_inject: str | None = None
 _bool_fields: set[str] = set()  # C# names of fields with bool type
 _array_fields: set[str] = set()  # C# names of fields with array types (use .Length not .Count)
+_prefab_fields: set[str] = set()  # Prefab fields discovered from Instantiate() calls
 _enum_values: dict[str, str] = {}  # "EnumType.UPPER_SNAKE" -> "EnumType.PascalCase"
 
 
 def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     """Translate a MonoBehaviour subclass using the Jinja2 template."""
-    global _current_symbols, _bool_fields, _array_fields
+    global _current_symbols, _bool_fields, _array_fields, _prefab_fields
     _bool_fields = set()
     _array_fields = set()
+    _prefab_fields = set()
     extra_using = _infer_using_directives(cls, parsed)
     attributes = _infer_attributes(cls)
 
@@ -379,17 +381,23 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     private_fields = []
     static_fields = []
 
-    # Add module-level constants as static fields (only simple types)
+    # Add module-level constants as static fields
     for mc in parsed.module_constants:
         mc_type = _infer_constant_type(mc.default_value)
-        if not mc_type:
-            continue
-        mc_default = _py_value_to_csharp(mc.default_value, mc_type)
-        if mc_default:
+        if mc_type:
+            mc_default = _py_value_to_csharp(mc.default_value, mc_type)
+            if mc_default:
+                static_fields.append({
+                    "csharp_type": mc_type,
+                    "csharp_name": mc.name,
+                    "default": mc_default,
+                })
+        elif mc.default_value and mc.default_value.startswith("["):
+            # Complex list constant — emit as uninitialized static field
             static_fields.append({
-                "csharp_type": mc_type,
+                "csharp_type": "object[]",
                 "csharp_name": mc.name,
-                "default": mc_default,
+                "default": None,
             })
 
     for field in cls.fields:
@@ -426,13 +434,23 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     for method in cls.methods:
         methods.append(_translate_method(method))
 
-    # Add module-level functions as private static methods (on last MonoBehaviour class only)
+    # Add module-level functions as public static methods (on last MonoBehaviour class only)
     mono_classes = [c for c in parsed.classes if c.is_monobehaviour]
     if mono_classes and cls.name == mono_classes[-1].name:
         for func in parsed.module_functions:
             m = _translate_method(func)
             m['access'] = 'public static'
             methods.append(m)
+
+    # Add discovered prefab fields (from Instantiate() calls in methods)
+    existing_fields = {f['csharp_name'] for f in serialized_fields + private_fields + static_fields}
+    for pf in _prefab_fields:
+        if pf not in existing_fields:
+            serialized_fields.append({
+                "csharp_type": "GameObject",
+                "csharp_name": pf,
+                "default": None,
+            })
 
     template = _jinja_env.get_template("monobehaviour.cs.j2")
     return template.render(
@@ -1321,6 +1339,8 @@ def _translate_py_expression(expr: str) -> str:
     # random -> Random
     expr = re.sub(r"random\.random\(\)", "Random.value", expr)
     expr = re.sub(r"random\.uniform\(", "Random.Range(", expr)
+    expr = re.sub(r"random\.randint\(", "Random.Range(", expr)
+    expr = re.sub(r"random\.choice\(", "/* Random.choice */ ", expr)
 
     # print -> Debug.Log
     expr = re.sub(r"\bprint\(", "Debug.Log(", expr)
@@ -1451,8 +1471,8 @@ def _translate_py_expression(expr: str) -> str:
     expr = re.sub(r"(?<!Vector2)(?<!Vector3)(?<!Quaternion)\((\d+),\s*(\d+),\s*(\d+)\)", _color_tuple_repl, expr)
 
     # Python builtins -> C# equivalents
-    expr = re.sub(r"\bmax\(", "Mathf.Max(", expr)
-    expr = re.sub(r"\bmin\(", "Mathf.Min(", expr)
+    expr = re.sub(r"\bmax\(", "Math.Max(", expr)
+    expr = re.sub(r"\bmin\(", "Math.Min(", expr)
     expr = re.sub(r"\babs\(", "Mathf.Abs(", expr)
 
     # Python list operations:
@@ -1564,6 +1584,7 @@ def _translate_py_expression(expr: str) -> str:
         pos_var = inst_match.group(2) or "transform.position"
         # In Unity, prefab is a serialized field reference: camelCase + Prefab
         prefab_field = prefab_name[0].lower() + prefab_name[1:] + "Prefab"
+        _prefab_fields.add(prefab_field)
         expr = f"Instantiate({prefab_field}, {pos_var}, Quaternion.identity)"
 
     # Trailing commas in constructor args: (x, y, ) -> (x, y)
@@ -1780,9 +1801,11 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
     if field_match:
         factory = field_match.group(1)
         if factory == "list":
-            # Use the C# type to construct: List<T> -> new List<T>()
+            # Use the C# type to construct
             if csharp_type.startswith("List<"):
                 return f"new {csharp_type}()"
+            if csharp_type.endswith("[]"):
+                return f"new {csharp_type[:-2]}[0]"
             return f"new List<object>()"
         elif factory == "dict":
             return f"new Dictionary<string, object>()"
@@ -1917,6 +1940,10 @@ def _infer_using_directives(cls: PyClass, parsed: PyFile) -> list[str]:
     # Add System.Linq if Enumerable is used (from list comprehension translation)
     if "Enumerable" in all_text or "[:]" in all_text:
         extra.add("System.Linq")
+
+    # Add System if Math.Max/Min is used (from max()/min() translation)
+    if "max(" in " ".join(m.body_source for m in cls.methods) or "min(" in " ".join(m.body_source for m in cls.methods):
+        extra.add("System")
 
     # Add System if Exception is used (try/catch)
     if "except" in all_text or "Exception" in all_text:

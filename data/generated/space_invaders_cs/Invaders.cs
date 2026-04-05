@@ -4,7 +4,7 @@ namespace SpaceInvaders
 {
     public class InvaderRowConfig
     {
-        public Color32[] animationSprites = new List<object>();
+        public Color32[] animationSprites = new Color32[0];
         public int score = 10;
     }
     public class Invaders : MonoBehaviour
@@ -17,6 +17,7 @@ namespace SpaceInvaders
         public float missileSpawnRate = 1f;
         public float MissileTimer = 0f;
         public List<GameObject> InvaderChildren = new List<GameObject>();
+        public GameObject missilePrefab;
         public static InvaderRowConfig[] ROW_CONFIG = new InvaderRowConfig[] { new InvaderRowConfig { animationSprites = new Color32[] { new Color32(50, 255, 50, 255), new Color32(30, 200, 30, 255) }, score = 10 }, new InvaderRowConfig { animationSprites = new Color32[] { new Color32(50, 255, 50, 255), new Color32(30, 200, 30, 255) }, score = 10 }, new InvaderRowConfig { animationSprites = new Color32[] { new Color32(50, 200, 255, 255), new Color32(30, 150, 200, 255) }, score = 20 }, new InvaderRowConfig { animationSprites = new Color32[] { new Color32(50, 200, 255, 255), new Color32(30, 150, 200, 255) }, score = 20 }, new InvaderRowConfig { animationSprites = new Color32[] { new Color32(255, 100, 100, 255), new Color32(200, 60, 60, 255) }, score = 30 } };
          void Awake()
         {

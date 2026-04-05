@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.InputSystem;
 using UnityEngine;
 namespace Breakout
@@ -20,7 +21,7 @@ namespace Breakout
             {
                 Vector2 pos = transform.position;
                 float newX = pos.x + inputVal * speed * Time.deltaTime;
-                newX = Mathf.Max(-boundX, Mathf.Min(boundX, newX));
+                newX = Math.Max(-boundX, Math.Min(boundX, newX));
                 transform.position = new Vector2(newX, pos.y);
                 rb.MovePosition(new Vector2(newX, pos.y));
             }

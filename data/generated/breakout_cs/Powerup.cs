@@ -1,4 +1,5 @@
 using System.Collections;
+using System;
 using UnityEngine;
 namespace Breakout
 {
@@ -73,7 +74,7 @@ namespace Breakout
                     if (bc != null)
                     {
                         float originalSpeed = bc.speed;
-                        bc.speed = Mathf.Min(bc.speed * 1.3f, bc.maxSpeed);
+                        bc.speed = Math.Min(bc.speed * 1.3f, bc.maxSpeed);
                         // Revert after 8 seconds via coroutine
                         GameManager gm = GameManager.GetInstance();
                         if (gm != null)
@@ -130,7 +131,7 @@ namespace Breakout
                     break;
                 }
             }
-            string name = $"Powerup_{random.Randint(1000, 9999)}";
+            string name = $"Powerup_{Random.Range(1000, 9999)}";
             GameObject go = new GameObject(name);
             go.transform.position = new Vector2(position.x, position.y);
             SpriteRenderer sr = go.AddComponent<SpriteRenderer>();

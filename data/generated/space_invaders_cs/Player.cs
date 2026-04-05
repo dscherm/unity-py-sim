@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.InputSystem;
 using UnityEngine;
 namespace SpaceInvaders
@@ -27,7 +28,7 @@ namespace SpaceInvaders
             }
             float leftEdge = -6.5f;
             float rightEdge = 6.5f;
-            position = new Vector2( Mathf.Max(leftEdge, Mathf.Min(rightEdge, position.x)), position.y);
+            position = new Vector2( Math.Max(leftEdge, Math.Min(rightEdge, position.x)), position.y);
             transform.position = position;
             if ((Laser == null || !Laser.activeSelf) && (Keyboard.current.spaceKey.wasPressedThisFrame || Mouse.current.leftButton.wasPressedThisFrame))
             {

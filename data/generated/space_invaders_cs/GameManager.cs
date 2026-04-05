@@ -148,7 +148,7 @@ namespace SpaceInvaders
         }
         public void SetLives(int lives)
         {
-            lives = Mathf.Max(lives, 0);
+            lives = Math.Max(lives, 0);
             if (livesText != null)
             {
                 livesText.text = lives.ToString();

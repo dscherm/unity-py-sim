@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.InputSystem;
 using UnityEngine;
 namespace Breakout
@@ -78,7 +79,7 @@ namespace Breakout
                 Vector2 paddlePos = collision.gameObject.transform.position;
                 float hitX = transform.position.x - paddlePos.x;
                 // Normalize to -1..1 based on paddle width (~2 units)
-                float normalized = Mathf.Max(-1.0f, Mathf.Min(1.0f, hitX / 1.0f));
+                float normalized = Math.Max(-1.0f, Math.Min(1.0f, hitX / 1.0f));
                 // Angle between 30 and 150 degrees (always upward)
                 float angle = Mathf.PI * (0.25f + 0.5f * (1.0f - (normalized + 1.0f) / 2.0f));
                 Vector2 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)).normalized;

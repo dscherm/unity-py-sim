@@ -126,7 +126,7 @@ _CSPROJ_TEMPLATE = """\
     <TargetFramework>net8.0</TargetFramework>
     <OutputType>Library</OutputType>
     <Nullable>enable</Nullable>
-    <NoWarn>CS0414;CS0169;CS0649;CS8618;CS0108;CS0114;CS1624</NoWarn>
+    <NoWarn>CS0414;CS0169;CS0649;CS8618;CS0108;CS0114;CS1624;CS0266</NoWarn>
   </PropertyGroup>
 </Project>
 """
