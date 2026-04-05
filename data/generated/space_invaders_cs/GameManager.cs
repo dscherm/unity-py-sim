@@ -238,7 +238,7 @@ namespace SpaceInvaders
         {
             try
             {
-                dm._title = $"Space Invaders — Score: {score} | Lives: {lives}";
+                __STRIP__ = $"Space Invaders — Score: {score} | Lives: {lives}";
             }
             catch (Exception) { }
         }

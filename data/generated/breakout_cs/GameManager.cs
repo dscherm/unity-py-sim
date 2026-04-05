@@ -121,7 +121,7 @@ namespace Breakout
             }
             try
             {
-                dm._title = ( $"Breakout — Score: {GameManager.score}  |  Lives: {GameManager.lives}" );
+                __STRIP__ = ( $"Breakout — Score: {GameManager.score}  |  Lives: {GameManager.lives}" );
             }
             catch (Exception) { }
         }

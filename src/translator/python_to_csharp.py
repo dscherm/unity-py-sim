@@ -1500,6 +1500,9 @@ def _translate_py_expression(expr: str) -> str:
     # DisplayManager — simulator-internal (Unity handles display)
     if "DisplayManager" in expr:
         return "__STRIP__"
+    # DisplayManager property access on stripped variables (dm._title, dm.xxx, etc.)
+    if re.match(r"^dm\.", expr):
+        return "__STRIP__"
     # hasattr() — Python-only runtime check, no C# equivalent
     if "hasattr(" in expr:
         return "__STRIP__"
@@ -1588,6 +1591,14 @@ def _translate_py_expression(expr: str) -> str:
         pascal = ''.join(p.capitalize() for p in parts if p)
         return pascal + '('
     expr = re.sub(r"(?<![.\w])(_[a-z][a-z_]*)\(", _standalone_snake_method, expr)
+
+    # Match standalone snake_case_function( (no dot, no underscore prefix, must have _)
+    def _bare_snake_to_pascal(m):
+        name = m.group(1)
+        parts = name.split('_')
+        pascal = ''.join(p.capitalize() for p in parts if p)
+        return pascal + '('
+    expr = re.sub(r"(?<![.\w])([a-z]+_[a-z_]+)\(", _bare_snake_to_pascal, expr)
 
     # Convert .snake_case field access to .camelCase (for external objects not in symbol table)
     def _snake_field_to_camel(m):
@@ -1749,6 +1760,10 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
         if tuples:
             elements = ", ".join(f"new Color32({r}, {g}, {b}, 255)" for r, g, b in tuples)
             return f"new Color32[] {{ {elements} }}"
+
+    # Enum values: EnumType.UPPER_SNAKE -> EnumType.PascalCase
+    for py_enum, cs_enum in _enum_values.items():
+        value = value.replace(py_enum, cs_enum)
 
     return value
 

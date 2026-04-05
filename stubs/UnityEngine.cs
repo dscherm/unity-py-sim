@@ -364,4 +364,12 @@ namespace UnityEngine.UI
     {
         public int sortOrder;
     }
+
+    public class RectTransform : UnityEngine.Transform
+    {
+        public UnityEngine.Vector2 anchorMin;
+        public UnityEngine.Vector2 anchorMax;
+        public UnityEngine.Vector2 anchoredPosition;
+        public UnityEngine.Vector2 sizeDelta;
+    }
 }

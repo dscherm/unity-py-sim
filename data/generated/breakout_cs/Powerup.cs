@@ -10,14 +10,14 @@ namespace Breakout
     }
     public class PowerupConfig
     {
-        public static PowerupType powerupType = PowerupType.WIDE_PADDLE;
+        public static PowerupType powerupType = PowerupType.WidePaddle;
         public static Color32 color = new Color32(255, 255, 255, 255);
         public static float weight = 0f;
     }
     public class Powerup : MonoBehaviour
     {
         public float fallSpeed = 3f;
-        public PowerupType powerupType = PowerupType.WIDE_PADDLE;
+        public PowerupType powerupType = PowerupType.WidePaddle;
          void Update()
         {
             Vector2 pos = transform.position;
