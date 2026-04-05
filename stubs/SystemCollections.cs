@@ -30,7 +30,7 @@ namespace System.Collections.Generic
         new IEnumerator<T> GetEnumerator();
     }
 
-    public interface IEnumerator<T> : System.Collections.IEnumerator
+    public interface IEnumerator<T> : System.Collections.IEnumerator, System.IDisposable
     {
         new T Current { get; }
     }
@@ -46,8 +46,8 @@ namespace System.Collections.Generic
         public void Clear() { }
         public bool Contains(T item) => false;
         public T[] ToArray() => default;
-        public System.Collections.IEnumerator GetEnumerator() => null;
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
+        public IEnumerator<T> GetEnumerator() => null;
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => null;
     }
 
     public class Dictionary<TKey, TValue>

@@ -17,7 +17,7 @@ namespace SpaceInvaders
         public float missileSpawnRate = 1f;
         public float MissileTimer = 0f;
         public List<GameObject> InvaderChildren = new List<GameObject>();
-        public static InvaderRowConfig[] ROWConfig = new Color32[] { new Color32(50, 255, 50, 255), new Color32(30, 200, 30, 255), new Color32(50, 255, 50, 255), new Color32(30, 200, 30, 255), new Color32(50, 200, 255, 255), new Color32(30, 150, 200, 255), new Color32(50, 200, 255, 255), new Color32(30, 150, 200, 255), new Color32(255, 100, 100, 255), new Color32(200, 60, 60, 255) };
+        public static InvaderRowConfig[] ROW_CONFIG = new Color32[] { new Color32(50, 255, 50, 255), new Color32(30, 200, 30, 255), new Color32(50, 255, 50, 255), new Color32(30, 200, 30, 255), new Color32(50, 200, 255, 255), new Color32(30, 150, 200, 255), new Color32(50, 200, 255, 255), new Color32(30, 150, 200, 255), new Color32(255, 100, 100, 255), new Color32(200, 60, 60, 255) };
          void Awake()
         {
             initialPosition = new Vector3( transform.position.x, transform.position.y, 0);

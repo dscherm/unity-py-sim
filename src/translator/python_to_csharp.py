@@ -385,7 +385,8 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
             csharp_type = _py_type_to_csharp(inferred_types[field.name], is_field=True)
         else:
             csharp_type = _py_type_to_csharp(field.type_annotation, is_field=True, default_value=field.default_value or "")
-        csharp_name = snake_to_camel(field.name)
+        # Preserve UPPER_CASE constants, camelCase others
+        csharp_name = field.name if field.name.isupper() else snake_to_camel(field.name)
         default = _py_value_to_csharp(field.default_value, csharp_type) if field.default_value else None
 
         # Track bool fields so condition translator can avoid != null
@@ -533,26 +534,26 @@ def _add_locals_to_symbols(body_source: str) -> None:
         m = re.match(r"^([a-z_]\w*)\s*:\s*\S+.*=\s*", stripped)
         if m and not stripped.startswith("self."):
             py_name = m.group(1)
-            if py_name not in _current_symbols and "_" in py_name:
+            if py_name not in _current_symbols:
                 _current_symbols[py_name] = snake_to_camel(py_name)
             continue
         # Match: var_name = expression (not self.var_name)
         m = re.match(r"^([a-z_]\w*)\s*=\s*", stripped)
         if m and not stripped.startswith("self."):
             py_name = m.group(1)
-            if py_name not in _current_symbols and "_" in py_name:
+            if py_name not in _current_symbols:
                 _current_symbols[py_name] = snake_to_camel(py_name)
         # Match for-loop variables: for var_name in ...
         m = re.match(r"^for\s+(\w+)\s+in\s+", stripped)
         if m:
             py_name = m.group(1)
-            if py_name not in _current_symbols and "_" in py_name:
+            if py_name not in _current_symbols:
                 _current_symbols[py_name] = snake_to_camel(py_name)
         # Match: for idx, var in enumerate(...)
         m = re.match(r"^for\s+(\w+),\s*(\w+)\s+in\s+", stripped)
         if m:
             for py_name in [m.group(1), m.group(2)]:
-                if py_name not in _current_symbols and "_" in py_name:
+                if py_name not in _current_symbols:
                     _current_symbols[py_name] = snake_to_camel(py_name)
 
 
@@ -1428,11 +1429,11 @@ def _translate_py_expression(expr: str) -> str:
     expr = re.sub(r"(\w+)\[:\]", r"(\1.Clone() as bool[])", expr)
 
     # [True] * N -> new bool[N] (filled with true via Enumerable)
-    expr = re.sub(r"\[true\]\s*\*\s*(\w+)", r"Enumerable.Repeat(true, \1).ToArray()", expr)
-    expr = re.sub(r"\[false\]\s*\*\s*(\w+)", r"Enumerable.Repeat(false, \1).ToArray()", expr)
+    expr = re.sub(r"\[true\]\s*\*\s*([\w.]+)", r"Enumerable.Repeat(true, \1).ToArray()", expr)
+    expr = re.sub(r"\[false\]\s*\*\s*([\w.]+)", r"Enumerable.Repeat(false, \1).ToArray()", expr)
 
     # range(N) standalone -> Enumerable.Range(0, N)
-    expr = re.sub(r"\brange\((\w+)\)", r"Enumerable.Range(0, \1)", expr)
+    expr = re.sub(r"\brange\(([\w.]+)\)", r"Enumerable.Range(0, \1)", expr)
 
     # Fix lambda with no param: .Select( => -> .Select(_ =>
     expr = re.sub(r"\.Select\(\s*=>", ".Select(_ =>", expr)

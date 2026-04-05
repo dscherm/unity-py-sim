@@ -12,14 +12,14 @@ namespace SpaceInvaders
         public List<bool[]> Cells = new List<bool[]>();
         public SpriteRenderer spriteRenderer;
         public BoxCollider2D boxCollider;
-        public static int GRIDCols = 16;
-        public static int GRIDRows = 12;
-        public static float CELLSize = 0.125f;
+        public static int GRID_COLS = 16;
+        public static int GRID_ROWS = 12;
+        public static float CELL_SIZE = 0.125f;
          void Awake()
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
             boxCollider = GetComponent<BoxCollider2D>();
-            OriginalCells = range(Bunker.GRID_ROWS).Select(_ => Enumerable.Repeat(true, Bunker).ToArray().GRIDCOLS).ToList();
+            OriginalCells = Enumerable.Range(0, Bunker.GRID_ROWS).Select(_ => Enumerable.Repeat(true, Bunker.GRIDCOLS).ToArray()).ToList();
             ResetBunker();
         }
         public void ResetBunker()
