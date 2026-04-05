@@ -48,3 +48,8 @@ Behavioral differences discovered during C# <-> Python translation.
 - **FSMState.Act()** in Python takes `MonoBehaviour` base type; original Unity C# used `EnemyBehaviour` — generalization required
 - **MonoBehaviour cast**: Python duck-types (`player = owner`), C# requires explicit cast (`var player = (PlayerInputHandler)owner`)
 - **Command.DoBeforeLeaving()** called explicitly in Python, sometimes implicit in C# via CommandProcessor
+
+## Playtest Errors (auto-recorded)
+- **ImportError**: `DLL load failed while importing bufferproxy: The paging file is too small for this operation to comp` — found in pong playtest (2026-04-05)
+  Source: `File "D:\Projects\unity-py-sim\examples\pong\..\..\src\engine\app.py", line 37, in run`
+- **ImportError**: `DLL load failed while importing base: The paging file is too small for this operation to complete.` — found in space_invaders playtest (2026-04-05)

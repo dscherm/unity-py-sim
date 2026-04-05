@@ -1039,7 +1039,8 @@ def _translate_for_loop(line: str) -> str:
         # We store it for injection
         global _enumerate_inject
         _enumerate_inject = f"var {val_var} = {collection}[{idx_var}];"
-        prop = ".Length" if collection in _array_fields else ".Count"
+        last_part = collection.rsplit(".", 1)[-1] if "." in collection else collection
+        prop = ".Length" if (collection in _array_fields or last_part in _array_fields) else ".Count"
         return f"for (int {idx_var} = 0; {idx_var} < {collection}{prop}; {idx_var}++)"
 
     # Match: var in collection (foreach)
@@ -1098,7 +1099,9 @@ def _translate_len_calls(expr: str) -> str:
             inner = expr[paren_start + 1:pos - 1]
             inner_translated = _translate_py_expression(inner)
             # Use .Length for arrays, .Count for Lists
-            prop = ".Length" if inner_translated in _array_fields else ".Count"
+            # Check both bare name and dotted form (e.g., ROW_CONFIG or Invaders.ROW_CONFIG)
+            last_part = inner_translated.rsplit(".", 1)[-1] if "." in inner_translated else inner_translated
+            prop = ".Length" if (inner_translated in _array_fields or last_part in _array_fields) else ".Count"
             expr = expr[:start] + f"{inner_translated}{prop}" + expr[pos:]
         else:
             break
