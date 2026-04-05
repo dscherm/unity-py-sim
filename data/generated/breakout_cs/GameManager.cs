@@ -39,7 +39,7 @@ namespace Breakout
         }
         public static void OnBallLost()
         {
-            if (GameManager.gameOver || GameManager.gameWon)
+            if (GameManager.gameOver != null || GameManager.gameWon != null)
             {
                 return;
             }
@@ -106,11 +106,11 @@ namespace Breakout
             {
                 inst.ScoreText.text = $"Score: {GameManager.score}";
                 inst.LivesText.text = $"Lives: {GameManager.lives}";
-                if (GameManager.gameOver)
+                if (GameManager.gameOver != null)
                 {
                     inst.StatusText.text = "Game Over!";
                 }
-                else if (GameManager.gameWon)
+                else if (GameManager.gameWon != null)
                 {
                     inst.StatusText.text = "You Win!";
                 }

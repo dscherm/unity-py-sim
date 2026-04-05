@@ -86,7 +86,7 @@ namespace SpaceInvaders
                     }
                 }
             }
-            if (lives <= 0 && Keyboard.current.enterKey.wasPressedThisFrame)
+            if (lives <= 0 && Keyboard.current.enterKey.wasPressedThisFrame != null)
             {
                 NewGame();
             }

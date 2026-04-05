@@ -904,9 +904,11 @@ def _translate_py_statement(line: str) -> str:
         else:
             # Single value — use C# tuple deconstruction
             val = _translate_py_expression(rhs)
+            # If vars already declared, use assignment (no var)
+            if cs_a in _declared_vars and cs_b in _declared_vars:
+                return f"({cs_a}, {cs_b}) = {val}.Value;"
             _declared_vars.add(cs_a)
             _declared_vars.add(cs_b)
-            # Handle nullable tuples: result.Value for (T1,T2)? types
             return f"var ({cs_a}, {cs_b}) = {val}.Value;"
 
     # Typed self.field assignment: self.field: Type = value (strip annotation, emit field = value)
@@ -1647,18 +1649,20 @@ def _translate_py_condition(cond: str) -> str:
     # Fix chained comparisons with && (multiple chained)
     cond = re.sub(r"(\d+)\s*<=\s*(\w+)\s*<\s*(\w+)", r"\2 >= \1 && \2 < \3", cond)
 
-    # Object truthiness: bare object names in && / || should get != null
-    # e.g., "spriteRenderer && animationSprites" → "spriteRenderer != null && animationSprites != null"
-    # But bool fields should stay as bare identifiers (no != null)
+    # Object truthiness: bare object/property names in && / || should get != null
+    # But bool fields/properties stay as bare truthiness checks
+    _BOOL_PROPERTIES = {"activeSelf", "activeInHierarchy", "enabled", "isActiveAndEnabled",
+                        "isTrigger", "isKinematic", "loop"}
     parts = re.split(r"\s*(&&|\|\|)\s*", cond)
     fixed_parts = []
     for part in parts:
         if part in ("&&", "||"):
             fixed_parts.append(part)
-        elif re.match(r"^[a-zA-Z_]\w*$", part.strip()) and part.strip() not in ("true", "false", "null"):
+        elif re.match(r"^[a-zA-Z_][\w.]*$", part.strip()) and part.strip() not in ("true", "false", "null"):
             ident = part.strip()
-            # Bool fields stay as bare truthiness checks (no != null)
-            if ident in _bool_fields:
+            # Check if it's a known bool field or ends with a bool property
+            last_prop = ident.rsplit(".", 1)[-1] if "." in ident else ident
+            if ident in _bool_fields or last_prop in _BOOL_PROPERTIES:
                 fixed_parts.append(ident)
             else:
                 fixed_parts.append(f"{ident} != null")
@@ -1669,6 +1673,10 @@ def _translate_py_condition(cond: str) -> str:
     return cond
 
 
+_VALUE_TYPES = {"int", "float", "double", "bool", "byte", "short", "long", "char",
+                "Vector2", "Vector3", "Quaternion", "Color", "Color32"}
+
+
 def _translate_type_annotation(py_type: str) -> str:
     """Convert a Python type annotation string to C# type for local variables.
 
@@ -1676,6 +1684,8 @@ def _translate_type_annotation(py_type: str) -> str:
     list[T], tuple[T, ...], Type | None, etc.
     """
     py_type = py_type.strip()
+    # Detect nullable before stripping
+    is_nullable = bool(re.search(r"\|\s*None\s*$", py_type)) or py_type.startswith("None |")
     # Strip Optional/None union: Type | None -> Type, None | Type -> Type
     py_type = re.sub(r"\s*\|\s*None\s*$", "", py_type)
     py_type = re.sub(r"^None\s*\|\s*", "", py_type)
@@ -1684,6 +1694,10 @@ def _translate_type_annotation(py_type: str) -> str:
     py_type = py_type.strip()
     # Map through the existing type system
     result = _py_type_to_csharp(py_type)
+    # Re-add nullable suffix for value types (tuples, int, float, etc.)
+    if is_nullable and not result.endswith("?"):
+        if result in _VALUE_TYPES or (result.startswith("(") and result.endswith(")")):
+            result += "?"
     return result
 
 
@@ -1756,19 +1770,24 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
         return "null"
 
     # Color tuples: (R, G, B) -> new Color32(R, G, B, 255)
-    color_match = re.match(r"^\((\d+),\s*(\d+),\s*(\d+)\)$", value)
-    if color_match:
-        r, g, b = color_match.groups()
-        return f"new Color32({r}, {g}, {b}, 255)"
+    # Only apply when target type is Color32-related (avoid clobbering InvaderRowConfig etc.)
+    if csharp_type in ("Color32", "Color", "object", ""):
+        color_match = re.match(r"^\((\d+),\s*(\d+),\s*(\d+)\)$", value)
+        if color_match:
+            r, g, b = color_match.groups()
+            return f"new Color32({r}, {g}, {b}, 255)"
 
     # List of color tuples: [(R,G,B), ...] -> new Color32[] { new Color32(...), ... }
-    list_colors = re.match(r"^\[(.+)\]$", value)
-    if list_colors:
-        inner = list_colors.group(1)
-        tuples = re.findall(r"\((\d+),\s*(\d+),\s*(\d+)\)", inner)
-        if tuples:
-            elements = ", ".join(f"new Color32({r}, {g}, {b}, 255)" for r, g, b in tuples)
-            return f"new Color32[] {{ {elements} }}"
+    if csharp_type in ("Color32[]", "Color32", "object", ""):
+        list_colors = re.match(r"^\[(.+)\]$", value)
+        if list_colors:
+            inner = list_colors.group(1)
+            # Only match if the list contains ONLY tuples (not constructor calls)
+            if not re.search(r"\w+\(", inner.split("(")[0] if "(" in inner else ""):
+                tuples = re.findall(r"\((\d+),\s*(\d+),\s*(\d+)\)", inner)
+                if tuples and len(tuples) == inner.count("("):
+                    elements = ", ".join(f"new Color32({r}, {g}, {b}, 255)" for r, g, b in tuples)
+                    return f"new Color32[] {{ {elements} }}"
 
     # Enum values: EnumType.UPPER_SNAKE -> EnumType.PascalCase
     for py_enum, cs_enum in _enum_values.items():

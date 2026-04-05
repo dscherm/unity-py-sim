@@ -17,11 +17,11 @@ namespace SpaceInvaders
          void Update()
         {
             Vector2 position = transform.position;
-            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed)
+            if (Keyboard.current.aKey.isPressed != null || Keyboard.current.leftArrowKey.isPressed != null)
             {
                 position = new Vector2(position.x - speed * Time.deltaTime, position.y);
             }
-            else if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed)
+            else if (Keyboard.current.dKey.isPressed != null || Keyboard.current.rightArrowKey.isPressed != null)
             {
                 position = new Vector2(position.x + speed * Time.deltaTime, position.y);
             }

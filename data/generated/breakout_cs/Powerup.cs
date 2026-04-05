@@ -10,9 +10,9 @@ namespace Breakout
     }
     public class PowerupConfig
     {
-        public static PowerupType powerupType = PowerupType.WidePaddle;
-        public static Color32 color = new Color32(255, 255, 255, 255);
-        public static float weight = 0f;
+        private PowerupType powerupType = PowerupType.WidePaddle;
+        private Color32 color = new Color32(255, 255, 255, 255);
+        private float weight = 0f;
     }
     public class Powerup : MonoBehaviour
     {
@@ -87,7 +87,7 @@ namespace Breakout
         public IEnumerator RevertPaddle(SpriteRenderer sr, Vector2 originalSize, Color32 originalColor)
         {
             yield return new WaitForSeconds(10.0f);
-            if (sr != null && sr.gameObject && sr.gameObject.activeSelf)
+            if (sr != null && sr.gameObject != null && sr.gameObject.activeSelf)
             {
                 sr.size = originalSize;
                 sr.color = originalColor;
@@ -96,7 +96,7 @@ namespace Breakout
         public IEnumerator RevertSpeed(BallController bc, float originalSpeed)
         {
             yield return new WaitForSeconds(8.0f);
-            if (bc != null && bc.gameObject && bc.gameObject.activeSelf)
+            if (bc != null && bc.gameObject != null && bc.gameObject.activeSelf)
             {
                 bc.speed = originalSpeed;
             }

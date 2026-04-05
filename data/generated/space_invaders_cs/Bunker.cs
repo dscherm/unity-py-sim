@@ -38,14 +38,14 @@ namespace SpaceInvaders
         }
         public bool Splat(Vector2 hitPoint)
         {
-            (int, int) result = CheckPoint(hitPoint);
+            (int, int)? result = CheckPoint(hitPoint);
             if (result == null)
             {
                 return false;
             }
             int px;
             int py;
-            var (px, py) = result.Value;
+            (px, py) = result.Value;
             px -= splatRadius;
             py -= splatRadius;
             for (int y = 0; y < splatRadius * 2; y++)

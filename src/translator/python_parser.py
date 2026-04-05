@@ -244,9 +244,15 @@ def _parse_class_node(cls_node: ast.ClassDef, source_lines: list[str]) -> PyClas
 
     is_mono = "MonoBehaviour" in base_classes
     is_enum = "Enum" in base_classes or "IntEnum" in base_classes
+    is_dataclass = any("dataclass" in ast.unparse(d) for d in cls_node.decorator_list)
 
     # Class-level fields
     class_fields = _parse_class_fields(cls_node)
+
+    # Dataclass fields are instance fields, not class-level
+    if is_dataclass:
+        for f in class_fields:
+            f.is_class_level = False
 
     # Instance fields from __init__
     instance_fields = []
