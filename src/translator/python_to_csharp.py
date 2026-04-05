@@ -1393,7 +1393,8 @@ def _translate_py_expression(expr: str) -> str:
     def _color_tuple_repl(m):
         r, g, b = m.group(1), m.group(2), m.group(3)
         return f"new Color32({r}, {g}, {b}, 255)"
-    expr = re.sub(r"\((\d+),\s*(\d+),\s*(\d+)\)", _color_tuple_repl, expr)
+    # Don't match inside Vector2/Vector3/Quaternion constructors
+    expr = re.sub(r"(?<!Vector2)(?<!Vector3)(?<!Quaternion)\((\d+),\s*(\d+),\s*(\d+)\)", _color_tuple_repl, expr)
 
     # Python builtins -> C# equivalents
     expr = re.sub(r"\bmax\(", "Mathf.Max(", expr)

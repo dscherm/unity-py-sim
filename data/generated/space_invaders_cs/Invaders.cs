@@ -152,7 +152,7 @@ namespace SpaceInvaders
         }
         public void ResetInvaders()
         {
-            direction = new Vector3new Color32(1, 0, 0, 255);
+            direction = new Vector3(1, 0, 0);
             transform.position = new Vector2(initialPosition.x, initialPosition.y);
             for (int idx = 0; idx < InvaderChildren.Count; idx++)
             {

@@ -299,6 +299,7 @@ namespace UnityEngine
 
     // Attributes
     public class SerializeFieldAttribute : System.Attribute { }
+    [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple = true)]
     public class RequireComponentAttribute : System.Attribute
     {
         public RequireComponentAttribute(System.Type type) { }
