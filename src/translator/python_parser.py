@@ -50,6 +50,7 @@ class PyFile:
     imports: list[str] = field(default_factory=list)
     classes: list[PyClass] = field(default_factory=list)
     module_constants: list[PyField] = field(default_factory=list)
+    module_functions: list[PyMethod] = field(default_factory=list)
 
 
 # ── Known lifecycle methods ──────────────────────────────────
@@ -214,14 +215,16 @@ def parse_python(source: str) -> PyFile:
 
     imports = []
     classes = []
-
     module_constants = []
+    module_functions = []
 
     for node in ast.iter_child_nodes(tree):
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             imports.append(ast.unparse(node))
         elif isinstance(node, ast.ClassDef):
             classes.append(_parse_class_node(node, source_lines))
+        elif isinstance(node, ast.FunctionDef):
+            module_functions.append(_parse_method(node, source_lines))
         elif isinstance(node, ast.Assign):
             # Module-level constants (e.g., LAYER_LASER = 8, ROW_CONFIG = [...])
             for target in node.targets:
@@ -233,7 +236,8 @@ def parse_python(source: str) -> PyFile:
                         is_class_level=True,
                     ))
 
-    return PyFile(imports=imports, classes=classes, module_constants=module_constants)
+    return PyFile(imports=imports, classes=classes, module_constants=module_constants,
+                  module_functions=module_functions)
 
 
 def _parse_class_node(cls_node: ast.ClassDef, source_lines: list[str]) -> PyClass:

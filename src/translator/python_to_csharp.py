@@ -73,6 +73,19 @@ def translate(
                     pascal = _upper_snake_to_pascal(f.name)
                     _enum_values[f"{cls.name}.{f.name}"] = f"{cls.name}.{pascal}"
 
+    # Pre-pass: collect bool and array fields from ALL classes for truthiness/length checks
+    global _bool_fields, _array_fields
+    _bool_fields = set()
+    _array_fields = set()
+    for cls in parsed.classes:
+        for f in cls.fields:
+            ann = (f.type_annotation or "").strip()
+            cs_name = f.name if f.name.isupper() else snake_to_camel(f.name)
+            if ann == "bool" or f.default_value in ("True", "False"):
+                _bool_fields.add(cs_name)
+            if "list[" in ann or "[]" in ann:
+                _array_fields.add(cs_name)
+
     results = []
     for cls in parsed.classes:
         results.append(_translate_class(cls, parsed))
@@ -413,6 +426,14 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     for method in cls.methods:
         methods.append(_translate_method(method))
 
+    # Add module-level functions as private static methods (on last MonoBehaviour class only)
+    mono_classes = [c for c in parsed.classes if c.is_monobehaviour]
+    if mono_classes and cls.name == mono_classes[-1].name:
+        for func in parsed.module_functions:
+            m = _translate_method(func)
+            m['access'] = 'public static'
+            methods.append(m)
+
     template = _jinja_env.get_template("monobehaviour.cs.j2")
     return template.render(
         class_name=cls.name,
@@ -438,7 +459,7 @@ def _translate_plain_class(cls: PyClass, parsed: PyFile) -> str:
         csharp_type = _py_type_to_csharp(field.type_annotation, is_field=True, default_value=field.default_value or "")
         # Preserve UPPER_CASE constants, camelCase others
         csharp_name = field.name if field.name.isupper() else snake_to_camel(field.name)
-        mod = "public static" if field.is_class_level else "private"
+        mod = "public static" if field.is_class_level else "public"
         default = _py_value_to_csharp(field.default_value, csharp_type) if field.default_value else None
         init = f" = {default}" if default else ""
         lines.append(f"    {mod} {csharp_type} {csharp_name}{init};")
@@ -929,9 +950,14 @@ def _translate_py_statement(line: str) -> str:
             return ""
         # Convert Python type to C# type
         cs_type = _translate_type_annotation(py_type)
-        if cs_target in _declared_vars:
-            return f"{cs_target} = {cs_value};"
+        # Always emit full declaration — Python typed assignments create new scope variables
+        # This handles re-declarations in sibling if/elif blocks correctly
         _declared_vars.add(cs_target)
+        if cs_type.endswith("[]"):
+            _array_fields.add(cs_target)
+            # Fix .ToList() → .ToArray() when target is array type
+            if cs_value.endswith(".ToList()"):
+                cs_value = cs_value[:-len(".ToList()")] + ".ToArray()"
         return f"{cs_type} {cs_target} = {cs_value};"
 
     # Typed declaration without assignment: var: Type (no =)
@@ -1088,7 +1114,7 @@ def _translate_all_call(expr: str) -> str:
         coll = match.group(3).strip()
         cs_var = snake_to_camel(var)
         cs_coll = _translate_py_expression(coll)
-        cs_pred = _translate_py_condition(pred.replace(var, cs_var))
+        cs_pred = _translate_py_condition(re.sub(rf"\b{re.escape(var)}\b", cs_var, pred) if var != "_" else pred)
         return f"{cs_coll}.All({cs_var} => {cs_pred})"
     return expr
 
@@ -1102,7 +1128,7 @@ def _translate_any_call(expr: str) -> str:
         coll = match.group(3).strip()
         cs_var = snake_to_camel(var)
         cs_coll = _translate_py_expression(coll)
-        cs_pred = _translate_py_condition(pred.replace(var, cs_var))
+        cs_pred = _translate_py_condition(re.sub(rf"\b{re.escape(var)}\b", cs_var, pred) if var != "_" else pred)
         return f"{cs_coll}.Any({cs_var} => {cs_pred})"
     return expr
 
@@ -1133,7 +1159,7 @@ def _translate_list_comprehension(expr: str) -> str:
         cs_var = snake_to_camel(var)
         cs_coll = _translate_py_expression(coll)
         cs_cond = _translate_py_condition(cond.replace(var, cs_var))
-        cs_mapping = _translate_py_expression(mapping.replace(var, cs_var))
+        cs_mapping = _translate_py_expression(re.sub(rf"\b{re.escape(var)}\b", cs_var, mapping) if var != "_" else mapping)
         # If mapping is just the variable, skip Select
         if cs_mapping == cs_var:
             return f"{cs_coll}.Where({cs_var} => {cs_cond}).ToList()"
@@ -1147,7 +1173,7 @@ def _translate_list_comprehension(expr: str) -> str:
         coll = match.group(3).strip()
         cs_var = snake_to_camel(var)
         cs_coll = _translate_py_expression(coll)
-        cs_mapping = _translate_py_expression(mapping.replace(var, cs_var))
+        cs_mapping = _translate_py_expression(re.sub(rf"\b{re.escape(var)}\b", cs_var, mapping) if var != "_" else mapping)
         if cs_mapping == cs_var:
             return f"{cs_coll}.ToList()"
         return f"{cs_coll}.Select({cs_var} => {cs_mapping}).ToList()"
@@ -1652,7 +1678,8 @@ def _translate_py_condition(cond: str) -> str:
     # Object truthiness: bare object/property names in && / || should get != null
     # But bool fields/properties stay as bare truthiness checks
     _BOOL_PROPERTIES = {"activeSelf", "activeInHierarchy", "enabled", "isActiveAndEnabled",
-                        "isTrigger", "isKinematic", "loop"}
+                        "isTrigger", "isKinematic", "loop",
+                        "wasPressedThisFrame", "wasReleasedThisFrame", "isPressed"}
     parts = re.split(r"\s*(&&|\|\|)\s*", cond)
     fixed_parts = []
     for part in parts:
@@ -1768,6 +1795,42 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
     # Empty dict: {} -> null
     if value == "{}":
         return "null"
+
+    # Dataclass/constructor calls with keyword args:
+    # ClassName(field=value, ...) -> new ClassName { CamelField = value, ... }
+    ctor_call = re.match(r"^(\w+)\((.+)\)$", value, re.DOTALL)
+    if ctor_call:
+        cls_name = ctor_call.group(1)
+        args_str = ctor_call.group(2)
+        args = _split_args(args_str)
+        if args and all(re.match(r"\w+\s*=", a.strip()) for a in args):
+            initializers = []
+            for arg in args:
+                key, val = arg.split("=", 1)
+                key = key.strip()
+                val = val.strip()
+                cs_key = snake_to_camel(key)
+                # Recursively convert the value
+                cs_val = _py_value_to_csharp(val, "")
+                if cs_val is None:
+                    cs_val = val
+                initializers.append(f"{cs_key} = {cs_val}")
+            return f"new {cls_name} {{ {', '.join(initializers)} }}"
+
+    # List of constructor calls: [ClassName(...), ...] -> new ClassName[] { ... }
+    list_match = re.match(r"^\[(.+)\]$", value, re.DOTALL)
+    if list_match and csharp_type.endswith("[]"):
+        inner = list_match.group(1)
+        elements = _split_args(inner)
+        if elements and all(re.match(r"\w+\(", e.strip()) for e in elements):
+            converted = []
+            elem_type = csharp_type[:-2]  # Remove []
+            for elem in elements:
+                cs_elem = _py_value_to_csharp(elem.strip(), elem_type)
+                if cs_elem is None:
+                    cs_elem = elem.strip()
+                converted.append(cs_elem)
+            return f"new {csharp_type[:-2]}[] {{ {', '.join(converted)} }}"
 
     # Color tuples: (R, G, B) -> new Color32(R, G, B, 255)
     # Only apply when target type is Color32-related (avoid clobbering InvaderRowConfig etc.)

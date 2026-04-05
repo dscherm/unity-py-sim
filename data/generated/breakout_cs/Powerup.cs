@@ -10,9 +10,9 @@ namespace Breakout
     }
     public class PowerupConfig
     {
-        private PowerupType powerupType = PowerupType.WidePaddle;
-        private Color32 color = new Color32(255, 255, 255, 255);
-        private float weight = 0f;
+        public PowerupType powerupType = PowerupType.WidePaddle;
+        public Color32 color = new Color32(255, 255, 255, 255);
+        public float weight = 0f;
     }
     public class Powerup : MonoBehaviour
     {
@@ -75,7 +75,7 @@ namespace Breakout
                         float originalSpeed = bc.speed;
                         bc.speed = Mathf.Min(bc.speed * 1.3f, bc.maxSpeed);
                         // Revert after 8 seconds via coroutine
-                        gm = GameManager.GetInstance();
+                        GameManager gm = GameManager.GetInstance();
                         if (gm != null)
                         {
                             gm.StartCoroutine(RevertSpeed(bc, originalSpeed));
@@ -100,6 +100,44 @@ namespace Breakout
             {
                 bc.speed = originalSpeed;
             }
+        }
+        public static Color32 GetColor(PowerupType ptype)
+        {
+            foreach (var cfg in POWERUP_CONFIGS)
+            {
+                if (cfg.powerupType == ptype)
+                {
+                    return cfg.color;
+                }
+            }
+            return new Color32(255, 255, 255, 255);
+        }
+        public static void MaybeSpawnPowerup(Vector2 position)
+        {
+            if (Random.value > 0.20f)
+            {
+                return;
+            }
+            float roll = Random.value;
+            float cumulative = 0.0f;
+            PowerupType chosen = PowerupType.WidePaddle;
+            foreach (var cfg in POWERUP_CONFIGS)
+            {
+                cumulative += cfg.weight;
+                if (roll <= cumulative)
+                {
+                    chosen = cfg.powerupType;
+                    break;
+                }
+            }
+            string name = $"Powerup_{random.Randint(1000, 9999)}";
+            GameObject go = new GameObject(name);
+            go.transform.position = new Vector2(position.x, position.y);
+            SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
+            sr.color = GetColor(chosen);
+            sr.size = new Vector2(0.6f, 0.3f);
+            Powerup pu = go.AddComponent<Powerup>();
+            pu.powerupType = chosen;
         }
     }
 }
