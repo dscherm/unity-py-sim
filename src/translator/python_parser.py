@@ -235,6 +235,16 @@ def parse_python(source: str) -> PyFile:
                         default_value=_value_to_str(node.value),
                         is_class_level=True,
                     ))
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            # Module-level annotated constants (e.g., CONFIGS: list[Type] = [...])
+            ann = ast.unparse(node.annotation) if node.annotation else ""
+            val = _value_to_str(node.value) if node.value else None
+            module_constants.append(PyField(
+                name=node.target.id,
+                type_annotation=ann,
+                default_value=val,
+                is_class_level=True,
+            ))
 
     return PyFile(imports=imports, classes=classes, module_constants=module_constants,
                   module_functions=module_functions)

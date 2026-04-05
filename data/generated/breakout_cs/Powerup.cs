@@ -13,12 +13,13 @@ namespace Breakout
     {
         public PowerupType powerupType = PowerupType.WidePaddle;
         public Color32 color = new Color32(255, 255, 255, 255);
-        public float weight = 0f;
+        public float weight = 0.0f;
     }
     public class Powerup : MonoBehaviour
     {
-        public float fallSpeed = 3f;
+        public float fallSpeed = 3.0f;
         public PowerupType powerupType = PowerupType.WidePaddle;
+        public static PowerupConfig[] POWERUP_CONFIGS = new PowerupConfig[] { new PowerupConfig { color = new Color32(100, 200, 255, 255), weight = 0.4f }, new PowerupConfig { color = new Color32(255, 100, 200, 255), weight = 0.2f }, new PowerupConfig { color = new Color32(255, 200, 50, 255), weight = 0.4f } };
          void Update()
         {
             Vector2 pos = transform.position;

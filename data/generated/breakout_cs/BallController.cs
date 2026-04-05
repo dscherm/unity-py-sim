@@ -6,8 +6,8 @@ namespace Breakout
     [RequireComponent(typeof(Rigidbody2D))]
     public class BallController : MonoBehaviour
     {
-        public float speed = 6f;
-        public float maxSpeed = 12f;
+        public float speed = 6.0f;
+        public float maxSpeed = 12.0f;
         public bool attached = true;
         public Vector2 paddleOffset = new Vector2(0, 0.6f);
         public bool showTrajectory = true;

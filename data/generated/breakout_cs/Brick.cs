@@ -20,7 +20,7 @@ namespace Breakout
         public void Destroy()
         {
             GameManager.AddScore(points);
-            MaybeSpawnPowerup(transform.position);
+            Powerup.MaybeSpawnPowerup(transform.position);
             gameObject.SetActive(false);
             BoxCollider2D collider = GetComponent<BoxCollider2D>();
             GameManager.OnBrickDestroyed();

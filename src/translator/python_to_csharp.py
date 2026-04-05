@@ -383,22 +383,19 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
 
     # Add module-level constants as static fields
     for mc in parsed.module_constants:
-        mc_type = _infer_constant_type(mc.default_value)
-        if mc_type:
-            mc_default = _py_value_to_csharp(mc.default_value, mc_type)
-            if mc_default:
-                static_fields.append({
-                    "csharp_type": mc_type,
-                    "csharp_name": mc.name,
-                    "default": mc_default,
-                })
-        elif mc.default_value and mc.default_value.startswith("["):
-            # Complex list constant — emit as uninitialized static field
-            static_fields.append({
-                "csharp_type": "object[]",
-                "csharp_name": mc.name,
-                "default": None,
-            })
+        # Use type annotation if available, otherwise infer from value
+        if mc.type_annotation:
+            mc_type = _py_type_to_csharp(mc.type_annotation, is_field=True)
+        else:
+            mc_type = _infer_constant_type(mc.default_value)
+        if not mc_type:
+            mc_type = "object"
+        mc_default = _py_value_to_csharp(mc.default_value, mc_type) if mc.default_value else None
+        static_fields.append({
+            "csharp_type": mc_type,
+            "csharp_name": mc.name,
+            "default": mc_default,
+        })
 
     for field in cls.fields:
         # Use inferred type if available, otherwise fall back to annotation
@@ -1781,9 +1778,9 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
     if value.startswith("'") and value.endswith("'"):
         return f'"{value[1:-1]}"'
 
-    # Float: 5.0 -> 5f
-    if "." in value and csharp_type == "float":
-        return value.rstrip("0").rstrip(".") + "f" if "." in value else value + "f"
+    # Float: 5.0 -> 5f (always add f suffix for decimal literals)
+    if re.match(r"^-?\d+\.\d+$", value) and csharp_type in ("float", ""):
+        return value + "f"
 
     # Int with float type: 5 -> 5f
     if csharp_type == "float" and value.isdigit():
@@ -1829,18 +1826,24 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
         cls_name = ctor_call.group(1)
         args_str = ctor_call.group(2)
         args = _split_args(args_str)
-        if args and all(re.match(r"\w+\s*=", a.strip()) for a in args):
+        has_kwargs = any(re.match(r"\w+\s*=", a.strip()) for a in args)
+        if args and has_kwargs:
             initializers = []
             for arg in args:
-                key, val = arg.split("=", 1)
-                key = key.strip()
-                val = val.strip()
-                cs_key = snake_to_camel(key)
-                # Recursively convert the value
-                cs_val = _py_value_to_csharp(val, "")
-                if cs_val is None:
-                    cs_val = val
-                initializers.append(f"{cs_key} = {cs_val}")
+                arg = arg.strip()
+                if "=" in arg and re.match(r"\w+\s*=", arg):
+                    key, val = arg.split("=", 1)
+                    key = key.strip()
+                    val = val.strip()
+                    cs_key = snake_to_camel(key)
+                    cs_val = _py_value_to_csharp(val, "")
+                    if cs_val is None:
+                        cs_val = _translate_py_expression(val) if val else val
+                    initializers.append(f"{cs_key} = {cs_val}")
+                else:
+                    # Positional arg — skip (C# object initializers use named fields only)
+                    pass
+            # All go in object initializer (C# data classes don't have parameterized constructors)
             return f"new {cls_name} {{ {', '.join(initializers)} }}"
 
     # List of constructor calls: [ClassName(...), ...] -> new ClassName[] { ... }

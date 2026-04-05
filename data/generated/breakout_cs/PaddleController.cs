@@ -6,7 +6,7 @@ namespace Breakout
     [RequireComponent(typeof(Rigidbody2D))]
     public class PaddleController : MonoBehaviour
     {
-        public float speed = 12f;
+        public float speed = 12.0f;
         public float boundX = 6.5f;
         public bool ballAttached = true;
         public Rigidbody2D rb;
