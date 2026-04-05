@@ -236,11 +236,6 @@ namespace SpaceInvaders
         }
         public void UpdateTitle()
         {
-            try
-            {
-                __STRIP__ = $"Space Invaders — Score: {score} | Lives: {lives}";
-            }
-            catch (Exception) { }
         }
         public static void Reset()
         {

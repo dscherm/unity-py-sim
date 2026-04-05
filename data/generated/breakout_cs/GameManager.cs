@@ -119,11 +119,6 @@ namespace Breakout
                     inst.StatusText.text = "";
                 }
             }
-            try
-            {
-                __STRIP__ = ( $"Breakout — Score: {GameManager.score}  |  Lives: {GameManager.lives}" );
-            }
-            catch (Exception) { }
         }
     }
 }

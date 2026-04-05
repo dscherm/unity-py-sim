@@ -435,7 +435,8 @@ def _translate_plain_class(cls: PyClass, parsed: PyFile) -> str:
 
     for field in cls.fields:
         csharp_type = _py_type_to_csharp(field.type_annotation, is_field=True, default_value=field.default_value or "")
-        csharp_name = snake_to_camel(field.name)
+        # Preserve UPPER_CASE constants, camelCase others
+        csharp_name = field.name if field.name.isupper() else snake_to_camel(field.name)
         mod = "public static" if field.is_class_level else "private"
         default = _py_value_to_csharp(field.default_value, csharp_type) if field.default_value else None
         init = f" = {default}" if default else ""
@@ -749,11 +750,18 @@ def _translate_body(body: str) -> str:
     # Remove if/else-if/else entries with empty bodies (all children stripped)
     cleaned = []
     for i, (level, text) in enumerate(entries):
-        if re.match(r"^(if \(|else if \(|else$)", text):
+        if re.match(r"^(if \(|else if \(|else$|try$)", text):
             # Check if next entry is at a deeper indent (has a body)
             has_body = (i + 1 < len(entries) and entries[i + 1][0] > level)
             if not has_body:
-                continue  # Skip empty if/else
+                # Also skip the following catch/else that belongs to this empty block
+                continue
+        # Skip catch blocks that follow a stripped try
+        if re.match(r"^catch\b", text):
+            # Check if previous non-empty entry was a try (which would have been kept)
+            prev_kept = cleaned[-1][1] if cleaned else ""
+            if not prev_kept.startswith("try"):
+                continue
         cleaned.append((level, text))
     entries = cleaned
 
@@ -940,7 +948,7 @@ def _translate_py_statement(line: str) -> str:
         target, value = assign_match.groups()
         cs_target = _translate_py_expression(target)
         cs_value = _translate_py_expression(value)
-        if cs_value == "__STRIP__":
+        if cs_value == "__STRIP__" or cs_target == "__STRIP__":
             return ""
         # Strip simulator-only property assignments
         if re.search(r"\.(clipRef|assetRef)\s*$", cs_target):

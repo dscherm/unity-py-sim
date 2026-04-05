@@ -1,5 +1,13 @@
 // Minimal System.Collections stubs for compilation gate.
 
+namespace System
+{
+    public interface IDisposable
+    {
+        void Dispose();
+    }
+}
+
 namespace System.Collections
 {
     public interface IEnumerator
@@ -17,7 +25,17 @@ namespace System.Collections
 
 namespace System.Collections.Generic
 {
-    public class List<T> : System.Collections.IEnumerable
+    public interface IEnumerable<T> : System.Collections.IEnumerable
+    {
+        new IEnumerator<T> GetEnumerator();
+    }
+
+    public interface IEnumerator<T> : System.Collections.IEnumerator
+    {
+        new T Current { get; }
+    }
+
+    public class List<T> : IEnumerable<T>
     {
         public int Count;
         public T this[int index] { get => default; set { } }
@@ -29,6 +47,7 @@ namespace System.Collections.Generic
         public bool Contains(T item) => false;
         public T[] ToArray() => default;
         public System.Collections.IEnumerator GetEnumerator() => null;
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
     }
 
     public class Dictionary<TKey, TValue>
