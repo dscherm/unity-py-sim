@@ -42,7 +42,6 @@ namespace Breakout
         public void Apply(GameObject paddle)
         {
             AudioSource audio = paddle.GetComponent<AudioSource>();
-            if (audio != null)
             if (powerupType == PowerupType.ExtraLife)
             {
                 GameManager.lives += 1;

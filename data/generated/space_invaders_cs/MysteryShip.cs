@@ -90,7 +90,7 @@ namespace SpaceInvaders
         }
          void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.gameObject.layer == Layers.Laser)
+            if (other.gameObject.layer == Layers.LASER)
             {
                 Despawn();
                 // GameManager.Instance.OnMysteryShipKilled(this)

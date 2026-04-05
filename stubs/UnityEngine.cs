@@ -8,6 +8,9 @@ namespace UnityEngine
         public string name;
         public static void Destroy(Object obj, float t = 0f) { }
         public static void DontDestroyOnLoad(Object obj) { }
+        public static T Instantiate<T>(T original) where T : Object => default;
+        public static T Instantiate<T>(T original, Vector3 position, Quaternion rotation) where T : Object => default;
+        public static GameObject Instantiate(GameObject original, Vector3 position, Quaternion rotation) => default;
     }
 
     public class Component : Object
@@ -274,6 +277,7 @@ namespace UnityEngine
         public Sprite sprite;
         public Color color;
         public int sortingOrder;
+        public Vector2 size;
     }
 
     public class Sprite : Object { }
@@ -309,6 +313,13 @@ namespace UnityEngine
         public HeaderAttribute(string header) { }
     }
 
+    public enum TextAnchor
+    {
+        UpperLeft, UpperCenter, UpperRight,
+        MiddleLeft, MiddleCenter, MiddleRight,
+        LowerLeft, LowerCenter, LowerRight
+    }
+
     public class Animator : Component
     {
         public void SetTrigger(string name) { }
@@ -338,6 +349,7 @@ namespace UnityEngine.UI
         public string text;
         public int fontSize;
         public UnityEngine.Color color;
+        public UnityEngine.TextAnchor alignment;
     }
 
     public class Image : UnityEngine.Component

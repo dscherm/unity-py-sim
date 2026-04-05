@@ -17,12 +17,12 @@ namespace Breakout
         public static GameManager Instance = null;
          void Start()
         {
-            GameManager._instance = this;
+            GameManager.Instance = this;
             SetupUi();
         }
         public static GameManager? GetInstance()
         {
-            return GameManager._instance;
+            return GameManager.Instance;
         }
         public static void Reset()
         {
@@ -30,7 +30,7 @@ namespace Breakout
             GameManager.lives = 3;
             GameManager.gameOver = false;
             GameManager.gameWon = false;
-            GameManager._instance = null;
+            GameManager.Instance = null;
         }
         public static void AddScore(int points)
         {
@@ -101,22 +101,22 @@ namespace Breakout
         }
         public static void UpdateDisplay()
         {
-            GameManager inst = GameManager._instance;
+            GameManager inst = GameManager.Instance;
             if (inst != null && true)
             {
-                inst._score_text.text = $"Score: {GameManager.score}";
-                inst._lives_text.text = $"Lives: {GameManager.lives}";
+                inst.ScoreText.text = $"Score: {GameManager.score}";
+                inst.LivesText.text = $"Lives: {GameManager.lives}";
                 if (GameManager.gameOver)
                 {
-                    inst._status_text.text = "Game Over!";
+                    inst.StatusText.text = "Game Over!";
                 }
                 else if (GameManager.gameWon)
                 {
-                    inst._status_text.text = "You Win!";
+                    inst.StatusText.text = "You Win!";
                 }
                 else
                 {
-                    inst._status_text.text = "";
+                    inst.StatusText.text = "";
                 }
             }
             try

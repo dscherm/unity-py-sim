@@ -124,6 +124,7 @@ _CSPROJ_TEMPLATE = """\
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Library</OutputType>
     <Nullable>enable</Nullable>
     <NoWarn>CS0414;CS0169;CS0649;CS8618;CS0108;CS0114</NoWarn>
   </PropertyGroup>
@@ -166,6 +167,10 @@ def check_compilation(source: str, file_name: str = "<source>") -> CompilationRe
         stubs_linq = _STUBS_DIR / "SystemLinq.cs"
         if stubs_linq.exists():
             shutil.copy(stubs_linq, tmp / "SystemLinq.cs")
+
+        stubs_global = _STUBS_DIR / "GlobalUsings.cs"
+        if stubs_global.exists():
+            shutil.copy(stubs_global, tmp / "GlobalUsings.cs")
 
         # Write generated file
         (tmp / "Generated.cs").write_text(source, encoding="utf-8")

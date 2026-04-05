@@ -746,6 +746,20 @@ def _translate_body(body: str) -> str:
     if not entries:
         return ""
 
+    # Remove if/else-if/else entries with empty bodies (all children stripped)
+    cleaned = []
+    for i, (level, text) in enumerate(entries):
+        if re.match(r"^(if \(|else if \(|else$)", text):
+            # Check if next entry is at a deeper indent (has a body)
+            has_body = (i + 1 < len(entries) and entries[i + 1][0] > level)
+            if not has_body:
+                continue  # Skip empty if/else
+        cleaned.append((level, text))
+    entries = cleaned
+
+    if not entries:
+        return ""
+
     # Third pass: emit with braces on indentation changes
     lines = []
     base_indent = "        "
@@ -1446,21 +1460,28 @@ def _translate_py_expression(expr: str) -> str:
     # User-defined enums from the same file (dynamic)
     for py_enum, cs_enum in _enum_values.items():
         expr = expr.replace(py_enum, cs_enum)
-    # Catch remaining EnumType.UPPER_SNAKE patterns not in the map
-    # Exclude known Unity types (Mathf, Vector2, etc.) whose constants are already correct
-    _NON_ENUM_TYPES = {"Mathf", "Vector2", "Vector3", "Quaternion", "Color", "Color32",
-                       "Physics2D", "KeyCode", "Input", "Time", "Random", "Debug", "Screen"}
+    # Catch remaining EnumType.UPPER_SNAKE patterns — but ONLY for known enum types
+    # to avoid clobbering non-enum class constants like Layers.LASER
+    _KNOWN_ENUM_TYPES = {"RigidbodyType2D", "ForceMode2D", "TextAnchor"}
+    _KNOWN_ENUM_TYPES.update(k.split(".")[0] for k in _enum_values)
     def _enum_upper_to_pascal(m):
         enum_type = m.group(1)
-        if enum_type in _NON_ENUM_TYPES:
-            return m.group(0)  # Don't touch Unity constants
+        if enum_type not in _KNOWN_ENUM_TYPES:
+            return m.group(0)  # Only convert known enums
         value = m.group(2)
         pascal = _upper_snake_to_pascal(value)
         return f"{enum_type}.{pascal}"
     expr = re.sub(r"(\b[A-Z]\w+)\.([A-Z][A-Z_]+)\b", _enum_upper_to_pascal, expr)
 
-    # OnTriggerEnter2D: other.layer -> other.gameObject.layer (Collider2D has no .layer)
+    # OnTriggerEnter2D: other → other.gameObject for property access and method args
+    # Collider2D has no .layer, .tag, .name directly — need .gameObject accessor
     expr = re.sub(r"\bother\.layer\b", "other.gameObject.layer", expr)
+    expr = re.sub(r"\bother\.tag\b", "other.gameObject.tag", expr)
+    expr = re.sub(r"\bother\.name\b", "other.gameObject.name", expr)
+    # When 'other' is passed as a bare argument (Collider2D → GameObject)
+    # In trigger callbacks, standalone 'other' in args should be other.gameObject
+    expr = re.sub(r"(?<=\()other(?=[,)])", "other.gameObject", expr)
+    expr = re.sub(r"(?<=, )other(?=[,)])", "other.gameObject", expr)
 
     # Simulator-only calls — strip entirely
     # .build() is simulator physics setup
@@ -1546,6 +1567,9 @@ def _translate_py_expression(expr: str) -> str:
                 continue
             # Replace as whole word: \b doesn't work with _ prefix, use lookaround
             expr = re.sub(rf"(?<![.\w]){re.escape(py_name)}(?!\w)", cs_name, expr)
+            # Also replace ClassName._field → ClassName.Field (static field access)
+            if py_name.startswith("_"):
+                expr = re.sub(rf"(?<=\.){re.escape(py_name)}(?!\w)", cs_name, expr)
 
     # Convert ALL remaining snake_case method calls to PascalCase (cross-class calls)
     def _snake_method_to_pascal(m):

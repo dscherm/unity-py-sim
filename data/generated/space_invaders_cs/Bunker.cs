@@ -19,7 +19,7 @@ namespace SpaceInvaders
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
             boxCollider = GetComponent<BoxCollider2D>();
-            OriginalCells = range(Bunker.GridRows).Select(_ => Enumerable.Repeat(true, Bunker).ToArray().GRIDCOLS).ToList();
+            OriginalCells = range(Bunker.GRID_ROWS).Select(_ => Enumerable.Repeat(true, Bunker).ToArray().GRIDCOLS).ToList();
             ResetBunker();
         }
         public void ResetBunker()
@@ -54,7 +54,7 @@ namespace SpaceInvaders
                 {
                     int cx = px + x;
                     int cy = py + y;
-                    if (cy >= 0 && cy < Bunker.GridRows && cx >= 0 && cx < Bunker.GridCols)
+                    if (cy >= 0 && cy < Bunker.GRID_ROWS && cx >= 0 && cx < Bunker.GRID_COLS)
                     {
                         Cells[cy][cx] = false;
                     }
@@ -75,9 +75,9 @@ namespace SpaceInvaders
             float bh = boxCollider.size.y;
             localX += bw / 2;
             localY += bh / 2;
-            int px = (int)(localX / bw * Bunker.GridCols);
-            int py = (int)(localY / bh * Bunker.GridRows);
-            if (px >= 0 && px < Bunker.GridCols && py >= 0 && py < Bunker.GridRows && Cells[py][px])
+            int px = (int)(localX / bw * Bunker.GRID_COLS);
+            int py = (int)(localY / bh * Bunker.GRID_ROWS);
+            if (px >= 0 && px < Bunker.GRID_COLS && py >= 0 && py < Bunker.GRID_ROWS && Cells[py][px])
             {
                 return (px, py);
             }
@@ -85,7 +85,7 @@ namespace SpaceInvaders
         }
          void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.gameObject.layer == Layers.Invader)
+            if (other.gameObject.layer == Layers.INVADER)
             {
                 // gameObject.SetActive(false)
                 gameObject.SetActive(false);

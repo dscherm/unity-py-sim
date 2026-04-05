@@ -33,12 +33,12 @@ namespace SpaceInvaders
                 Vector2 centerOffset = new Vector2(-width * 0.5f, -height * 0.5f);
                 // Vector3 rowPosition = new Vector3(centerOffset.x, (2f * i) + centerOffset.y, 0f)
                 Vector3 rowPosition = new Vector3(centerOffset.x, (2.0f * i) + centerOffset.y, 0);
-                InvaderRowConfig config = Invaders.RowConfig[i % Invaders.RowConfig.Count];
+                InvaderRowConfig config = Invaders.ROW_CONFIG[i % Invaders.ROW_CONFIG.Count];
                 for (int j = 0; j < columns; j++)
                 {
                     // Invader invader = Instantiate(prefabs[i], transform)
                     GameObject invaderGo = new GameObject($"Invader_{i}_{j}");
-                    invaderGo.layer = Layers.Invader;
+                    invaderGo.layer = Layers.INVADER;
                     Rigidbody2D rb = invaderGo.AddComponent<Rigidbody2D>();
                     rb.bodyType = RigidbodyType2D.Kinematic;
                     BoxCollider2D col = invaderGo.AddComponent<BoxCollider2D>();
@@ -89,7 +89,7 @@ namespace SpaceInvaders
         {
             Vector2 pos = new Vector2(position.x, position.y - 0.5f);
             GameObject missile = Instantiate(missilePrefab, pos, Quaternion.identity);
-            missile.layer = Layers.Missile;
+            missile.layer = Layers.MISSILE;
         }
          void Update()
         {

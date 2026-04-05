@@ -20,11 +20,11 @@ namespace SpaceInvaders
         }
          void OnTriggerEnter2D(Collider2D other)
         {
-            CheckCollision(other);
+            CheckCollision(other.gameObject);
         }
          void OnTriggerStay2D(Collider2D other)
         {
-            CheckCollision(other);
+            CheckCollision(other.gameObject);
         }
         public void CheckCollision(GameObject other)
         {

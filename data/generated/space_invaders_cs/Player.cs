@@ -39,12 +39,12 @@ namespace SpaceInvaders
         {
             Vector2 pos = new Vector2(transform.position.x, transform.position.y + 0.5f);
             GameObject laser = Instantiate(laserPrefab, pos, Quaternion.identity);
-            laser.layer = Layers.Laser;
+            laser.layer = Layers.LASER;
             return laser;
         }
          void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.gameObject.layer == Layers.Missile || other.gameObject.layer == Layers.Invader)
+            if (other.gameObject.layer == Layers.MISSILE || other.gameObject.layer == Layers.INVADER)
             {
                 // GameManager.Instance.OnPlayerKilled(this)
                 if (GameManager.instance != null)

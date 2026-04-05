@@ -45,7 +45,7 @@ namespace SpaceInvaders
         }
          void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.gameObject.layer == Layers.Laser)
+            if (other.gameObject.layer == Layers.LASER)
             {
                 // GameManager.Instance.OnInvaderKilled(this)
                 if (GameManager.instance != null)
@@ -54,7 +54,7 @@ namespace SpaceInvaders
                 }
             }
             // else if (other.gameObject.layer == LayerMask.NameToLayer("Boundary"))
-            else if (other.gameObject.layer == Layers.Boundary)
+            else if (other.gameObject.layer == Layers.BOUNDARY)
             {
                 if (GameManager.instance != null)
                 {
