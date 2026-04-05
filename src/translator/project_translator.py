@@ -25,7 +25,7 @@ from pathlib import Path
 from src.translator.python_parser import parse_python_file, PyFile, PyClass, PyField
 from src.translator.python_to_csharp import (
     translate, _current_symbols, _build_symbol_table, _infer_field_types,
-    _config, _TranslationConfig,
+    _config, _TranslationConfig, detect_required_packages,
 )
 from src.translator.type_mapper import snake_to_camel, snake_to_pascal
 
@@ -76,6 +76,20 @@ def translate_project(
         cs_code = _post_process(cs_code, global_types, global_constants)
 
         results[cs_name] = cs_code
+
+    # Detect required Unity packages across all translated files
+    all_packages: list[dict[str, str]] = []
+    seen_packages: set[str] = set()
+    for cs_name, cs_code in results.items():
+        for pkg in detect_required_packages(cs_code):
+            if pkg["package"] not in seen_packages:
+                seen_packages.add(pkg["package"])
+                pkg["source_file"] = cs_name
+                all_packages.append(pkg)
+    if all_packages:
+        results["_required_packages.json"] = __import__("json").dumps(
+            all_packages, indent=2
+        )
 
     return results
 

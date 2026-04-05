@@ -45,13 +45,15 @@ def clean_scene():
 
 class TestEmptyScene:
     def test_empty_scene_structure(self):
-        """An empty scene must serialize to version 1 with an empty game_objects list."""
+        """An empty scene must serialize with version and empty game_objects list."""
         result = serialize_scene()
-        assert result == {"version": 1, "game_objects": []}
+        assert result["version"] == 2
+        assert result["game_objects"] == []
+        assert "physics" in result
 
-    def test_version_is_integer_one(self):
+    def test_version_is_integer(self):
         result = serialize_scene()
-        assert result["version"] == 1
+        assert result["version"] == 2
         assert isinstance(result["version"], int)
 
     def test_game_objects_is_list(self):
@@ -441,6 +443,6 @@ class TestSerializeFromSetup:
             go.add_component(SpriteRenderer)
 
         result = serialize_from_setup(my_setup)
-        assert result["version"] == 1
+        assert result["version"] == 2
         assert len(result["game_objects"]) == 1
         assert result["game_objects"][0]["name"] == "Test"

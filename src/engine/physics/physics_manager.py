@@ -318,7 +318,7 @@ class Physics2D:
 
     @staticmethod
     def overlap_circle(point: Vector2, radius: float, layer_mask: int = -1) -> 'Collider2D | None':
-        """Check if any collider overlaps a circle. Returns first found or None."""
+        """Check if any non-trigger collider overlaps a circle. Returns first found or None."""
         pm = PhysicsManager.instance()
         query = pm._space.point_query(
             (point.x, point.y), radius, pymunk.ShapeFilter()
@@ -327,13 +327,20 @@ class Physics2D:
             if info.shape is None:
                 continue
             collider_comp, _, _ = Physics2D._resolve_components(info.shape, pm)
-            if collider_comp is not None:
-                return collider_comp
+            if collider_comp is None:
+                continue
+            if collider_comp.is_trigger:
+                continue
+            if layer_mask != -1:
+                go_layer = collider_comp.game_object.layer
+                if not (layer_mask & (1 << go_layer)):
+                    continue
+            return collider_comp
         return None
 
     @staticmethod
     def overlap_circle_all(point: Vector2, radius: float, layer_mask: int = -1) -> list:
-        """Return all colliders overlapping a circle."""
+        """Return all non-trigger colliders overlapping a circle, filtered by layer_mask."""
         pm = PhysicsManager.instance()
         query = pm._space.point_query(
             (point.x, point.y), radius, pymunk.ShapeFilter()
@@ -343,28 +350,47 @@ class Physics2D:
             if info.shape is None:
                 continue
             collider_comp, _, _ = Physics2D._resolve_components(info.shape, pm)
-            if collider_comp is not None:
-                colliders.append(collider_comp)
+            if collider_comp is None:
+                continue
+            if collider_comp.is_trigger:
+                continue
+            if layer_mask != -1:
+                go_layer = collider_comp.game_object.layer
+                if not (layer_mask & (1 << go_layer)):
+                    continue
+            colliders.append(collider_comp)
         return colliders
 
     @staticmethod
     def overlap_box(point: Vector2, size: Vector2, angle: float = 0.0,
                     layer_mask: int = -1) -> 'Collider2D | None':
-        """Check if any collider overlaps a box. Returns first found or None."""
+        """Check if any non-trigger collider overlaps a box. Returns first found or None.
+
+        Matches Unity behavior: ignores trigger colliders and filters by layer_mask.
+        """
         pm = PhysicsManager.instance()
         hw, hh = size.x / 2, size.y / 2
         bb = pymunk.BB(point.x - hw, point.y - hh, point.x + hw, point.y + hh)
         query = pm._space.bb_query(bb, pymunk.ShapeFilter())
         for shape in query:
             collider_comp, _, _ = Physics2D._resolve_components(shape, pm)
-            if collider_comp is not None:
-                return collider_comp
+            if collider_comp is None:
+                continue
+            # Skip trigger colliders (Unity's Physics2D queries ignore triggers)
+            if collider_comp.is_trigger:
+                continue
+            # Filter by layer mask
+            if layer_mask != -1:
+                go_layer = collider_comp.game_object.layer
+                if not (layer_mask & (1 << go_layer)):
+                    continue
+            return collider_comp
         return None
 
     @staticmethod
     def overlap_box_all(point: Vector2, size: Vector2, angle: float = 0.0,
                         layer_mask: int = -1) -> list:
-        """Return all colliders overlapping a box."""
+        """Return all non-trigger colliders overlapping a box, filtered by layer_mask."""
         pm = PhysicsManager.instance()
         hw, hh = size.x / 2, size.y / 2
         bb = pymunk.BB(point.x - hw, point.y - hh, point.x + hw, point.y + hh)
@@ -372,8 +398,15 @@ class Physics2D:
         colliders = []
         for shape in query:
             collider_comp, _, _ = Physics2D._resolve_components(shape, pm)
-            if collider_comp is not None:
-                colliders.append(collider_comp)
+            if collider_comp is None:
+                continue
+            if collider_comp.is_trigger:
+                continue
+            if layer_mask != -1:
+                go_layer = collider_comp.game_object.layer
+                if not (layer_mask & (1 << go_layer)):
+                    continue
+            colliders.append(collider_comp)
         return colliders
 
     @staticmethod

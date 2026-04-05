@@ -49,6 +49,15 @@ Behavioral differences discovered during C# <-> Python translation.
 - **MonoBehaviour cast**: Python duck-types (`player = owner`), C# requires explicit cast (`var player = (PlayerInputHandler)owner`)
 - **Command.DoBeforeLeaving()** called explicitly in Python, sometimes implicit in C# via CommandProcessor
 
+## Unity Deployment — Space Invaders (2026-04-05)
+
+- **`UnityEngine.UI` not installed by default** — Unity 6 projects don't include `com.unity.ugui` out of the box. Any translated code using `UnityEngine.UI.Text` will fail to compile until the package is installed. The translator should warn or document this dependency.
+- **Sprite import mode defaults to Multiple** — Programmatically created PNG textures imported via `TextureImporter` can default to `spriteMode: 2` (Multiple) instead of Single. This makes `AssetDatabase.LoadAssetAtPath<Sprite>()` return null. Always set `importer.spriteImportMode = SpriteImportMode.Single` explicitly.
+- **Texture compression breaks `SetPixels32`** — Default texture compression is incompatible with runtime pixel manipulation (Bunker destructible shields). Textures that will be modified at runtime need `textureCompression = Uncompressed` and format `RGBA32`.
+- **Trigger colliders overlap at spawn** — Projectiles spawned at the player's position immediately trigger `OnTriggerEnter2D` with the player's own collider, destroying the projectile. Fix: layer collision matrix must ignore Laser↔Player collisions. The Python sim doesn't have this problem because collision callbacks are dispatched differently.
+- **Boundary zone overlap kills player at start** — If invader grid + collider extents overlap with boundary trigger zones, `OnBoundaryReached()` fires immediately, killing the player before the first frame. Scene layout must account for collider sizes, not just transform positions.
+- **Layer collision matrix is not part of the translation** — The translator outputs C# scripts but the Physics2D layer collision matrix is a project setting. Scene setup must configure `Physics2D.IgnoreLayerCollision()` for Laser↔Player, Missile↔Invader, Laser↔Missile. This is a deployment step, not a translation step.
+
 ## Playtest Errors (auto-recorded)
 - **ImportError**: `DLL load failed while importing bufferproxy: The paging file is too small for this operation to comp` — found in pong playtest (2026-04-05)
   Source: `File "D:\Projects\unity-py-sim\examples\pong\..\..\src\engine\app.py", line 37, in run`

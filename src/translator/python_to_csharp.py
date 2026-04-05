@@ -124,6 +124,37 @@ def translate(
     return code
 
 
+# ── Package dependency detection ─────────────────────────
+
+# Maps C# using directives to the Unity packages that provide them
+_USING_TO_PACKAGE: dict[str, str] = {
+    "UnityEngine.UI": "com.unity.ugui",
+    "UnityEngine.InputSystem": "com.unity.inputsystem",
+    "Unity.TextMeshPro": "com.unity.textmeshpro",
+    "TMPro": "com.unity.textmeshpro",
+}
+
+
+def detect_required_packages(cs_source: str) -> list[dict[str, str]]:
+    """Scan translated C# source for using directives that require Unity packages.
+
+    Returns a list of dicts with 'package' and 'reason' keys.
+    """
+    packages = []
+    seen = set()
+    for line in cs_source.split("\n"):
+        stripped = line.strip()
+        if not stripped.startswith("using "):
+            continue
+        # Extract namespace: "using Foo.Bar;" -> "Foo.Bar"
+        ns = stripped[6:].rstrip(";").strip()
+        if ns in _USING_TO_PACKAGE and _USING_TO_PACKAGE[ns] not in seen:
+            pkg = _USING_TO_PACKAGE[ns]
+            seen.add(pkg)
+            packages.append({"package": pkg, "reason": f"using {ns}"})
+    return packages
+
+
 def _translate_class(cls: PyClass, parsed: PyFile) -> str:
     """Translate a PyClass to C# source."""
     if cls.is_enum:

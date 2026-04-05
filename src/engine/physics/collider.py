@@ -83,7 +83,16 @@ class Collider2D(Component):
         This builds the pymunk shape after all properties have been set in scene setup.
         """
         if self._shape is None and self._game_object is not None:
+            # Sync the pymunk body position from the transform BEFORE building
+            # the shape, so the spatial hash is correct for static bodies.
+            rb = self.game_object.get_component(Rigidbody2D)
+            if rb is not None:
+                rb._sync_from_transform()
             self.build()
+            # Reindex static shapes so spatial queries find them immediately
+            if rb is not None and rb._body.body_type == pymunk.Body.STATIC:
+                from src.engine.physics.physics_manager import PhysicsManager
+                PhysicsManager.instance()._space.reindex_shapes_for_body(rb._body)
 
     def build(self) -> None:
         """Build the pymunk shape. Override in subclasses.

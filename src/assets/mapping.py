@@ -24,6 +24,9 @@ class SpriteMapping:
     ppu: int = 100  # pixels per unit
     material: str = "Sprite-Unlit-Default"  # URP material name
     sorting_layer: str = "Default"
+    filter_mode: str = "Point"  # Point, Bilinear, Trilinear
+    compression: str = "Normal"  # None, Low, Normal, High
+    is_readable: bool = False  # True if runtime pixel manipulation needed
     notes: str = ""
 
 

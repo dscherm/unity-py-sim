@@ -136,6 +136,6 @@ class TestVersionMutation:
         result = serialize_scene()
         assert "version" in result
 
-    def test_version_value_is_one(self):
+    def test_version_value_is_two(self):
         result = serialize_scene()
-        assert result["version"] == 1
+        assert result["version"] == 2

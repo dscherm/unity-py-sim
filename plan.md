@@ -1526,3 +1526,148 @@ Key insight: the problem is in the SIMULATOR, not the TRANSLATOR.
   "passes": true
 }
 ```
+
+---
+
+## Phase: Pacman Clone — Real Sprite Pipeline
+
+Goal: Build Pacman using real sprites from zigurous/unity-pacman-tutorial (cloned to
+D:/Projects/pacman-ref/Assets/Sprites/). This exercises the full asset pipeline with
+actual art — no colored rectangles. Tests: grid movement, node-based AI, sprite animation,
+asset mapping, and end-to-end deployment to Unity.
+
+Reference: 15 C# scripts, 87+ sprites. Key patterns: Node-based ghost AI (Chase/Scatter/
+Frightened/Home), Physics2D.BoxCast for wall detection, AnimatedSprite frame cycling,
+Passage tunnels.
+
+### Task 1: Grid movement system and maze structure
+
+```json
+{
+  "category": "engine",
+  "priority": 1,
+  "description": "Create grid-based movement with wall detection, input buffering, and maze definition from tilemap",
+  "steps": [
+    "Create examples/pacman/ directory (pacman_python/, pacman_unity/, run_pacman.py)",
+    "Create movement.py — MonoBehaviour: grid-snapped Rigidbody2D.move_position, speed/speedMultiplier, direction/nextDirection queuing",
+    "Movement checks wall via Physics2D.box_cast in requested direction (obstacle layer)",
+    "Create node.py — MonoBehaviour: placed at maze intersections, box-casts on start to build available_directions list",
+    "Create maze data: define Pacman maze as grid of wall/path/pellet/power-pellet/node cells",
+    "Create run_pacman.py — build maze from data, place walls with sprites from pacman-ref, place nodes",
+    "Use real wall sprites (Wall_00 through Wall_37) from D:/Projects/pacman-ref/Assets/Sprites/ via asset_ref",
+    "Run headless 120 frames, verify movement and wall collision",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 2: Pacman controller with sprite animation
+
+```json
+{
+  "category": "feature",
+  "priority": 2,
+  "description": "Create Pacman with WASD/arrow input, rotation to face direction, and mouth animation using real sprites",
+  "steps": [
+    "Create pacman.py — MonoBehaviour: requires Movement, reads input in update, sets movement.direction",
+    "Rotation: set transform angle based on direction (right=0, left=180, up=90, down=270)",
+    "Create animated_sprite.py — MonoBehaviour: cycles through sprite frames via timer, loop support, restart()",
+    "Wire Pacman walking animation: Pacman_01/02/03 sprites from pacman-ref via asset_ref",
+    "Wire Pacman death animation: Pacman_Death_01 through 11 sprites, one-shot, with callback on complete",
+    "Add to scene in run_pacman.py with real sprites loaded",
+    "Run headless 200 frames, verify Pacman moves and animates",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 3: Pellets, power pellets, and passage tunnels
+
+```json
+{
+  "category": "feature",
+  "priority": 3,
+  "description": "Add pellet collection, power pellets, and tunnel passages with trigger colliders",
+  "steps": [
+    "Create pellet.py — MonoBehaviour: trigger collider, on_trigger_enter_2d with Pacman layer awards 10 points",
+    "Create power_pellet.py — extends Pellet: triggers frightened mode on all ghosts, 8s duration",
+    "Create passage.py — MonoBehaviour: trigger, teleports entering object to connected passage position",
+    "Place pellets at every path cell in maze, power pellets at 4 corners",
+    "Place 2 passages at left/right tunnel exits",
+    "Use real pellet sprites (Pellet_Small, Pellet_Large) from pacman-ref",
+    "Track pellet count in GameManager — all eaten = new round",
+    "Run headless 300 frames, verify pellet collection and tunnel teleport",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 4: Ghost base with state machine behaviors
+
+```json
+{
+  "category": "feature",
+  "priority": 4,
+  "description": "Create Ghost with behavior state machine: Scatter, Chase, Frightened, Home",
+  "steps": [
+    "Create ghost_behavior.py — abstract base MonoBehaviour: enable(duration), disable(), duration timer via coroutine",
+    "Create ghost_scatter.py — at nodes, pick random available direction (avoid reversing). On disable, enable Chase",
+    "Create ghost_chase.py — at nodes, pick direction minimizing sqrMagnitude to Pacman. On disable, enable Scatter",
+    "Create ghost_frightened.py — at nodes, pick direction maximizing distance from Pacman. Speed 0.5x. Swap to vulnerable sprites",
+    "Create ghost_home.py — bounce inside home box, exit transition coroutine (lerp to exit point)",
+    "Create ghost_eyes.py — swap eye sprite based on movement direction (up/down/left/right)",
+    "Create ghost.py — aggregates all behaviors, collision with Pacman (frightened=eat ghost, else=eat Pacman)",
+    "Use real ghost sprites from pacman-ref: Ghost_Body, Ghost_Eyes, Ghost_Vulnerable",
+    "Run headless 300 frames, verify ghost moves and changes state",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 5: GameManager — score, lives, rounds, game flow
+
+```json
+{
+  "category": "feature",
+  "priority": 5,
+  "description": "Add GameManager singleton with score, lives, ghost eat multiplier, round reset, UI",
+  "steps": [
+    "Create game_manager.py — singleton, tracks score/lives/ghost_multiplier",
+    "pellet_eaten(): add points, check all pellets eaten -> new round",
+    "power_pellet_eaten(): enable frightened on all ghosts, reset ghost_multiplier",
+    "ghost_eaten(): award 200*multiplier points, send ghost home, double multiplier",
+    "pacman_eaten(): lose life, death sequence, reset positions or game over",
+    "UI: Canvas with score Text and lives Text",
+    "New round: reset pellets (reactivate all), reset ghost positions",
+    "Use fruit sprites from pacman-ref for bonus items",
+    "Run headless 500 frames, verify full game flow",
+    "Run full test suite"
+  ],
+  "passes": false
+}
+```
+
+### Task 6: Copy reference C# and translate Python
+
+```json
+{
+  "category": "translation",
+  "priority": 6,
+  "description": "Copy reference C# to pacman_unity/, translate Python via translator, compare and deploy",
+  "steps": [
+    "Copy 15 reference C# files to examples/pacman/pacman_unity/",
+    "Run translate_project() on pacman_python/ with cross-file awareness",
+    "Fix translator issues found (Math->Mathf, bool truthiness, Reset collision, cross-file refs)",
+    "Run compilation gate on generated C#",
+    "Deploy to Unity project, build scene with real sprites from pacman-ref",
+    "Verify game runs: Pacman moves, ghosts chase, pellets collected, score updates",
+    "Record pipeline metrics and new translator gaps",
+    "Document findings in data/lessons/"
+  ],
+  "passes": false
+}
+```

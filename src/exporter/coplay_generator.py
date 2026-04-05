@@ -69,13 +69,41 @@ def generate_scene_script(
         if go.get("tag") and go["tag"] != "Untagged":
             tags.add(go["tag"])
 
-    if tags:
-        lines.append("        // === CREATE TAGS ===")
+    # Collect layers needed
+    physics = scene_data.get("physics", {})
+    layers = physics.get("layers", {})
+    ignore_pairs = physics.get("ignore_collision_pairs", [])
+
+    # Also scan game objects for layer indices > 0
+    for go in scene_data.get("game_objects", []):
+        layer = go.get("layer", 0)
+        if layer > 0 and str(layer) not in layers:
+            layers[f"Layer{layer}"] = layer
+
+    if tags or layers:
+        lines.append("        // === CREATE TAGS AND LAYERS ===")
         lines.append("        var tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath(\"ProjectSettings/TagManager.asset\")[0]);")
+
+    if tags:
         lines.append("        var tagsProp = tagManager.FindProperty(\"tags\");")
         for tag in sorted(tags):
             lines.append(f"        _EnsureTag(tagsProp, \"{_escape_cs_string(tag)}\");")
+
+    if layers:
+        lines.append("        var layersProp = tagManager.FindProperty(\"layers\");")
+        for name in sorted(layers.keys()):
+            lines.append(f"        _EnsureLayer(layersProp, \"{_escape_cs_string(name)}\");")
+
+    if tags or layers:
         lines.append("        tagManager.ApplyModifiedProperties();")
+        lines.append("")
+
+    # Layer collision matrix
+    if ignore_pairs:
+        lines.append("        // === LAYER COLLISION MATRIX ===")
+        for pair in ignore_pairs:
+            a, b = pair[0], pair[1]
+            lines.append(f"        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer(\"{_escape_cs_string(a)}\"), LayerMask.NameToLayer(\"{_escape_cs_string(b)}\"), true);")
         lines.append("")
 
     # Load unlit material for URP
@@ -83,6 +111,48 @@ def generate_scene_script(
     lines.append("        var unlitMat = AssetDatabase.LoadAssetAtPath<Material>(")
     lines.append("            \"Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Unlit-Default.mat\");")
     lines.append("")
+
+    # Configure sprite import settings
+    if sprite_mappings:
+        needs_import_fix = any(
+            info.get("compression", "Normal") == "None"
+            or info.get("is_readable", False)
+            or info.get("filter_mode", "Bilinear") == "Point"
+            for info in sprite_mappings.values()
+        )
+        if needs_import_fix:
+            lines.append("        // === CONFIGURE SPRITE IMPORTS ===")
+            for ref, info in sprite_mappings.items():
+                unity_path = info.get("unity_path", "")
+                if not unity_path:
+                    continue
+                compression = info.get("compression", "Normal")
+                is_readable = info.get("is_readable", False)
+                filter_mode = info.get("filter_mode", "Bilinear")
+                ppu = info.get("ppu", 100)
+                # Only emit config if non-default values
+                if compression == "None" or is_readable or filter_mode == "Point" or ppu != 100:
+                    lines.append(f"        {{")
+                    lines.append(f"            var imp = AssetImporter.GetAtPath(\"{_escape_cs_string(unity_path)}\") as TextureImporter;")
+                    lines.append(f"            if (imp != null) {{")
+                    lines.append(f"                imp.textureType = TextureImporterType.Sprite;")
+                    lines.append(f"                imp.spriteImportMode = SpriteImportMode.Single;")
+                    lines.append(f"                imp.spritePixelsPerUnit = {ppu};")
+                    fm_map = {"Point": "FilterMode.Point", "Bilinear": "FilterMode.Bilinear", "Trilinear": "FilterMode.Trilinear"}
+                    lines.append(f"                imp.filterMode = {fm_map.get(filter_mode, 'FilterMode.Point')};")
+                    if is_readable:
+                        lines.append(f"                imp.isReadable = true;")
+                    tc_map = {"None": "TextureImporterCompression.Uncompressed", "Low": "TextureImporterCompression.CompressedLQ", "Normal": "TextureImporterCompression.Compressed", "High": "TextureImporterCompression.CompressedHQ"}
+                    lines.append(f"                imp.textureCompression = {tc_map.get(compression, 'TextureImporterCompression.Compressed')};")
+                    if compression == "None":
+                        lines.append(f"                var settings = imp.GetDefaultPlatformTextureSettings();")
+                        lines.append(f"                settings.format = TextureImporterFormat.RGBA32;")
+                        lines.append(f"                settings.overridden = true;")
+                        lines.append(f"                imp.SetPlatformTextureSettings(settings);")
+                    lines.append(f"                imp.SaveAndReimport();")
+                    lines.append(f"            }}")
+                    lines.append(f"        }}")
+            lines.append("")
 
     # Load sprite assets from mapping
     if sprite_mappings:
@@ -146,6 +216,18 @@ def generate_scene_script(
         if tag != "Untagged":
             lines.append(f"        {var}.tag = \"{_escape_cs_string(tag)}\";")
 
+        # Set layer
+        go_layer = go.get("layer", 0)
+        if go_layer > 0:
+            # Find layer name from physics data
+            layer_name = None
+            for lname, lidx in layers.items():
+                if lidx == go_layer:
+                    layer_name = lname
+                    break
+            if layer_name:
+                lines.append(f"        {var}.layer = LayerMask.NameToLayer(\"{_escape_cs_string(layer_name)}\");")
+
         # Set transform
         if transform:
             px, py, pz = transform["position"]
@@ -203,6 +285,23 @@ def generate_scene_script(
         lines.append("            if (tagsProp.GetArrayElementAtIndex(i).stringValue == tag) return;")
         lines.append("        tagsProp.InsertArrayElementAtIndex(tagsProp.arraySize);")
         lines.append("        tagsProp.GetArrayElementAtIndex(tagsProp.arraySize - 1).stringValue = tag;")
+        lines.append("    }")
+
+    # Helper: ensure layer exists
+    if layers:
+        lines.append("")
+        lines.append("    static void _EnsureLayer(SerializedProperty layersProp, string name)")
+        lines.append("    {")
+        lines.append("        for (int i = 0; i < layersProp.arraySize; i++)")
+        lines.append("            if (layersProp.GetArrayElementAtIndex(i).stringValue == name) return;")
+        lines.append("        for (int i = 8; i < layersProp.arraySize; i++)")
+        lines.append("        {")
+        lines.append("            if (string.IsNullOrEmpty(layersProp.GetArrayElementAtIndex(i).stringValue))")
+        lines.append("            {")
+        lines.append("                layersProp.GetArrayElementAtIndex(i).stringValue = name;")
+        lines.append("                return;")
+        lines.append("            }")
+        lines.append("        }")
         lines.append("    }")
 
     lines.append("}")

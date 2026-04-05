@@ -141,12 +141,68 @@ def _serialize_component(comp: Component) -> dict[str, Any] | None:
     return None
 
 
+def _collect_layers(game_objects) -> dict[str, list[int]]:
+    """Collect all named layers used in the scene and build collision ignore pairs.
+
+    Returns a dict with:
+        "layers": {name: layer_index, ...}
+        "ignore_pairs": [[layer_a, layer_b], ...]
+    """
+    layers: dict[int, str] = {}
+    # Map known layer names from game objects
+    for go in game_objects.values():
+        if go.layer != 0:  # 0 = Default
+            # Try to get the layer name from the engine's layer system
+            layer_name = _get_layer_name(go.layer)
+            if layer_name:
+                layers[go.layer] = layer_name
+
+    # Build ignore pairs based on common game patterns:
+    # - Projectile layers shouldn't collide with their source
+    layer_names = {v: k for k, v in layers.items()}
+    ignore_pairs = []
+
+    # Laser shouldn't collide with Player (spawns at player position)
+    if "Laser" in layer_names and "Player" in layer_names:
+        ignore_pairs.append(["Laser", "Player"])
+    # Missile shouldn't collide with Invader (invaders shoot missiles)
+    if "Missile" in layer_names and "Invader" in layer_names:
+        ignore_pairs.append(["Missile", "Invader"])
+    # Laser and Missile shouldn't collide with each other
+    if "Laser" in layer_names and "Missile" in layer_names:
+        ignore_pairs.append(["Laser", "Missile"])
+
+    return {
+        "layers": {name: idx for idx, name in layers.items()},
+        "ignore_pairs": ignore_pairs,
+    }
+
+
+def _get_layer_name(layer_index: int) -> str | None:
+    """Get a layer name from the engine's layer registry."""
+    try:
+        from src.engine.physics.physics_manager import PhysicsManager
+        pm = PhysicsManager.instance()
+        if hasattr(pm, '_layer_names'):
+            return pm._layer_names.get(layer_index)
+    except Exception:
+        pass
+    return f"Layer{layer_index}"
+
+
 def serialize_scene() -> dict[str, Any]:
     """Serialize the current scene state to a dict."""
     scene_data: dict[str, Any] = {
-        "version": 1,
+        "version": 2,
         "game_objects": [],
+        "physics": {},
     }
+
+    # Collect layer and collision info
+    layer_info = _collect_layers(_game_objects)
+    if layer_info["layers"]:
+        scene_data["physics"]["layers"] = layer_info["layers"]
+        scene_data["physics"]["ignore_collision_pairs"] = layer_info["ignore_pairs"]
 
     for go in _game_objects.values():
         go_data: dict[str, Any] = {
