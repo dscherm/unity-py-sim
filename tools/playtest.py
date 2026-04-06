@@ -37,6 +37,7 @@ EXAMPLES = {
     "fsm": "examples/fsm_platformer/run_fsm_platformer.py",
     "angry_birds": "examples/angry_birds/run_angry_birds.py",
     "space_invaders": "examples/space_invaders/run_space_invaders.py",
+    "pacman": "examples/pacman/run_pacman.py",
 }
 
 

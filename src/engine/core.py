@@ -85,6 +85,47 @@ class MonoBehaviour(Component):
         if hasattr(MonoBehaviour, '_coroutine_manager'):
             MonoBehaviour._coroutine_manager.stop_all_coroutines(self)
 
+    # --- Invoke / CancelInvoke (Unity's delayed method calls) ---
+
+    def invoke(self, method_name: str, delay: float) -> None:
+        """Call a method by name after a delay (seconds).
+
+        Matches Unity's MonoBehaviour.Invoke(string methodName, float time).
+        Uses coroutine internally to schedule the delayed call.
+        """
+        if not hasattr(self, '_pending_invokes'):
+            self._pending_invokes: dict[str, object] = {}
+        # Cancel any existing invoke for this method
+        if method_name in getattr(self, '_pending_invokes', {}):
+            old = self._pending_invokes[method_name]
+            self.stop_coroutine(old)
+        coro = self.start_coroutine(self._invoke_delayed(method_name, delay))
+        self._pending_invokes[method_name] = coro
+
+    def cancel_invoke(self, method_name: str | None = None) -> None:
+        """Cancel pending Invoke calls.
+
+        If method_name is None, cancels ALL pending invokes (matches Unity's CancelInvoke()).
+        If method_name is given, cancels only that one (matches Unity's CancelInvoke(string)).
+        """
+        pending = getattr(self, '_pending_invokes', {})
+        if method_name is None:
+            for coro in pending.values():
+                self.stop_coroutine(coro)
+            pending.clear()
+        elif method_name in pending:
+            self.stop_coroutine(pending.pop(method_name))
+
+    def _invoke_delayed(self, method_name: str, delay: float):
+        """Coroutine: wait then call the named method."""
+        from src.engine.coroutine import WaitForSeconds
+        yield WaitForSeconds(delay)
+        pending = getattr(self, '_pending_invokes', {})
+        pending.pop(method_name, None)
+        method = getattr(self, method_name, None)
+        if method is not None:
+            method()
+
     def update(self) -> None:
         pass
 

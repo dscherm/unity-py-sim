@@ -3,7 +3,6 @@
 Line-by-line port of GhostChase.cs from zigurous/unity-pacman-tutorial.
 """
 
-import math
 from src.engine.math.vector import Vector2
 from pacman_python.ghost_behavior import GhostBehavior
 from pacman_python.node import Node
@@ -13,9 +12,10 @@ class GhostChase(GhostBehavior):
 
     def on_disable(self) -> None:
         if self.ghost is not None and self.ghost.scatter is not None:
-            self.ghost.scatter.enable_behavior()
+            self.ghost.scatter.enable()
 
     def on_trigger_enter_2d(self, other) -> None:
+        # Guard: ghost behaviors not yet wired (start() hasn't run)
         if self.ghost is None or self.ghost.frightened is None:
             return
         node = other.get_component(Node) if hasattr(other, 'get_component') else None

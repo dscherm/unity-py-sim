@@ -5,29 +5,28 @@ Line-by-line port of GhostHome.cs from zigurous/unity-pacman-tutorial.
 
 import random
 from src.engine.math.vector import Vector2
-from src.engine.coroutine import WaitForSeconds
+from src.engine.transform import Transform
 from pacman_python.ghost_behavior import GhostBehavior
 from pacman_python.movement import OBSTACLE_LAYER
 
 
 class GhostHome(GhostBehavior):
-    inside_position: Vector2 = Vector2(0, 0)   # Position inside ghost house
-    outside_position: Vector2 = Vector2(0, 0)  # Position outside ghost house exit
+    inside: Transform | None = None    # Transform at center of ghost house
+    outside: Transform | None = None   # Transform at ghost house exit
 
     def on_enable(self) -> None:
-        pass  # StopAllCoroutines equivalent — coroutine system handles this
+        self.stop_all_coroutines()
 
     def on_disable(self) -> None:
-        # Start exit transition coroutine
+        # Check for active self to prevent error when object is destroyed
         if self.game_object.active:
             self.start_coroutine(self._exit_transition())
 
     def on_collision_enter_2d(self, collision) -> None:
-        """Reverse direction on wall collision to create bouncing effect."""
-        if self.ghost is None:
-            return
+        """Reverse direction every time the ghost hits a wall to create
+        the effect of the ghost bouncing around the home."""
         go = getattr(collision, 'game_object', collision)
-        if go is not None and self.enabled and go.layer == OBSTACLE_LAYER:
+        if self.enabled and go is not None and go.layer == OBSTACLE_LAYER:
             self.ghost.movement.set_direction(
                 Vector2(
                     -self.ghost.movement.direction.x,
@@ -40,34 +39,38 @@ class GhostHome(GhostBehavior):
         """Coroutine: animate ghost from inside to outside the ghost house."""
         from src.engine.time_manager import Time
 
+        # Turn off movement while we manually animate the position
         self.ghost.movement.set_direction(Vector2(0, 1), forced=True)
+        self.ghost.movement.rb.is_kinematic = True
         self.ghost.movement.enabled = False
 
-        pos = Vector2(self.transform.position.x, self.transform.position.y)
+        position = Vector2(self.transform.position.x, self.transform.position.y)
+
         duration = 0.5
         elapsed = 0.0
 
-        # Animate to inside position
+        # Animate to the starting point (inside)
         while elapsed < duration:
             t = elapsed / duration
-            x = pos.x + (self.inside_position.x - pos.x) * t
-            y = pos.y + (self.inside_position.y - pos.y) * t
+            x = position.x + (self.inside.position.x - position.x) * t
+            y = position.y + (self.inside.position.y - position.y) * t
             self.ghost.set_position(Vector2(x, y))
             elapsed += Time.delta_time
             yield None
 
         elapsed = 0.0
 
-        # Animate to outside position
+        # Animate exiting the ghost home (inside -> outside)
         while elapsed < duration:
             t = elapsed / duration
-            x = self.inside_position.x + (self.outside_position.x - self.inside_position.x) * t
-            y = self.inside_position.y + (self.outside_position.y - self.inside_position.y) * t
+            x = self.inside.position.x + (self.outside.position.x - self.inside.position.x) * t
+            y = self.inside.position.y + (self.outside.position.y - self.inside.position.y) * t
             self.ghost.set_position(Vector2(x, y))
             elapsed += Time.delta_time
             yield None
 
-        # Pick random direction and re-enable movement
+        # Pick a random direction left or right and re-enable movement
         dir_x = -1.0 if random.random() < 0.5 else 1.0
         self.ghost.movement.set_direction(Vector2(dir_x, 0), forced=True)
+        self.ghost.movement.rb.is_kinematic = False
         self.ghost.movement.enabled = True

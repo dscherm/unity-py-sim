@@ -410,6 +410,28 @@ class Physics2D:
         return colliders
 
     @staticmethod
+    def box_cast(origin: Vector2, size: Vector2, angle: float,
+                 direction: Vector2, distance: float,
+                 layer_mask: int = -1) -> 'object | None':
+        """Cast a box along a direction. Returns first non-trigger hit or None.
+
+        Matches Unity's Physics2D.BoxCast(origin, size, angle, direction, distance, layerMask).
+        Implemented as multiple overlap_box samples along the sweep path.
+        """
+        # Sample at intervals along the sweep direction
+        steps = max(1, int(distance / 0.25))  # sample every 0.25 units
+        for i in range(steps + 1):
+            t = (i / steps) * distance if steps > 0 else 0
+            check_x = origin.x + direction.x * t
+            check_y = origin.y + direction.y * t
+            hit = Physics2D.overlap_box(
+                Vector2(check_x, check_y), size, angle, layer_mask
+            )
+            if hit is not None:
+                return hit
+        return None
+
+    @staticmethod
     def _resolve_components(shape: pymunk.Shape, pm: PhysicsManager):
         """Resolve Collider2D, Rigidbody2D, Transform from a pymunk shape."""
         from src.engine.physics.collider import Collider2D

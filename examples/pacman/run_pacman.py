@@ -169,8 +169,9 @@ def setup_scene():
     walk_anim.animation_time = 0.15
     walk_anim.loop = True
 
-    # Death sequence (separate GO, disabled by default)
+    # Death sequence (separate GO, hidden by default)
     death_go = GameObject("PacmanDeath")
+    death_go.active = False  # Hidden until death
     death_go.transform.position = Vector2(px, py)
     sr_death = death_go.add_component(SpriteRenderer)
     sr_death.color = (255, 255, 0)
@@ -191,12 +192,13 @@ def setup_scene():
     pac = pacman_go.add_component(Pacman)
     pac.death_sequence = death_anim
 
-    # Ghost house positions (from maze: G cells around rows 13-15, cols 11-16)
-    # Ghost house center is approximately col=14, row=14
+    # Ghost house Transform markers (like Unity scene objects)
     ghost_home_inside_x, ghost_home_inside_y = cell_to_world(14, 14)
     ghost_home_outside_x, ghost_home_outside_y = cell_to_world(14, 11)
-    inside_pos = Vector2(ghost_home_inside_x, ghost_home_inside_y)
-    outside_pos = Vector2(ghost_home_outside_x, ghost_home_outside_y)
+    inside_go = GameObject("GhostHome_Inside")
+    inside_go.transform.position = Vector2(ghost_home_inside_x, ghost_home_inside_y)
+    outside_go = GameObject("GhostHome_Outside")
+    outside_go.transform.position = Vector2(ghost_home_outside_x, ghost_home_outside_y)
 
     # Ghost configurations: (name, color, start_col, start_row, scatter_duration, initial_is_home)
     ghost_configs = [
@@ -230,10 +232,14 @@ def setup_scene():
         mov_g.speed = 7.0
         mov_g.initial_direction = Vector2(0, -1) if start_in_home else Vector2(-1, 0)
 
-        # Behaviors (added before Ghost so start() order: behaviors first, Ghost last)
+        # Ghost aggregator (added FIRST so GhostBehavior.awake can find it)
+        ghost_comp = ghost_go.add_component(Ghost)
+        ghost_comp.target = pacman_go.transform
+
+        # Behaviors (added after Ghost)
         home = ghost_go.add_component(GhostHome)
-        home.inside_position = inside_pos
-        home.outside_position = outside_pos
+        home.inside = inside_go.transform
+        home.outside = outside_go.transform
         home.enabled = False
 
         scatter = ghost_go.add_component(GhostScatter)
@@ -248,10 +254,6 @@ def setup_scene():
         frightened.body = sr_body
         frightened.duration = 8.0
         frightened.enabled = False
-
-        # Ghost aggregator (added LAST so all behaviors exist for start())
-        ghost_comp = ghost_go.add_component(Ghost)
-        ghost_comp.target = pacman_go.transform
 
         # Set initial behavior
         if start_in_home:

@@ -4,7 +4,7 @@ Line-by-line port of GameManager.cs from zigurous/unity-pacman-tutorial.
 """
 
 from src.engine.core import MonoBehaviour, GameObject
-from src.engine.coroutine import WaitForSeconds
+from src.engine.input_manager import Input
 
 
 class GameManager(MonoBehaviour):
@@ -17,7 +17,7 @@ class GameManager(MonoBehaviour):
     # Assigned in run_pacman.py
     pacman: object | None = None   # Pacman component
     ghosts: list = None            # List of Ghost components
-    _all_pellets: list = None      # All pellet GOs (including inactive)
+    _all_pellets: list = None      # Snapshot of all pellet GOs
 
     def __init__(self) -> None:
         super().__init__()
@@ -43,21 +43,19 @@ class GameManager(MonoBehaviour):
         self.new_game()
 
     def update(self) -> None:
-        from src.engine.input_manager import Input
         if self.lives <= 0 and Input.get_key_down("return"):
             self.new_game()
 
     def new_game(self) -> None:
-        self.score = 0
-        self.lives = 3
+        self._set_score(0)
+        self._set_lives(3)
         self.new_round()
 
     def new_round(self) -> None:
-        # Reactivate all pellets (use stored list — tag lookup skips inactive GOs)
+        # Reactivate all pellets
         for go in self._all_pellets:
             go.active = True
         self.reset_state()
-        self._update_title()
 
     def reset_state(self) -> None:
         for ghost in self.ghosts:
@@ -70,43 +68,49 @@ class GameManager(MonoBehaviour):
             ghost.game_object.active = False
         if self.pacman is not None:
             self.pacman.game_object.active = False
+
+    def _set_lives(self, lives: int) -> None:
+        self.lives = lives
         self._update_title()
 
-    def pellet_eaten(self, pellet) -> None:
-        pellet.game_object.active = False
-        self.score += pellet.points
-        self._update_title()
-
-        if not self.has_remaining_pellets():
-            if self.pacman is not None:
-                self.pacman.game_object.active = False
-            self.start_coroutine(self._new_round_delay(3.0))
-
-    def power_pellet_eaten(self, pellet) -> None:
-        # Enable frightened mode on all ghosts
-        for ghost in self.ghosts:
-            ghost.frightened.enable_behavior(pellet.duration)
-
-        self.pellet_eaten(pellet)
-        self._ghost_multiplier = 1
-
-    def ghost_eaten(self, ghost) -> None:
-        points = ghost.points * self._ghost_multiplier
-        self.score += points
-        self._ghost_multiplier *= 2
+    def _set_score(self, score: int) -> None:
+        self.score = score
         self._update_title()
 
     def pacman_eaten(self) -> None:
         if self.pacman is not None:
             self.pacman.death_sequence_start()
 
-        self.lives -= 1
-        self._update_title()
+        self._set_lives(self.lives - 1)
 
         if self.lives > 0:
-            self.start_coroutine(self._reset_state_delay(3.0))
+            self.invoke("reset_state", 3.0)
         else:
             self.game_over()
+
+    def ghost_eaten(self, ghost) -> None:
+        points = ghost.points * self._ghost_multiplier
+        self._set_score(self.score + points)
+        self._ghost_multiplier *= 2
+
+    def pellet_eaten(self, pellet) -> None:
+        pellet.game_object.active = False
+        self._set_score(self.score + pellet.points)
+
+        if not self.has_remaining_pellets():
+            if self.pacman is not None:
+                self.pacman.game_object.active = False
+            self.invoke("new_round", 3.0)
+
+    def power_pellet_eaten(self, pellet) -> None:
+        # Enable frightened mode on all ghosts
+        for ghost in self.ghosts:
+            ghost.frightened.enable(pellet.duration)
+
+        self.pellet_eaten(pellet)
+        # Reset multiplier after power pellet duration expires
+        self.cancel_invoke("reset_ghost_multiplier")
+        self.invoke("reset_ghost_multiplier", pellet.duration)
 
     def has_remaining_pellets(self) -> bool:
         for go in self._all_pellets:
@@ -114,13 +118,8 @@ class GameManager(MonoBehaviour):
                 return True
         return False
 
-    def _new_round_delay(self, delay: float):
-        yield WaitForSeconds(delay)
-        self.new_round()
-
-    def _reset_state_delay(self, delay: float):
-        yield WaitForSeconds(delay)
-        self.reset_state()
+    def reset_ghost_multiplier(self) -> None:
+        self._ghost_multiplier = 1
 
     def _update_title(self) -> None:
         try:

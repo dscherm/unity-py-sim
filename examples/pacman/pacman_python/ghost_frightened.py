@@ -3,7 +3,6 @@
 Line-by-line port of GhostFrightened.cs from zigurous/unity-pacman-tutorial.
 """
 
-from src.engine.core import MonoBehaviour
 from src.engine.math.vector import Vector2
 from src.engine.rendering.renderer import SpriteRenderer
 from pacman_python.ghost_behavior import GhostBehavior
@@ -15,10 +14,10 @@ class GhostFrightened(GhostBehavior):
     eyes: SpriteRenderer | None = None
     _eaten: bool = False
 
-    def enable_behavior(self, duration: float = -1.0) -> None:
-        super().enable_behavior(duration)
+    def enable(self, duration: float = -1.0) -> None:
+        super().enable(duration)
 
-        # Swap to vulnerable sprite (blue body, hide normal)
+        # Swap to vulnerable appearance
         if self.body is not None:
             self.body.enabled = False
         if self.eyes is not None:
@@ -26,8 +25,8 @@ class GhostFrightened(GhostBehavior):
 
         self._eaten = False
 
-    def disable_behavior(self) -> None:
-        super().disable_behavior()
+    def disable(self) -> None:
+        super().disable()
 
         # Restore normal appearance
         if self.body is not None:
@@ -39,8 +38,8 @@ class GhostFrightened(GhostBehavior):
         """Called when Pacman eats this ghost while frightened."""
         self._eaten = True
         # Send ghost back home
-        self.ghost.set_position(self.ghost.home.inside_position)
-        self.ghost.home.enable_behavior(self.duration)
+        self.ghost.set_position(self.ghost.home.inside.position)
+        self.ghost.home.enable(self.duration)
 
         if self.body is not None:
             self.body.enabled = False
@@ -50,6 +49,7 @@ class GhostFrightened(GhostBehavior):
     def on_enable(self) -> None:
         if self.ghost is not None and self.ghost.movement is not None:
             self.ghost.movement.speed_multiplier = 0.5
+        self._eaten = False
 
     def on_disable(self) -> None:
         if self.ghost is not None and self.ghost.movement is not None:
@@ -57,6 +57,7 @@ class GhostFrightened(GhostBehavior):
         self._eaten = False
 
     def on_trigger_enter_2d(self, other) -> None:
+        # Guard: ghost not yet wired
         if self.ghost is None:
             return
         node = other.get_component(Node) if hasattr(other, 'get_component') else None

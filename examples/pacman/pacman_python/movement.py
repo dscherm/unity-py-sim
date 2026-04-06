@@ -5,8 +5,8 @@ Line-by-line port of Movement.cs from zigurous/unity-pacman-tutorial.
 
 from src.engine.core import MonoBehaviour
 from src.engine.math.vector import Vector2
-from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
-from src.engine.physics.physics_manager import Physics2D, PhysicsManager
+from src.engine.physics.rigidbody import Rigidbody2D
+from src.engine.physics.physics_manager import Physics2D
 from src.engine.time_manager import Time
 
 
@@ -41,8 +41,7 @@ class Movement(MonoBehaviour):
         self.transform.position = Vector2(
             self.starting_position.x, self.starting_position.y
         )
-        if self.rb is not None:
-            self.rb.body_type = RigidbodyType2D.KINEMATIC
+        self.rb.is_kinematic = False
         self.enabled = True
 
     def update(self) -> None:
@@ -52,21 +51,17 @@ class Movement(MonoBehaviour):
             self.set_direction(self.next_direction)
 
     def fixed_update(self) -> None:
+        # C# reference: always moves, no occupied check in FixedUpdate
         if self.rb is None:
             return
-        # Only move if current direction is not blocked
-        if self.direction.x == 0 and self.direction.y == 0:
-            return
-        if self.occupied(self.direction):
-            return
-        pos = self.transform.position
+        pos = self.rb._body.position
+        position = Vector2(pos[0], pos[1])
         translation = Vector2(
             self.speed * self.speed_multiplier * Time.fixed_delta_time * self.direction.x,
             self.speed * self.speed_multiplier * Time.fixed_delta_time * self.direction.y,
         )
-        new_pos = Vector2(pos.x + translation.x, pos.y + translation.y)
+        new_pos = Vector2(position.x + translation.x, position.y + translation.y)
         self.rb.move_position(new_pos)
-        self.transform.position = new_pos
 
     def set_direction(self, direction: Vector2, forced: bool = False) -> None:
         """Set movement direction if the tile in that direction is available."""
@@ -77,24 +72,17 @@ class Movement(MonoBehaviour):
             self.next_direction = direction
 
     def occupied(self, direction: Vector2) -> bool:
-        """Check if there's a wall in the next grid cell in the given direction.
+        """Check if there's an obstacle in the given direction.
 
-        Unity's BoxCast sweeps and finds exact contact. We approximate by
-        checking overlap at exactly 1 grid cell (1.0 unit) ahead with a
-        small box. This lets Pacman move right up to the wall edge.
+        Uses Physics2D.box_cast matching C# reference:
+        BoxCast(transform.position, Vector2.one * 0.75f, 0f, direction, 1.5f, obstacleLayer)
         """
-        pos = self.transform.position
-        # Check just ahead of the character (half cell + small margin)
-        # to allow movement right up to the wall edge
-        check_dist = 0.55
-        check_pos = Vector2(
-            pos.x + direction.x * check_dist,
-            pos.y + direction.y * check_dist,
-        )
-        hit = Physics2D.overlap_box(
-            point=check_pos,
-            size=Vector2(0.3, 0.3),
+        hit = Physics2D.box_cast(
+            origin=Vector2(self.transform.position.x, self.transform.position.y),
+            size=Vector2(0.75, 0.75),
             angle=0.0,
+            direction=direction,
+            distance=1.5,
             layer_mask=1 << self.obstacle_layer,
         )
         return hit is not None

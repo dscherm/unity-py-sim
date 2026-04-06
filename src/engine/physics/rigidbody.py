@@ -100,6 +100,19 @@ class Rigidbody2D(Component):
         elif value == RigidbodyType2D.STATIC:
             self._body.body_type = pymunk.Body.STATIC
 
+    @property
+    def is_kinematic(self) -> bool:
+        """Unity-compatible property: True if body_type is KINEMATIC."""
+        return self._body_type == RigidbodyType2D.KINEMATIC
+
+    @is_kinematic.setter
+    def is_kinematic(self, value: bool) -> None:
+        """Set body to KINEMATIC (True) or DYNAMIC (False). Matches Unity's Rigidbody2D.isKinematic."""
+        if value:
+            self.body_type = RigidbodyType2D.KINEMATIC
+        else:
+            self.body_type = RigidbodyType2D.DYNAMIC
+
     def add_force(self, force: Vector2, mode: ForceMode2D = ForceMode2D.FORCE) -> None:
         if mode == ForceMode2D.FORCE:
             self._body.apply_force_at_local_point((force.x, force.y))
