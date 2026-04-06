@@ -5,7 +5,7 @@ Line-by-line port of Movement.cs from zigurous/unity-pacman-tutorial.
 
 from src.engine.core import MonoBehaviour
 from src.engine.math.vector import Vector2
-from src.engine.physics.rigidbody import Rigidbody2D
+from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
 from src.engine.physics.physics_manager import Physics2D, PhysicsManager
 from src.engine.time_manager import Time
 
@@ -42,7 +42,7 @@ class Movement(MonoBehaviour):
             self.starting_position.x, self.starting_position.y
         )
         if self.rb is not None:
-            self.rb.is_kinematic = False
+            self.rb.body_type = RigidbodyType2D.KINEMATIC
         self.enabled = True
 
     def update(self) -> None:
@@ -77,19 +77,23 @@ class Movement(MonoBehaviour):
             self.next_direction = direction
 
     def occupied(self, direction: Vector2) -> bool:
-        """Check if there's a wall in the given direction.
+        """Check if there's a wall in the next grid cell in the given direction.
 
-        Approximates Physics2D.BoxCast by checking overlap_box at the
-        target position (1.5 units ahead in the given direction).
+        Unity's BoxCast sweeps and finds exact contact. We approximate by
+        checking overlap at exactly 1 grid cell (1.0 unit) ahead with a
+        small box. This lets Pacman move right up to the wall edge.
         """
         pos = self.transform.position
+        # Check just ahead of the character (half cell + small margin)
+        # to allow movement right up to the wall edge
+        check_dist = 0.55
         check_pos = Vector2(
-            pos.x + direction.x * 1.5,
-            pos.y + direction.y * 1.5,
+            pos.x + direction.x * check_dist,
+            pos.y + direction.y * check_dist,
         )
         hit = Physics2D.overlap_box(
             point=check_pos,
-            size=Vector2(0.75, 0.75),
+            size=Vector2(0.3, 0.3),
             angle=0.0,
             layer_mask=1 << self.obstacle_layer,
         )

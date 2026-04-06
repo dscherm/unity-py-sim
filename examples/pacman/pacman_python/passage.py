@@ -16,4 +16,4 @@ class Passage(MonoBehaviour):
             self.connection.position.x,
             self.connection.position.y,
         )
-        other.game_object.transform.position = position
+        other.transform.position = position
