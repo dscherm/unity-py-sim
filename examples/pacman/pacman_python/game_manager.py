@@ -1,11 +1,10 @@
 """GameManager — singleton managing score, lives, and game flow.
 
 Line-by-line port of GameManager.cs from zigurous/unity-pacman-tutorial.
-Task 3 implements: pellet_eaten, power_pellet_eaten, has_remaining_pellets.
-Task 5 will add: lives, ghost multiplier, pacman_eaten, ghost_eaten, UI.
 """
 
 from src.engine.core import MonoBehaviour, GameObject
+from src.engine.coroutine import WaitForSeconds
 
 
 class GameManager(MonoBehaviour):
@@ -16,8 +15,12 @@ class GameManager(MonoBehaviour):
     _ghost_multiplier: int = 1
 
     # Assigned in run_pacman.py
-    pacman: object | None = None  # Pacman component
-    pellets_parent: GameObject | None = None  # Parent GO holding all pellets
+    pacman: object | None = None   # Pacman component
+    ghosts: list = None            # List of Ghost components
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.ghosts = []
 
     def awake(self) -> None:
         if GameManager.instance is not None:
@@ -32,6 +35,11 @@ class GameManager(MonoBehaviour):
     def start(self) -> None:
         self.new_game()
 
+    def update(self) -> None:
+        from src.engine.input_manager import Input
+        if self.lives <= 0 and Input.get_key_down("return"):
+            self.new_game()
+
     def new_game(self) -> None:
         self.score = 0
         self.lives = 3
@@ -43,6 +51,20 @@ class GameManager(MonoBehaviour):
             go.active = True
         for go in GameObject.find_game_objects_with_tag("PowerPellet"):
             go.active = True
+        self.reset_state()
+        self._update_title()
+
+    def reset_state(self) -> None:
+        for ghost in self.ghosts:
+            ghost.reset_state()
+        if self.pacman is not None:
+            self.pacman.reset_state()
+
+    def game_over(self) -> None:
+        for ghost in self.ghosts:
+            ghost.game_object.active = False
+        if self.pacman is not None:
+            self.pacman.game_object.active = False
         self._update_title()
 
     def pellet_eaten(self, pellet) -> None:
@@ -51,13 +73,35 @@ class GameManager(MonoBehaviour):
         self._update_title()
 
         if not self.has_remaining_pellets():
-            self.new_round()
+            if self.pacman is not None:
+                self.pacman.game_object.active = False
+            self.start_coroutine(self._new_round_delay(3.0))
 
     def power_pellet_eaten(self, pellet) -> None:
-        # TODO Task 4: enable frightened mode on all ghosts
-        # for ghost in ghosts: ghost.frightened.enable(pellet.duration)
+        # Enable frightened mode on all ghosts
+        for ghost in self.ghosts:
+            ghost.frightened.enable_behavior(pellet.duration)
+
         self.pellet_eaten(pellet)
         self._ghost_multiplier = 1
+
+    def ghost_eaten(self, ghost) -> None:
+        points = ghost.points * self._ghost_multiplier
+        self.score += points
+        self._ghost_multiplier *= 2
+        self._update_title()
+
+    def pacman_eaten(self) -> None:
+        if self.pacman is not None:
+            self.pacman.death_sequence_start()
+
+        self.lives -= 1
+        self._update_title()
+
+        if self.lives > 0:
+            self.start_coroutine(self._reset_state_delay(3.0))
+        else:
+            self.game_over()
 
     def has_remaining_pellets(self) -> bool:
         for go in GameObject.find_game_objects_with_tag("Pellet"):
@@ -67,6 +111,14 @@ class GameManager(MonoBehaviour):
             if go.active:
                 return True
         return False
+
+    def _new_round_delay(self, delay: float):
+        yield WaitForSeconds(delay)
+        self.new_round()
+
+    def _reset_state_delay(self, delay: float):
+        yield WaitForSeconds(delay)
+        self.reset_state()
 
     def _update_title(self) -> None:
         try:

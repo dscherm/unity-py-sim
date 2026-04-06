@@ -28,6 +28,13 @@ from pacman_python.animated_sprite import AnimatedSprite
 from pacman_python.pellet import Pellet
 from pacman_python.power_pellet import PowerPellet
 from pacman_python.game_manager import GameManager
+from pacman_python.ghost import Ghost
+from pacman_python.ghost_behavior import GhostBehavior
+from pacman_python.ghost_home import GhostHome
+from pacman_python.ghost_scatter import GhostScatter
+from pacman_python.ghost_chase import GhostChase
+from pacman_python.ghost_frightened import GhostFrightened
+from pacman_python.ghost_eyes import GhostEyes
 from pacman_python.maze_data import (
     MAZE, MAZE_ROWS, MAZE_COLS, cell_to_world, get_cell, is_intersection,
 )
@@ -184,10 +191,81 @@ def setup_scene():
     pac = pacman_go.add_component(Pacman)
     pac.death_sequence = death_anim
 
+    # Ghost house positions (from maze: G cells around rows 13-15, cols 11-16)
+    # Ghost house center is approximately col=14, row=14
+    ghost_home_inside_x, ghost_home_inside_y = cell_to_world(14, 14)
+    ghost_home_outside_x, ghost_home_outside_y = cell_to_world(14, 11)
+    inside_pos = Vector2(ghost_home_inside_x, ghost_home_inside_y)
+    outside_pos = Vector2(ghost_home_outside_x, ghost_home_outside_y)
+
+    # Ghost configurations: (name, color, start_col, start_row, scatter_duration, initial_is_home)
+    ghost_configs = [
+        ("Blinky", (255, 0, 0),     14, 11, 7.0, False),   # Starts outside, scatter first
+        ("Pinky",  (255, 184, 255), 14, 14, 7.0, True),    # Starts in home
+        ("Inky",   (0, 255, 255),   12, 14, 5.0, True),    # Starts in home
+        ("Clyde",  (255, 184, 82),  16, 14, 5.0, True),    # Starts in home
+    ]
+
+    ghost_components = []
+    for name, color, g_col, g_row, scatter_dur, start_in_home in ghost_configs:
+        gx, gy = cell_to_world(g_col, g_row)
+        ghost_go = GameObject(name, tag="Ghost")
+        ghost_go.layer = 8  # Ghost layer
+        ghost_go.transform.position = Vector2(gx, gy)
+
+        rb_g = ghost_go.add_component(Rigidbody2D)
+        rb_g.body_type = RigidbodyType2D.KINEMATIC
+        col_g = ghost_go.add_component(CircleCollider2D)
+        col_g.radius = 0.5
+
+        # Body sprite
+        sr_body = ghost_go.add_component(SpriteRenderer)
+        sr_body.color = color
+        sr_body.size = Vector2(1.0, 1.0)
+        sr_body.sorting_order = 4
+        sr_body.asset_ref = f"ghost_{name.lower()}"
+
+        # Movement
+        mov_g = ghost_go.add_component(Movement)
+        mov_g.speed = 7.0
+        mov_g.initial_direction = Vector2(0, -1) if start_in_home else Vector2(-1, 0)
+
+        # Behaviors (added before Ghost so start() order: behaviors first, Ghost last)
+        home = ghost_go.add_component(GhostHome)
+        home.inside_position = inside_pos
+        home.outside_position = outside_pos
+        home.enabled = False
+
+        scatter = ghost_go.add_component(GhostScatter)
+        scatter.duration = scatter_dur
+        scatter.enabled = False
+
+        chase = ghost_go.add_component(GhostChase)
+        chase.duration = 20.0
+        chase.enabled = False
+
+        frightened = ghost_go.add_component(GhostFrightened)
+        frightened.body = sr_body
+        frightened.duration = 8.0
+        frightened.enabled = False
+
+        # Ghost aggregator (added LAST so all behaviors exist for start())
+        ghost_comp = ghost_go.add_component(Ghost)
+        ghost_comp.target = pacman_go.transform
+
+        # Set initial behavior
+        if start_in_home:
+            ghost_comp.initial_behavior = home
+        else:
+            ghost_comp.initial_behavior = scatter
+
+        ghost_components.append(ghost_comp)
+
     # GameManager singleton
     gm_go = GameObject("GameManager")
     gm = gm_go.add_component(GameManager)
     gm.pacman = pac
+    gm.ghosts = ghost_components
 
     # Quit handler
     quit_go = GameObject("QuitHandler")

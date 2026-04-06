@@ -1626,7 +1626,8 @@ Passage tunnels.
     "Run headless 300 frames, verify ghost moves and changes state",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true,
+  "note": "7 ghost files created. Scatter/Chase/Frightened/Home state machine with coroutine timers."
 }
 ```
 
@@ -1649,7 +1650,8 @@ Passage tunnels.
     "Run headless 500 frames, verify full game flow",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true,
+  "note": "GameManager built across Tasks 3+4. Score, lives, ghost multiplier, pellet tracking, new round, game over all working. UI uses window title (Canvas/Text deferred). Fruit items deferred."
 }
 ```
 
