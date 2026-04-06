@@ -57,12 +57,15 @@ class LifecycleManager:
             self._destroy_queue.append(comp)
 
     def process_awake_queue(self) -> None:
-        """Process all components waiting for Awake."""
+        """Process all components waiting for Awake.
+
+        Unity calls Awake() regardless of enabled state — it runs once when
+        the component is first created, even if the component starts disabled.
+        """
         while self._awake_queue:
             comp = self._awake_queue.pop(0)
-            if comp.enabled:
-                comp.awake()
-                self._start_queue.append(comp)
+            comp.awake()
+            self._start_queue.append(comp)
 
     def process_start_queue(self) -> None:
         """Process all components waiting for Start."""
