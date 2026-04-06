@@ -1558,7 +1558,7 @@ Passage tunnels.
     "Run headless 120 frames, verify movement and wall collision",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true
 }
 ```
 
@@ -1579,7 +1579,8 @@ Passage tunnels.
     "Run headless 200 frames, verify Pacman moves and animates",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true,
+  "note": "pacman.py, animated_sprite.py, passage.py all implemented in Task 1 commit 0c974b6"
 }
 ```
 

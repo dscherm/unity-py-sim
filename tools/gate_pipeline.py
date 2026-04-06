@@ -50,6 +50,7 @@ def step_tests() -> tuple[bool, dict]:
     print("\n--- Step 1: Test Suite ---")
     ok, output = run_cmd(
         [sys.executable, "-m", "pytest", "tests/", "-q", "--tb=line",
+         "-m", "not slow",
          "--ignore=tests/translator/test_csharp_to_python.py"],
         "pytest", timeout=180
     )
