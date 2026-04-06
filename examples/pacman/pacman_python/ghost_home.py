@@ -19,7 +19,8 @@ class GhostHome(GhostBehavior):
 
     def on_disable(self) -> None:
         # Check for active self to prevent error when object is destroyed
-        if self.game_object.active:
+        # Also guard against being called before ghost is wired up
+        if self.ghost is not None and self.game_object.active:
             self.start_coroutine(self._exit_transition())
 
     def on_collision_enter_2d(self, collision) -> None:

@@ -12,7 +12,7 @@ from pacman_python.node import Node
 class GhostScatter(GhostBehavior):
 
     def on_disable(self) -> None:
-        if self.ghost is not None and self.ghost.chase is not None:
+        if self.ghost is not None and self.ghost.chase is not None and self.ghost.chase.enabled is not None:
             self.ghost.chase.enable()
 
     def on_trigger_enter_2d(self, other) -> None:

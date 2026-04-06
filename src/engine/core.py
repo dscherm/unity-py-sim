@@ -40,7 +40,21 @@ class Component:
 
     def __init__(self) -> None:
         self._game_object: GameObject | None = None
-        self.enabled: bool = True
+        self._enabled: bool = True
+
+    @property
+    def enabled(self) -> bool:
+        return self._enabled
+
+    @enabled.setter
+    def enabled(self, value: bool) -> None:
+        if value == self._enabled:
+            return
+        self._enabled = value
+        if value:
+            self.on_enable()
+        else:
+            self.on_disable()
 
     @property
     def game_object(self) -> GameObject:
@@ -55,6 +69,12 @@ class Component:
         return self.game_object.get_component(cls)
 
     # Lifecycle stubs — overridden by MonoBehaviour subclasses
+    def on_enable(self) -> None:
+        pass
+
+    def on_disable(self) -> None:
+        pass
+
     def awake(self) -> None:
         pass
 
@@ -133,12 +153,6 @@ class MonoBehaviour(Component):
         pass
 
     def late_update(self) -> None:
-        pass
-
-    def on_enable(self) -> None:
-        pass
-
-    def on_disable(self) -> None:
         pass
 
     def on_collision_enter_2d(self, collision: object) -> None:

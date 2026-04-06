@@ -68,7 +68,12 @@ class LifecycleManager:
             self._start_queue.append(comp)
 
     def process_start_queue(self) -> None:
-        """Process all components waiting for Start."""
+        """Process all components waiting for Start.
+
+        Unity calls Start() on the first frame a component is enabled.
+        Disabled components stay in the queue until they become enabled.
+        """
+        still_waiting = []
         while self._start_queue:
             comp = self._start_queue.pop(0)
             if comp.enabled:
@@ -77,6 +82,10 @@ class LifecycleManager:
                     self._update_list.append(comp)
                     self._fixed_update_list.append(comp)
                     self._late_update_list.append(comp)
+            else:
+                # Keep disabled components waiting — they'll start when enabled
+                still_waiting.append(comp)
+        self._start_queue.extend(still_waiting)
 
     def run_fixed_update(self) -> None:
         """Run FixedUpdate on all registered MonoBehaviours."""
