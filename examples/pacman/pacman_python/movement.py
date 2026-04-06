@@ -92,9 +92,12 @@ class Movement(MonoBehaviour):
 
         if changing_axis:
             # Snap to nearest grid on the perpendicular axis and check from there
+            # X cells are at half-integers (offset 0.5), Y cells at integers (offset 0.0)
             if direction.x != 0:
-                snapped = Vector2(pos.x, round((pos.y - GRID_OFFSET) / CELL_SIZE) * CELL_SIZE + GRID_OFFSET)
+                # Turning horizontal — snap Y to integer grid
+                snapped = Vector2(pos.x, round(pos.y / CELL_SIZE) * CELL_SIZE)
             else:
+                # Turning vertical — snap X to half-integer grid
                 snapped = Vector2(round((pos.x - GRID_OFFSET) / CELL_SIZE) * CELL_SIZE + GRID_OFFSET, pos.y)
             # Check occupied from snapped position
             check_pos = Vector2(
