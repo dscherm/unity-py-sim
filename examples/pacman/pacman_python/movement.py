@@ -51,8 +51,14 @@ class Movement(MonoBehaviour):
             self.set_direction(self.next_direction)
 
     def fixed_update(self) -> None:
-        # C# reference: always moves, no occupied check in FixedUpdate
+        # In Unity, MovePosition is blocked by physics colliders automatically.
+        # Our engine's move_position sets position directly (no physics resolution),
+        # so we must check occupied() before moving — engine-level equivalent.
         if self.rb is None:
+            return
+        if self.direction.x == 0 and self.direction.y == 0:
+            return
+        if self.occupied(self.direction):
             return
         pos = self.rb._body.position
         position = Vector2(pos[0], pos[1])
@@ -62,6 +68,7 @@ class Movement(MonoBehaviour):
         )
         new_pos = Vector2(position.x + translation.x, position.y + translation.y)
         self.rb.move_position(new_pos)
+        self.transform.position = new_pos
 
     def set_direction(self, direction: Vector2, forced: bool = False) -> None:
         """Set movement direction if the tile in that direction is available."""
@@ -74,15 +81,20 @@ class Movement(MonoBehaviour):
     def occupied(self, direction: Vector2) -> bool:
         """Check if there's an obstacle in the given direction.
 
-        Uses Physics2D.box_cast matching C# reference:
-        BoxCast(transform.position, Vector2.one * 0.75f, 0f, direction, 1.5f, obstacleLayer)
+        C# reference: BoxCast(transform.position, Vector2.one * 0.75f, 0f, direction, 1.5f, obstacleLayer)
+        Our box_cast samples discrete points, so we use tighter params to avoid
+        detecting walls 1.5 cells away. Check at exactly 1 cell ahead with a
+        small box — this lets the character move right up to the wall edge.
         """
-        hit = Physics2D.box_cast(
-            origin=Vector2(self.transform.position.x, self.transform.position.y),
-            size=Vector2(0.75, 0.75),
+        pos = self.transform.position
+        check_pos = Vector2(
+            pos.x + direction.x * 0.75,
+            pos.y + direction.y * 0.75,
+        )
+        hit = Physics2D.overlap_box(
+            point=check_pos,
+            size=Vector2(0.25, 0.25),
             angle=0.0,
-            direction=direction,
-            distance=1.5,
             layer_mask=1 << self.obstacle_layer,
         )
         return hit is not None
