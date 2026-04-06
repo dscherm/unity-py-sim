@@ -23,6 +23,11 @@ from src.engine.app import run
 from pacman_python.movement import Movement, OBSTACLE_LAYER
 from pacman_python.node import Node
 from pacman_python.passage import Passage
+from pacman_python.pacman import Pacman
+from pacman_python.animated_sprite import AnimatedSprite
+from pacman_python.pellet import Pellet
+from pacman_python.power_pellet import PowerPellet
+from pacman_python.game_manager import GameManager
 from pacman_python.maze_data import (
     MAZE, MAZE_ROWS, MAZE_COLS, cell_to_world, get_cell, is_intersection,
 )
@@ -87,12 +92,15 @@ def setup_scene():
                     sr.color = (255, 255, 200)
                     sr.size = Vector2(0.5, 0.5)
                     sr.asset_ref = "pellet_large"
+                    pp = pellet_go.add_component(PowerPellet)
+                    pp.points = 50
                 else:
                     # Normal pellet
                     col_p.size = Vector2(0.25, 0.25)
                     sr.color = (255, 255, 200)
                     sr.size = Vector2(0.15, 0.15)
                     sr.asset_ref = "pellet_small"
+                    pellet_go.add_component(Pellet)
 
             elif cell == "P":
                 # Pacman start — just a marker, Pacman created separately
@@ -136,6 +144,7 @@ def setup_scene():
     pacman_col, pacman_row = 14, 23  # 'P' position in maze
     px, py = cell_to_world(pacman_col, pacman_row)
     pacman_go = GameObject("Pacman", tag="Pacman")
+    pacman_go.layer = 7  # Pacman layer
     pacman_go.transform.position = Vector2(px, py)
     rb_pac = pacman_go.add_component(Rigidbody2D)
     rb_pac.body_type = RigidbodyType2D.KINEMATIC
@@ -146,8 +155,39 @@ def setup_scene():
     sr_pac.size = Vector2(1.0, 1.0)
     sr_pac.sorting_order = 5
     sr_pac.asset_ref = "pacman_01"
+
+    # Walking animation
+    walk_anim = pacman_go.add_component(AnimatedSprite)
+    walk_anim.sprite_refs = ["pacman_01", "pacman_02", "pacman_03"]
+    walk_anim.animation_time = 0.15
+    walk_anim.loop = True
+
+    # Death sequence (separate GO, disabled by default)
+    death_go = GameObject("PacmanDeath")
+    death_go.transform.position = Vector2(px, py)
+    sr_death = death_go.add_component(SpriteRenderer)
+    sr_death.color = (255, 255, 0)
+    sr_death.size = Vector2(1.0, 1.0)
+    sr_death.sorting_order = 5
+    sr_death.asset_ref = "pacman_death_01"
+    death_anim = death_go.add_component(AnimatedSprite)
+    death_anim.sprite_refs = [
+        f"pacman_death_{i:02d}" for i in range(1, 12)
+    ]
+    death_anim.animation_time = 0.1
+    death_anim.loop = False
+    death_anim.enabled = False
+
+    # Movement + Pacman controller
     movement = pacman_go.add_component(Movement)
     movement.initial_direction = Vector2(-1, 0)  # Start moving left
+    pac = pacman_go.add_component(Pacman)
+    pac.death_sequence = death_anim
+
+    # GameManager singleton
+    gm_go = GameObject("GameManager")
+    gm = gm_go.add_component(GameManager)
+    gm.pacman = pac
 
     # Quit handler
     quit_go = GameObject("QuitHandler")

@@ -1602,7 +1602,8 @@ Passage tunnels.
     "Run headless 300 frames, verify pellet collection and tunnel teleport",
     "Run full test suite"
   ],
-  "passes": false
+  "passes": true,
+  "note": "pellet.py, power_pellet.py, game_manager.py (stub) created. Passage already done in Task 1."
 }
 ```
 
