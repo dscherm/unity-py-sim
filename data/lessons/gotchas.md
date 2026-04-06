@@ -58,7 +58,27 @@ Behavioral differences discovered during C# <-> Python translation.
 - **Boundary zone overlap kills player at start** — If invader grid + collider extents overlap with boundary trigger zones, `OnBoundaryReached()` fires immediately, killing the player before the first frame. Scene layout must account for collider sizes, not just transform positions.
 - **Layer collision matrix is not part of the translation** — The translator outputs C# scripts but the Physics2D layer collision matrix is a project setting. Scene setup must configure `Physics2D.IgnoreLayerCollision()` for Laser↔Player, Missile↔Invader, Laser↔Missile. This is a deployment step, not a translation step.
 
+## Translation — Pacman (2026-04-06)
+
+16 files translated, 12/15 pass syntax gate. Key translator gaps found:
+
+- **Instance fields emit as `static`** — Python class-level annotations (`speed: float = 8.0`) translate to `public static float speed = 8.0f` instead of `public float speed = 8.0f`. The translator treats class-body assignments as static. This is the #1 blocker — every file has this.
+- **Python type hints leak into C#** — `'GameManager | None'` appears literally in the output as a C# type. The translator doesn't strip Python union type hints or translate `| None` to nullable.
+- **`pass` statement leaks** — `on_enable(self): pass` translates to `void OnEnable() { pass; }` instead of an empty method body.
+- **Docstrings leak as code** — Multi-line docstrings in methods appear as bare C# statements (e.g. `Unity's BoxCast sweeps && finds exact contact.`).
+- **`hasattr()` → bad ternary** — `other.get_component(Node) if hasattr(other, 'get_component') else None` becomes `true ? other.GetComponent<Node>() : null`.
+- **`getattr()` leaks verbatim** — `getattr(collision, 'game_object', collision)` appears as-is in C#.
+- **Duplicate field declarations** — `__init__` assignments AND class-level annotations both emit fields, causing duplicate declarations.
+- **Named arguments in Physics2D calls** — `Physics2D.OverlapBox(point=checkPos, ...)` emits with `point=` keyword which is invalid C#.
+- **Coroutines translate well** — `yield None` → `yield return null` and `yield WaitForSeconds(n)` → `yield return new WaitForSeconds(n)` work correctly via the IEnumerator path.
+
 ## Playtest Errors (auto-recorded)
 - **ImportError**: `DLL load failed while importing bufferproxy: The paging file is too small for this operation to comp` — found in pong playtest (2026-04-05)
   Source: `File "D:\Projects\unity-py-sim\examples\pong\..\..\src\engine\app.py", line 37, in run`
 - **ImportError**: `DLL load failed while importing base: The paging file is too small for this operation to complete.` — found in space_invaders playtest (2026-04-05)
+- **RuntimeError**: `(ImportError: DLL load failed while importing pixelcopy: The paging file is too small for this opera` — found in breakout playtest (2026-04-05)
+- **ImportError**: `DLL load failed while importing _multiarray_umath: The paging file is too small for this operation t` — found in pong playtest (2026-04-05)
+- **RuntimeError**: `MemoryError` — found in space_invaders playtest (2026-04-05)
+- **SystemError**: `could not initialize PyUIntArrType_Type` — found in space_invaders playtest (2026-04-05)
+- **ImportError**: `DLL load failed while importing constants: The paging file is too small for this operation to comple` — found in angry_birds playtest (2026-04-05)
+- **ImportError**: `DLL load failed while importing rwobject: The paging file is too small for this operation to complet` — found in angry_birds playtest (2026-04-05)
