@@ -17,10 +17,12 @@ class GameManager(MonoBehaviour):
     # Assigned in run_pacman.py
     pacman: object | None = None   # Pacman component
     ghosts: list = None            # List of Ghost components
+    _all_pellets: list = None      # All pellet GOs (including inactive)
 
     def __init__(self) -> None:
         super().__init__()
         self.ghosts = []
+        self._all_pellets = []
 
     def awake(self) -> None:
         if GameManager.instance is not None:
@@ -33,6 +35,11 @@ class GameManager(MonoBehaviour):
             GameManager.instance = None
 
     def start(self) -> None:
+        # Snapshot all pellet GOs at start (before any are deactivated)
+        self._all_pellets = (
+            GameObject.find_game_objects_with_tag("Pellet")
+            + GameObject.find_game_objects_with_tag("PowerPellet")
+        )
         self.new_game()
 
     def update(self) -> None:
@@ -46,10 +53,8 @@ class GameManager(MonoBehaviour):
         self.new_round()
 
     def new_round(self) -> None:
-        # Reactivate all pellets
-        for go in GameObject.find_game_objects_with_tag("Pellet"):
-            go.active = True
-        for go in GameObject.find_game_objects_with_tag("PowerPellet"):
+        # Reactivate all pellets (use stored list — tag lookup skips inactive GOs)
+        for go in self._all_pellets:
             go.active = True
         self.reset_state()
         self._update_title()
@@ -104,10 +109,7 @@ class GameManager(MonoBehaviour):
             self.game_over()
 
     def has_remaining_pellets(self) -> bool:
-        for go in GameObject.find_game_objects_with_tag("Pellet"):
-            if go.active:
-                return True
-        for go in GameObject.find_game_objects_with_tag("PowerPellet"):
+        for go in self._all_pellets:
             if go.active:
                 return True
         return False
