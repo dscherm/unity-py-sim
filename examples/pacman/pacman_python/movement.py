@@ -1,6 +1,7 @@
 """Movement — grid-based movement with wall detection and direction queuing.
 
 Line-by-line port of Movement.cs from zigurous/unity-pacman-tutorial.
+Grid-snapping added to handle engine difference (no physics-resolved MovePosition).
 """
 
 from src.engine.core import MonoBehaviour
@@ -12,6 +13,10 @@ from src.engine.time_manager import Time
 
 # Layer index for obstacles (walls)
 OBSTACLE_LAYER: int = 6
+
+# Grid cell size — maze uses 1-unit cells, offset by 0.5
+CELL_SIZE: float = 1.0
+GRID_OFFSET: float = 0.5  # Maze cells are at x.5 positions
 
 
 class Movement(MonoBehaviour):
@@ -51,45 +56,85 @@ class Movement(MonoBehaviour):
             self.set_direction(self.next_direction)
 
     def fixed_update(self) -> None:
-        # In Unity, MovePosition is blocked by physics colliders automatically.
-        # Our engine's move_position sets position directly (no physics resolution),
-        # so we must check occupied() before moving — engine-level equivalent.
         if self.rb is None:
             return
         if self.direction.x == 0 and self.direction.y == 0:
             return
         if self.occupied(self.direction):
             return
-        pos = self.rb._body.position
-        position = Vector2(pos[0], pos[1])
-        translation = Vector2(
-            self.speed * self.speed_multiplier * Time.fixed_delta_time * self.direction.x,
-            self.speed * self.speed_multiplier * Time.fixed_delta_time * self.direction.y,
+        pos = self.transform.position
+        position = Vector2(pos.x, pos.y)
+        step = self.speed * self.speed_multiplier * Time.fixed_delta_time
+        new_pos = Vector2(
+            position.x + self.direction.x * step,
+            position.y + self.direction.y * step,
         )
-        new_pos = Vector2(position.x + translation.x, position.y + translation.y)
         self.rb.move_position(new_pos)
         self.transform.position = new_pos
 
     def set_direction(self, direction: Vector2, forced: bool = False) -> None:
-        """Set movement direction if the tile in that direction is available."""
-        if forced or not self.occupied(direction):
+        """Set movement direction if the tile in that direction is available.
+
+        When turning, check from the grid-snapped position (not current position)
+        to account for overshooting intersections. Then snap before moving.
+        """
+        if forced:
             self.direction = direction
             self.next_direction = Vector2(0, 0)
+            return
+
+        # For turns (changing axis), check from snapped position
+        pos = self.transform.position
+        changing_axis = (
+            (direction.x != 0 and self.direction.y != 0) or
+            (direction.y != 0 and self.direction.x != 0)
+        )
+
+        if changing_axis:
+            # Snap to nearest grid on the perpendicular axis and check from there
+            if direction.x != 0:
+                snapped = Vector2(pos.x, round((pos.y - GRID_OFFSET) / CELL_SIZE) * CELL_SIZE + GRID_OFFSET)
+            else:
+                snapped = Vector2(round((pos.x - GRID_OFFSET) / CELL_SIZE) * CELL_SIZE + GRID_OFFSET, pos.y)
+            # Check occupied from snapped position
+            check_pos = Vector2(
+                snapped.x + direction.x * 1.0,
+                snapped.y + direction.y * 1.0,
+            )
+            hit = Physics2D.overlap_box(
+                point=check_pos,
+                size=Vector2(0.4, 0.4),
+                angle=0.0,
+                layer_mask=1 << self.obstacle_layer,
+            )
+            if hit is None:
+                # Apply snap and change direction
+                self.transform.position = snapped
+                self.rb.move_position(snapped)
+                self.direction = direction
+                self.next_direction = Vector2(0, 0)
+            else:
+                self.next_direction = direction
         else:
-            self.next_direction = direction
+            # Same axis or reversing — no snap needed
+            if not self.occupied(direction):
+                self.direction = direction
+                self.next_direction = Vector2(0, 0)
+            else:
+                self.next_direction = direction
 
     def occupied(self, direction: Vector2) -> bool:
         """Check if there's an obstacle in the given direction.
 
-        C# reference: BoxCast(transform.position, Vector2.one * 0.75f, 0f, direction, 1.5f, obstacleLayer)
-        Our box_cast samples discrete points, so we use tighter params to avoid
-        detecting walls 1.5 cells away. Check at exactly 1 cell ahead with a
-        small box — this lets the character move right up to the wall edge.
+        Uses overlap_box at 1 cell ahead, matching the intent of the C#
+        BoxCast(transform.position, Vector2.one * 0.75f, 0f, direction, 1.5f).
         """
         pos = self.transform.position
+        # Check half a cell ahead with a small box — lets character move
+        # right up to the wall edge (within 0.5 cells)
         check_pos = Vector2(
-            pos.x + direction.x * 0.75,
-            pos.y + direction.y * 0.75,
+            pos.x + direction.x * 0.5,
+            pos.y + direction.y * 0.5,
         )
         hit = Physics2D.overlap_box(
             point=check_pos,
