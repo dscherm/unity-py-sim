@@ -92,6 +92,8 @@ class GameManager(MonoBehaviour):
         points = ghost.points * self._ghost_multiplier
         self._set_score(self.score + points)
         self._ghost_multiplier *= 2
+        # Send ghost home (matches GhostFrightened.Eaten() in C# reference)
+        ghost.frightened.eaten()
 
     def pellet_eaten(self, pellet) -> None:
         pellet.game_object.active = False

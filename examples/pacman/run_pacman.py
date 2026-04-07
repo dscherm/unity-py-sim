@@ -129,8 +129,8 @@ def setup_scene():
                 else:
                     passage_right = passage_go
 
-            # Place node at intersections
-            if cell not in ("W", "G") and is_intersection(col, row):
+            # Place node at intersections (including ghost house for ghost AI)
+            if cell not in ("W",) and is_intersection(col, row):
                 node_go = GameObject(f"Node_{row}_{col}")
                 node_go.transform.position = Vector2(wx, wy)
                 rb_n = node_go.add_component(Rigidbody2D)
@@ -139,6 +139,21 @@ def setup_scene():
                 col_n.is_trigger = True
                 col_n.size = Vector2(0.5, 0.5)
                 node_go.add_component(Node)
+
+    # Ghost house gate — wall at entrance to prevent ghosts from re-entering
+    # In the reference game, this is a one-way door. We use an obstacle-layer
+    # wall that GhostHome's exit transition bypasses (by disabling movement).
+    GATE_LAYER = OBSTACLE_LAYER  # Same layer so occupied() detects it
+    for gate_col in (13, 14):
+        gx, gy = cell_to_world(gate_col, 12)
+        gate_go = GameObject(f"GhostGate_{gate_col}")
+        gate_go.layer = GATE_LAYER
+        gate_go.transform.position = Vector2(gx, gy)
+        rb_gate = gate_go.add_component(Rigidbody2D)
+        rb_gate.body_type = RigidbodyType2D.STATIC
+        col_gate = gate_go.add_component(BoxCollider2D)
+        col_gate.size = Vector2(1.0, 0.5)
+        # No sprite — invisible gate
 
     # Wire passage connections
     if passage_left and passage_right:

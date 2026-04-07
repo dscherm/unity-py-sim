@@ -38,3 +38,8 @@ class Passage(MonoBehaviour):
             self.connection.position.y,
         )
         other.transform.position = position
+        # Also update the rigidbody so Movement.fixed_update doesn't overwrite
+        from src.engine.physics.rigidbody import Rigidbody2D
+        rb = other.get_component(Rigidbody2D)
+        if rb is not None:
+            rb.move_position(position)
