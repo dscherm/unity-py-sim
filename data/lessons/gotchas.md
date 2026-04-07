@@ -58,6 +58,16 @@ Behavioral differences discovered during C# <-> Python translation.
 - **Boundary zone overlap kills player at start** — If invader grid + collider extents overlap with boundary trigger zones, `OnBoundaryReached()` fires immediately, killing the player before the first frame. Scene layout must account for collider sizes, not just transform positions.
 - **Layer collision matrix is not part of the translation** — The translator outputs C# scripts but the Physics2D layer collision matrix is a project setting. Scene setup must configure `Physics2D.IgnoreLayerCollision()` for Laser↔Player, Missile↔Invader, Laser↔Missile. This is a deployment step, not a translation step.
 
+## Engine Lifecycle — Pacman (2026-04-06)
+
+- **Awake() must run on disabled components** — The engine was skipping `awake()` for `enabled=False` components. Unity calls `Awake()` regardless of enabled state. This caused ghost behaviors (added disabled) to never initialize their `ghost` reference, breaking all ghost AI.
+- **enabled must fire on_enable/on_disable callbacks** — Was a plain attribute. Changed to a property. Without callbacks, `GhostHome.on_disable()` (which starts the exit transition coroutine) never fired.
+- **Start() defers for disabled components** — Must stay in start queue until enabled, not be dropped. Components enabled later (by game logic) need their `Start()` called on the first frame they're active.
+- **Teleporting must sync Rigidbody2D** — Setting `transform.position` without `rb.move_position()` causes `Movement.fixed_update()` to overwrite the teleport with the stale pymunk body position. Always update BOTH.
+- **Grid movement needs explicit snap-to-grid** — Unity's `MovePosition` + `BoxCast` naturally aligns to grid via physics resolution. Our overlap-based detection needs explicit grid-snapping when turning at intersections. Maze X offset=0.5, Y offset=0.0.
+- **Node placement must include corners** — Original `is_intersection` only detected 3+ open directions (T-junctions). L-shaped corners (2 non-opposite directions) also need nodes or ghosts get stuck at dead ends.
+- **Ghost house needs a gate** — Without a wall at the ghost house entrance, scatter/chase ghosts walk back into the house and get stuck. Add obstacle-layer walls at the entrance row.
+
 ## Translation — Pacman (2026-04-06)
 
 16 files translated, 12/15 pass syntax gate. Key translator gaps found:
