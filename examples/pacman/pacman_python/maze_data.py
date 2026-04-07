@@ -72,12 +72,22 @@ def get_cell(col: int, row: int) -> str:
 
 
 def is_intersection(col: int, row: int) -> bool:
-    """Check if a path cell is an intersection (3+ open directions)."""
+    """Check if a path cell is a decision point where ghosts need to pick a direction.
+
+    Returns True for T-junctions (3+), crossroads (4), AND corners (2 non-opposite).
+    Straight corridors (2 opposite) return False — no decision needed.
+    """
     if get_cell(col, row) == "W":
         return False
-    open_dirs = 0
+    open = []
     for dc, dr in [(0, -1), (0, 1), (-1, 0), (1, 0)]:
-        neighbor = get_cell(col + dc, row + dr)
-        if neighbor != "W":
-            open_dirs += 1
-    return open_dirs >= 3
+        if get_cell(col + dc, row + dr) != "W":
+            open.append((dc, dr))
+    if len(open) >= 3:
+        return True
+    if len(open) == 2:
+        # Corner: two directions that aren't opposite (e.g. up+right, not up+down)
+        (dc1, dr1), (dc2, dr2) = open
+        if dc1 != -dc2 or dr1 != -dr2:
+            return True
+    return False

@@ -14,14 +14,15 @@ class GhostFrightened(GhostBehavior):
     eyes: SpriteRenderer | None = None
     _eaten: bool = False
 
+    _original_color: tuple = (255, 255, 255)
+
     def enable(self, duration: float = -1.0) -> None:
         super().enable(duration)
 
-        # Swap to vulnerable appearance
+        # Swap to vulnerable appearance — change body color to blue
         if self.body is not None:
-            self.body.enabled = False
-        if self.eyes is not None:
-            self.eyes.enabled = False
+            self._original_color = self.body.color
+            self.body.color = (33, 33, 222)  # Blue vulnerable color
 
         self._eaten = False
 
@@ -30,9 +31,7 @@ class GhostFrightened(GhostBehavior):
 
         # Restore normal appearance
         if self.body is not None:
-            self.body.enabled = True
-        if self.eyes is not None:
-            self.eyes.enabled = True
+            self.body.color = self._original_color
 
     def eaten(self) -> None:
         """Called when Pacman eats this ghost while frightened."""
