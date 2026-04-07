@@ -5,6 +5,7 @@
     "expertise": [
       "backend",
       "gamedev",
+      "unity",
       "testing"
     ]
   },
@@ -56,7 +57,11 @@
       "debug.py": ["tests/engine/test_debug.py"],
       "audio.py": ["tests/engine/test_audio.py"],
       "ui.py": ["tests/engine/test_ui.py"],
-      "scene.py": ["tests/engine/test_scene.py"]
+      "scene.py": ["tests/engine/test_scene.py"],
+      "events.py": ["tests/engine/test_events.py"],
+      "manifest.py": ["tests/assets/test_manifest.py"],
+      "scene_serializer.py": ["tests/exporter/test_scene_serializer.py"],
+      "coplay_generator.py": ["tests/exporter/test_coplay_generator.py"]
     },
     "shared_files": [
       "src/translator/rules/translation_rules.json",
@@ -73,6 +78,14 @@
       "id_rsa",
       "id_ed25519"
     ],
+    "security_scan": {
+      "enabled": true,
+      "mode": "warn",
+      "scanner": "bandit",
+      "command": "python -m bandit -r src/ -f json -q",
+      "fallback_scanner": "semgrep",
+      "fallback_command": "semgrep --config=auto src/ --json --quiet"
+    },
     "manager_review": {
       "enabled": true,
       "model": "sonnet",

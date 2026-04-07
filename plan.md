@@ -1676,3 +1676,346 @@ Passage tunnels.
   "note": "16 files translated. Syntax gate: 12/15. Convention gate: 15/15. 3 syntax failures: leaked Python type hint, pass stmt, docstring. Known gaps: static fields, duplicate decls, hasattr->ternary, getattr leak. Unity deployment deferred to home machine."
 }
 ```
+
+---
+
+## Phase: Hierarchical Architecture — End-to-End Unity Pipeline
+
+Architecture: **MonoBehaviour + ScriptableObject + Event-Driven**
+Goal: Close the gap between "translator output compiles" and "translator output runs as a Unity game."
+
+The pipeline has 6 stages. Stages 1-2 exist. Stage 3 is the critical missing piece.
+Stage 4 partially exists (CoPlay generator). Stages 5-6 are manual.
+
+```
+Stage 1: Python Dev        → pymunk/pygame (EXISTS)
+Stage 2: Translation       → AST Python→C# (EXISTS, needs semantic layer)
+Stage 3: Project Scaffold  → Full Unity project structure (NEW — this phase)
+Stage 4: Scene Construction→ CoPlay MCP (PARTIAL — needs prefab awareness)
+Stage 5: Validation        → Compile + play-test (PARTIAL — needs automation)
+Stage 6: Polish & Build    → Art/audio/ship (MANUAL)
+```
+
+### Task 1: Semantic Translation Layer
+
+```json
+{
+  "category": "feature",
+  "priority": 1,
+  "description": "Add a semantic translation layer between the AST translator and C# output. The AST translator handles syntax (Python→C#) but not semantics (simulator patterns→Unity patterns). This layer rewrites patterns that compile but don't run. See data/lessons/ translator-compiles-not-runs lesson.",
+  "steps": [
+    "Create src/translator/semantic_layer.py",
+    "Rewrite GameObject('name') instantiation → Instantiate(prefab) or scene hierarchy lookup",
+    "Rewrite singleton access (GameManager.instance) → serialized field references with [SerializeField]",
+    "Rewrite Python type hints that leak through (e.g., 'GameManager | None' → GameManager with null check)",
+    "Rewrite module-level constants → static class fields (partial — some done in Simulator Redesign phase)",
+    "Rewrite simulator-only code (pygame.display, pymunk direct access) → strip or replace with Unity equivalents",
+    "Add pass in project_translator.py: after AST translation, before file write, run semantic_layer.transform()",
+    "Test against Pacman and Space Invaders generated output — diff should show fewer Python leaks",
+    "Run structural gate and convention gate on transformed output"
+  ],
+  "passes": false
+}
+```
+
+### Task 2: SerializeField and Typed Field Emission
+
+```json
+{
+  "category": "feature",
+  "priority": 2,
+  "description": "Fix the translator to emit [SerializeField] attributes and concrete types instead of 'object' for fields that need Inspector wiring. Currently generated GameManager.cs uses 'public object ghosts;' instead of '[SerializeField] private Ghost[] ghosts;'. This is the #1 reason generated code compiles but can't be wired in the Unity editor.",
+  "steps": [
+    "Analyze how the Python engine stores field types — check __init__ assignments and type annotations",
+    "Update python_parser.py to capture field type annotations and assignment types into PyField",
+    "Update python_to_csharp.py field emission: if field type is a MonoBehaviour subclass or list thereof, emit [SerializeField] private T field instead of public object field",
+    "Handle array/list fields: List[Ghost] → Ghost[], List[Pellet] → Pellet[]",
+    "Handle nullable references: Optional[GameManager] → GameManager (nullable ref type in C#)",
+    "Remove duplicate field declarations (both public and static for same field)",
+    "Test against Pacman generated output — GameManager should have typed fields",
+    "Run full translator test suite, fix regressions"
+  ],
+  "passes": false
+}
+```
+
+### Task 3: ScriptableObject Support in Engine
+
+```json
+{
+  "category": "feature",
+  "priority": 3,
+  "description": "Add ScriptableObject base class to the Python engine and translator support. ScriptableObjects replace singletons and class-level data with Inspector-configurable assets — Unity's recommended pattern for shared game config, events, and variables.",
+  "steps": [
+    "Create src/engine/scriptable_object.py with ScriptableObject base class",
+    "Add CreateAssetMenu decorator support (maps to [CreateAssetMenu] attribute in C#)",
+    "Create common SO types: FloatVariable, IntVariable, GameEvent, GameEventListener",
+    "Update translator to emit [CreateAssetMenu(fileName=..., menuName=...)] for SO subclasses",
+    "Update translator to emit ScriptableObject inheritance instead of MonoBehaviour for SO classes",
+    "Refactor one example (Pacman GameConfig: speed, ghost_speed, frighten_duration, etc.) to use SO instead of hardcoded constants",
+    "Add reference mapping in src/reference/mappings/ for ScriptableObject patterns",
+    "Write tests for SO translation — verify generated C# creates valid SO assets"
+  ],
+  "passes": false
+}
+```
+
+### Task 4: Unity Project Scaffolder
+
+```json
+{
+  "category": "feature",
+  "priority": 4,
+  "description": "Create a project scaffolder that generates a complete Unity project structure around the translated C# files. This is the critical missing Stage 3 — currently the pipeline produces .cs files but no project structure, no prefabs, no ProjectSettings, no .meta files. Without this, CoPlay MCP has to reconstruct everything manually.",
+  "steps": [
+    "Create src/exporter/project_scaffolder.py",
+    "Generate Unity folder structure: Assets/_Generated/Scripts/, Prefabs/, ScriptableObjects/, Scenes/; Assets/Art/; Packages/; ProjectSettings/",
+    "Place translated .cs files into Assets/_Generated/Scripts/ (underscore prefix = 'don't hand-edit')",
+    "Generate Packages/manifest.json with required packages (detect from translator: Input System, TextMeshPro, etc.)",
+    "Generate ProjectSettings/TagManager.asset with tags and sorting layers extracted from Python game",
+    "Generate ProjectSettings/InputManager.asset or .inputactions file based on input_manager.py usage",
+    "Generate .meta files for all generated assets (Unity requires stable GUIDs for cross-references)",
+    "Add CLI entry point: python -m src.exporter.scaffold --game pacman --output data/generated/pacman_project/",
+    "Test: scaffold Pacman project, verify folder structure matches Unity conventions",
+    "Document the generated structure in data/lessons/"
+  ],
+  "passes": false
+}
+```
+
+### Task 5: Prefab Manifest and Generation
+
+```json
+{
+  "category": "feature",
+  "priority": 5,
+  "description": "Generate Unity prefab definitions from Python game code. Currently the scene serializer captures the scene graph but doesn't identify prefabs vs scene objects. Heuristic: anything Instantiate()d at runtime should be a prefab. Anything in scene_setup() is a scene object.",
+  "steps": [
+    "Analyze examples/pacman/ and examples/space_invaders/ — identify which GameObjects are created at runtime vs in setup",
+    "Create src/exporter/prefab_generator.py — extracts prefab candidates from Python code",
+    "For each prefab: generate a .prefab YAML file with components (Transform, SpriteRenderer, Collider2D, MonoBehaviours)",
+    "Generate stable GUIDs for prefab .meta files (deterministic from class name, so regeneration produces same GUIDs)",
+    "Update the CoPlay generator: create prefabs first, then instantiate them in scene setup script",
+    "Update the scene serializer to tag objects as 'prefab' vs 'scene_object'",
+    "Test: generate Pacman prefabs (Pellet, PowerPellet, Ghost, Pacman), verify they reference the correct .cs scripts",
+    "Integrate with project_scaffolder.py — prefabs go to Assets/_Generated/Prefabs/"
+  ],
+  "passes": false
+}
+```
+
+### Task 6: Event Bus Translation
+
+```json
+{
+  "category": "feature",
+  "priority": 6,
+  "description": "Translate the Python EventBus (src/engine/events.py) to Unity UnityEvent<T> or ScriptableObject-based events. Currently cross-component communication uses direct method calls (e.g., GameManager.pacman_eaten()) which creates hard coupling. Events decouple components, which also makes translation easier — fewer cross-file dependencies for the translator to resolve.",
+  "steps": [
+    "Read src/engine/events.py to understand current EventBus implementation",
+    "Design the translation mapping: Python EventChannel → Unity UnityEvent<T> or ScriptableObject GameEvent",
+    "Add translator rules for event subscription: event.subscribe(callback) → event.AddListener(callback)",
+    "Add translator rules for event firing: event.fire(data) → event.Invoke(data) or event.Raise(data)",
+    "Refactor one example to use events instead of direct calls (Pacman: pellet_eaten, ghost_eaten, pacman_died)",
+    "Verify the translated C# uses UnityEvent or SO events correctly",
+    "Run translator test suite, add new test cases for event patterns"
+  ],
+  "passes": false
+}
+```
+
+### Task 7: CoPlay Scene Generator Update
+
+```json
+{
+  "category": "feature",
+  "priority": 7,
+  "description": "Update the CoPlay MCP script generator to work with the new project scaffolder output. Currently it generates a standalone editor script. It should now reference generated prefabs, use the scaffolded project structure, and wire SerializeField references in the Inspector.",
+  "steps": [
+    "Read src/exporter/coplay_generator.py to understand current approach",
+    "Update to load prefabs from Assets/_Generated/Prefabs/ instead of creating GameObjects from scratch",
+    "Add SerializeField wiring: after scene construction, set Inspector references (e.g., GameManager.ghosts = ghost array)",
+    "Add ScriptableObject asset creation: generate .asset files for SO configs and wire them to components",
+    "Generate scene file save to correct path (per coplay-scene-save-path-mismatch lesson)",
+    "Add physics layer setup: assign layers from ProjectSettings/TagManager.asset",
+    "Test: generate full CoPlay script for Pacman, verify it references prefabs and wires fields",
+    "Update validation: after scene construction, verify all SerializeField references are non-null via CoPlay MCP"
+  ],
+  "passes": false
+}
+```
+
+### Task 8: End-to-End Pipeline Validation — Pacman
+
+```json
+{
+  "category": "validation",
+  "priority": 8,
+  "description": "Full end-to-end pipeline test: Python Pacman → Translator → Semantic Layer → Scaffolder → Prefabs → CoPlay Scene → Unity Play. This validates all 6 stages work together. Should produce a playable Pacman in Unity from the Python source with minimal manual intervention.",
+  "steps": [
+    "Run full pipeline: translate Pacman Python → apply semantic layer → scaffold Unity project → generate prefabs → generate CoPlay script",
+    "Deploy to Unity on home machine via git push",
+    "Run CoPlay MCP: execute scene construction script",
+    "Verify: dotnet build passes (compilation gate)",
+    "Verify: Unity play mode — Pacman moves, ghosts chase, pellets collected, score updates, lives decrement",
+    "Record all manual interventions required (sprite wiring, missing references, physics tweaks)",
+    "Document gaps as new translator/scaffolder tasks",
+    "Update accuracy metrics in data/",
+    "Goal: < 5 manual interventions to get from Python source to playable Unity game"
+  ],
+  "passes": false
+}
+```
+
+---
+
+## Phase: Pacman V2 — Zigurous Tutorial Port (Learning Test)
+
+This phase re-implements Pacman from the zigurous/unity-pacman-tutorial C# source
+as a Python mod using py-unity-sim. The purpose is to test whether the ralph system's
+accumulated lessons (34 lessons, 17K+ observations) produce a faster, cleaner
+implementation than the original Pacman phase.
+
+Source: https://github.com/zigurous/unity-pacman-tutorial
+Sprites: examples/pacman_v2/sprites/ (74 PNGs downloaded from the repo)
+
+Key differences from v1: continuous physics movement (not grid-snapped),
+shared ghost body sprites with color tint, 38 distinct wall tiles,
+simplified ghost scatter (random, no corner targeting), fruit sprites (unused in code).
+
+### Task 1: Project structure and maze with real wall sprites
+
+```json
+{
+  "category": "feature",
+  "priority": 1,
+  "description": "Create pacman_v2 directory structure and build the 28x31 maze using the 38 Wall_XX sprites from the zigurous tutorial. Map each wall tile type to the correct sprite. Use the engine's SpriteRenderer with actual PNG loading instead of colored rectangles.",
+  "steps": [
+    "Create examples/pacman_v2/pacman_v2_python/ directory with __init__.py",
+    "Create maze_data.py — 28x31 grid matching zigurous layout, each wall cell referencing a Wall_XX tile index",
+    "Create wall_renderer.py — loads Wall_00.png through Wall_37.png from sprites/ and assigns correct tile sprite per wall cell",
+    "Create run_pacman_v2.py — scene setup with camera (600x700), black background, wall rendering",
+    "Run headless 60 frames, verify maze renders with real sprites (no colored rectangles)"
+  ],
+  "passes": true
+}
+```
+
+### Task 2: Continuous movement system with real Pacman sprites
+
+```json
+{
+  "category": "feature",
+  "priority": 2,
+  "description": "Port the zigurous Movement.cs as continuous physics-based movement (not grid-snapped like v1). Use Rigidbody2D.MovePosition in FixedUpdate. Load and animate Pacman_01-03.png sprites. Apply rotation based on movement direction using Atan2 (matching the C# Pacman.Update).",
+  "steps": [
+    "Create movement.py — continuous physics movement with speed=8, speedMultiplier=1, direction queuing via nextDirection, Occupied() check using Physics2D.box_cast against obstacleLayer",
+    "Create pacman.py — WASD/arrow input, calls movement.set_direction(), sprite rotation via Atan2",
+    "Create animated_sprite.py — generic frame animation using InvokeRepeating, loads Pacman_01-03.png, supports loop and restart",
+    "Wire Pacman into run_pacman_v2.py with CircleCollider2D, SpriteRenderer, Movement, AnimatedSprite",
+    "Run headless 120 frames — verify Pacman moves smoothly through maze corridors without wall penetration"
+  ],
+  "passes": true
+}
+```
+
+### Task 3: Node system and pellets with real sprites
+
+```json
+{
+  "category": "feature",
+  "priority": 3,
+  "description": "Port the Node intersection system (BoxCast to detect available directions) and place pellets using Pellet_Small.png and Pellet_Large.png sprites. Pellets are trigger colliders that notify GameManager when eaten by Pacman.",
+  "steps": [
+    "Create node.py — placed at every intersection/turn, Start() box-casts in 4 directions to build availableDirections list",
+    "Create pellet.py — trigger collider, 10 points, calls GameManager.pellet_eaten() on Pacman collision",
+    "Create power_pellet.py — inherits Pellet, 50 points, duration=8s, calls GameManager.power_pellet_eaten()",
+    "Place Nodes at all intersections in run_pacman_v2.py",
+    "Place pellets (Pellet_Small.png) and power pellets (Pellet_Large.png) at all non-wall, non-node positions",
+    "Run headless 120 frames — verify pellet count matches expected (240 pellets + 4 power pellets)"
+  ],
+  "passes": true
+}
+```
+
+### Task 4: Ghost system with shared body sprites and color tinting
+
+```json
+{
+  "category": "feature",
+  "priority": 4,
+  "description": "Port the ghost system matching zigurous architecture: Ghost controller with 5 behavior components. Use shared Ghost_Body_01/02.png with color tint per ghost (Blinky=red, Pinky=pink, Inky=cyan, Clyde=orange). Load Ghost_Eyes_XX.png for directional eye sprites on a child object.",
+  "steps": [
+    "Create ghost.py — controller holding references to home/scatter/chase/frightened behaviors, collision detection with Pacman",
+    "Create ghost_behavior.py — abstract base with enable(duration)/disable(), uses Invoke for timed transitions",
+    "Create ghost_scatter.py — at each Node trigger, picks random available direction (avoids reversing)",
+    "Create ghost_chase.py — at each Node trigger, picks direction minimizing distance to ghost.target",
+    "Create ghost_eyes.py — swaps Ghost_Eyes_Up/Down/Left/Right.png based on movement.direction",
+    "Wire 4 ghosts in run_pacman_v2.py: Blinky(red), Pinky(pink), Inky(cyan), Clyde(orange) with color tint on shared body sprite",
+    "Configure scatter/chase cycle via OnDisable callbacks (matching zigurous pattern)",
+    "Run headless 120 frames — verify 4 ghosts move, change direction at nodes, cycle scatter/chase"
+  ],
+  "passes": true
+}
+```
+
+### Task 5: Frightened mode and ghost home with vulnerable sprites
+
+```json
+{
+  "category": "feature",
+  "priority": 5,
+  "description": "Port GhostFrightened (half speed, flee behavior, blue/white flashing sprites) and GhostHome (bounce inside pen, animated exit via coroutine lerp). Use Ghost_Vulnerable_Blue/White sprites.",
+  "steps": [
+    "Create ghost_frightened.py — enables on power pellet, hides body/eyes, shows Ghost_Vulnerable_Blue_01/02.png animation, speedMultiplier=0.5, flee logic (maximize distance at nodes), Flash() at halfway switches to White sprites",
+    "Create ghost_home.py — bounce inside pen (reverse on wall collision), OnDisable triggers ExitTransition coroutine (lerp to inside point 0.5s, lerp to outside point 0.5s, pick random left/right)",
+    "Wire frightened/eaten/home/exit flow: when Pacman eats frightened ghost, teleport to home, show only eyes, exit animation, resume scatter/chase",
+    "Create passage.py — tunnel teleporter with connection Transform (simpler than v1, no cooldown — matching zigurous OnTriggerEnter2D)",
+    "Run headless 300 frames — verify: power pellet turns ghosts blue at half speed, Pacman eats ghost, eyes return home, ghost exits pen"
+  ],
+  "passes": true
+}
+```
+
+### Task 6: GameManager, scoring, lives, and death animation
+
+```json
+{
+  "category": "feature",
+  "priority": 6,
+  "description": "Port GameManager singleton with full game flow: score, lives, ghost multiplier, round reset, death sequence. Load Pacman_Death_01-11.png for death animation. Match zigurous game flow exactly.",
+  "steps": [
+    "Create game_manager.py — singleton with score, lives=3, ghostMultiplier, NewGame/NewRound/ResetState/GameOver flow",
+    "Implement PelletEaten (deactivate pellet, add points, check all eaten then NewRound after 3s)",
+    "Implement PowerPelletEaten (enable frightened on all ghosts, reset multiplier timer)",
+    "Implement GhostEaten (200 * multiplier points, increment multiplier)",
+    "Implement PacmanEaten (death animation, decrement lives, ResetState after 3s or GameOver)",
+    "Create death animation: AnimatedSprite with Pacman_Death_01-11.png (11 frames, 0.1s each, no loop)",
+    "Wire UI: score display, lives display, game over text (use engine UI system)",
+    "Full playtest: complete game loop — eat pellets, eat ghosts, die, respawn, clear round, game over, restart"
+  ],
+  "passes": true
+}
+```
+
+### Task 7: C# translation and comparison
+
+```json
+{
+  "category": "validation",
+  "priority": 7,
+  "description": "Translate Pacman V2 Python to C# using the project translator. Compare generated output against the zigurous original C# source. Measure translation accuracy and record gaps. Key learning test: does v2 produce better translations than v1?",
+  "steps": [
+    "Run project_translator on examples/pacman_v2/pacman_v2_python/ to data/generated/pacman_v2_cs/",
+    "Apply semantic_layer.transform() if available (from Hierarchical Architecture phase)",
+    "Run structural gate on generated C# (tree-sitter parse)",
+    "Run convention gate (Unity patterns check)",
+    "Diff generated C# against zigurous original C# — measure: lines matching, patterns correct, Python leaks remaining",
+    "Compare v2 translation quality against v1 translation quality (from Pacman Task 6 notes)",
+    "Record all translation gaps in data/lessons/",
+    "Update accuracy metrics in data/",
+    "Key metric: v2 should have FEWER translation gaps than v1 if the system learned"
+  ],
+  "passes": false
+}
+```
