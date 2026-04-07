@@ -3,13 +3,13 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class AnimatedSprite : MonoBehaviour
 {
+    public float animationTime = 0.25f;
+    public bool loop = true;
+    public int AnimationFrame = 0;
+    public float Timer = 0.0f;
     public string[] spriteRefs;
-    public static string[] spriteRefs;
-    public static float animationTime = 0.25f;
-    public static bool loop = true;
-    public static SpriteRenderer spriteRenderer = null;
-    public static int AnimationFrame = 0;
-    public static float Timer = 0.0f;
+    public SpriteRenderer spriteRenderer;
+    public string[] spriteRefs;
      void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();

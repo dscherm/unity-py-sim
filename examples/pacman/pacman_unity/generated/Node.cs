@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 public class Node : MonoBehaviour
 {
+    public int obstacleLayer = OBSTACLE_LAYER;
     public List<Vector2> availableDirections = new List<Vector2>();
+    public List<Vector2> availableDirections;
     public static int OBSTACLE_LAYER = 6;
-    public static int obstacleLayer = OBSTACLE_LAYER;
-    public static List<Vector2> availableDirections;
      void Start()
     {
         availableDirections.Clear();

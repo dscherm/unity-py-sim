@@ -2,16 +2,18 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class Movement : MonoBehaviour
 {
+    public float speed = 8.0f;
+    public float speedMultiplier = 1.0f;
+    public Vector2 initialDirection = new Vector2(0, 0);
+    public int obstacleLayer = OBSTACLE_LAYER;
+    public Vector2 direction = new Vector2(0, 0);
+    public Vector2 nextDirection = new Vector2(0, 0);
+    public Vector2 startingPosition = new Vector2(0, 0);
+    public Rigidbody2D rb;
     public bool enabled;
     public static int OBSTACLE_LAYER = 6;
-    public static float speed = 8.0f;
-    public static float speedMultiplier = 1.0f;
-    public static Vector2 initialDirection = new Vector2(0, 0);
-    public static int obstacleLayer = OBSTACLE_LAYER;
-    public static Rigidbody2D rb = null;
-    public static Vector2 direction = new Vector2(0, 0);
-    public static Vector2 nextDirection = new Vector2(0, 0);
-    public static Vector2 startingPosition = new Vector2(0, 0);
+    public static float CELL_SIZE = 1.0f;
+    public static float GRID_OFFSET = 0.5f;
      void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -27,10 +29,7 @@ public class Movement : MonoBehaviour
         direction = new Vector2(initialDirection.x, initialDirection.y);
         nextDirection = Vector2.zero;
         transform.position = new Vector2( startingPosition.x, startingPosition.y );
-        if (rb != null)
-        {
-            rb.bodyType = RigidbodyType2D.Kinematic;
-        }
+        rb.isKinematic = false;
         enabled = true;
     }
      void Update()
@@ -55,32 +54,71 @@ public class Movement : MonoBehaviour
             return;
         }
         var pos = transform.position;
-        Vector2 translation = new Vector2( speed * speedMultiplier * Time.fixedDeltaTime * direction.x, speed * speedMultiplier * Time.fixedDeltaTime * direction.y);
-        Vector2 newPos = new Vector2(pos.x + translation.x, pos.y + translation.y);
+        Vector2 position = new Vector2(pos.x, pos.y);
+        var step = speed * speedMultiplier * Time.fixedDeltaTime;
+        Vector2 newPos = new Vector2( position.x + direction.x * step, position.y + direction.y * step);
         rb.MovePosition(newPos);
         transform.position = newPos;
     }
     public void SetDirection(Vector2 direction, bool forced)
     {
-        if (forced != null || !Occupied(direction))
+        if (forced != null)
         {
             direction = direction;
             nextDirection = Vector2.zero;
+            return;
+        }
+        var pos = transform.position;
+        var changingAxis = ( (direction.x != 0 && direction.y != 0) || (direction.y != 0 && direction.x != 0) );
+        if (changingAxis != null)
+        {
+            // Snap to nearest grid on the perpendicular axis and check from there
+            // X cells are at half-integers (offset 0.5), Y cells at integers (offset 0.0)
+            if (direction.x != 0)
+            {
+                // Turning horizontal — snap Y to integer grid
+                Vector2 snapped = new Vector2(pos.x, round(pos.y / CELL_SIZE) * CELL_SIZE);
+            }
+            else
+            {
+                // Turning vertical — snap X to half-integer grid
+                snapped = new Vector2(round((pos.x - GRID_OFFSET) / CELL_SIZE) * CELL_SIZE + GRID_OFFSET, pos.y);
+            }
+            // Check occupied from snapped position
+            Vector2 checkPos = new Vector2( snapped.x + direction.x * 1.0f, snapped.y + direction.y * 1.0f);
+            var hit = Physics2D.OverlapBox( point=checkPos, new Vector2(0.4f, 0.4f), 0.0f, 1 << obstacleLayer);
+            if (hit == null)
+            {
+                // Apply snap and change direction
+                transform.position = snapped;
+                rb.MovePosition(snapped);
+                direction = direction;
+                nextDirection = Vector2.zero;
+            }
+            else
+            {
+                nextDirection = direction;
+            }
         }
         else
         {
-            nextDirection = direction;
+            // Same axis or reversing — no snap needed
+            if (!Occupied(direction))
+            {
+                direction = direction;
+                nextDirection = Vector2.zero;
+            }
+            else
+            {
+                nextDirection = direction;
+            }
         }
     }
     public bool Occupied(Vector2 direction)
     {
-        Unity's BoxCast sweeps && finds exact contact. We approximate by;
-        checking overlap at exactly 1 grid cell (1.0f unit) ahead with a;
-        small box. This lets Pacman move right up to the wall edge.;
         var pos = transform.position;
-        var checkDist = 0.55f;
-        Vector2 checkPos = new Vector2( pos.x + direction.x * checkDist, pos.y + direction.y * checkDist);
-        var hit = Physics2D.OverlapBox( point=checkPos, new Vector2(0.3f, 0.3f), 0.0f, 1 << obstacleLayer);
+        Vector2 checkPos = new Vector2( pos.x + direction.x * 0.5f, pos.y + direction.y * 0.5f);
+        var hit = Physics2D.OverlapBox( point=checkPos, new Vector2(0.25f, 0.25f), 0.0f, 1 << obstacleLayer);
         return hit != null;
     }
 }

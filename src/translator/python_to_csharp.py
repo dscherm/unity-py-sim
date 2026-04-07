@@ -451,7 +451,8 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
             "default": default,
         }
 
-        if field.is_class_level:
+        if field.is_class_level and field.name.isupper():
+            # UPPER_CASE constants are truly static (e.g. PACMAN_LAYER = 7)
             static_fields.append(entry)
         elif default is not None and default != "null":
             serialized_fields.append(entry)
@@ -505,7 +506,7 @@ def _translate_plain_class(cls: PyClass, parsed: PyFile) -> str:
         csharp_type = _py_type_to_csharp(field.type_annotation, is_field=True, default_value=field.default_value or "")
         # Preserve UPPER_CASE constants, camelCase others
         csharp_name = field.name if field.name.isupper() else snake_to_camel(field.name)
-        mod = "public static" if field.is_class_level else "public"
+        mod = "public static" if (field.is_class_level and field.name.isupper()) else "public"
         default = _py_value_to_csharp(field.default_value, csharp_type) if field.default_value else None
         init = f" = {default}" if default else ""
         lines.append(f"    {mod} {csharp_type} {csharp_name}{init};")
@@ -789,6 +790,7 @@ def _translate_body(body: str) -> str:
     # Second pass: translate each logical line
     entries: list[tuple[int, str]] = []
     strip_block_indent: int | None = None  # When set, skip lines deeper than this
+    in_docstring = False  # Track multi-line docstrings
     for indent_level, logical_line in logical_lines:
         # If we're stripping a block, skip until indent returns to block level
         if strip_block_indent is not None:
@@ -796,6 +798,18 @@ def _translate_body(body: str) -> str:
                 continue  # Skip indented body of stripped block
             else:
                 strip_block_indent = None  # Block ended, resume
+
+        # Track multi-line docstrings
+        if in_docstring:
+            if '"""' in logical_line or "'''" in logical_line:
+                in_docstring = False
+            continue
+        if logical_line.startswith('"""') or logical_line.startswith("'''"):
+            # Single-line docstring (opens and closes on same line)
+            if logical_line.count('"""') >= 2 or logical_line.count("'''") >= 2:
+                continue  # Skip entire single-line docstring
+            in_docstring = True
+            continue
 
         if not logical_line or logical_line == "pass" or logical_line == "super().__init__()":
             continue
@@ -868,6 +882,10 @@ def _translate_py_statement(line: str) -> str:
     if "  #" in line:
         line = line[:line.index("  #")].rstrip()
     if not line:
+        return ""
+
+    # pass statement — skip (produces empty method body in C#)
+    if line == "pass":
         return ""
 
     # Docstrings — strip them entirely

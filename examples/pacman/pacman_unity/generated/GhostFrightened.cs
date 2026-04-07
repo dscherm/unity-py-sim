@@ -1,39 +1,33 @@
 using UnityEngine;
 public class GhostFrightened : GhostBehavior
 {
-    public static SpriteRenderer? body = null;
-    public static SpriteRenderer? eyes = null;
-    public static bool Eaten = false;
-    public void EnableBehavior(float duration)
+    public SpriteRenderer? body = null;
+    public SpriteRenderer? eyes = null;
+    public bool Eaten = false;
+    public Color32 OriginalColor = new Color32(255, 255, 255, 255);
+    public void Enable(float duration)
     {
-        super().EnableBehavior(duration);
+        super().Enable(duration);
         if (body != null)
         {
-            body.enabled = false;
-        }
-        if (eyes != null)
-        {
-            eyes.enabled = false;
+            originalColor = body.color;
+            body.color = new Color32(33, 33, 222, 255);
         }
         eaten = false;
     }
-    public void DisableBehavior()
+    public void Disable()
     {
-        super().DisableBehavior();
+        super().Disable();
         if (body != null)
         {
-            body.enabled = true;
-        }
-        if (eyes != null)
-        {
-            eyes.enabled = true;
+            body.color = originalColor;
         }
     }
     public void Eaten()
     {
         eaten = true;
-        ghost.SetPosition(ghost.home.insidePosition);
-        ghost.home.EnableBehavior(duration);
+        ghost.SetPosition(ghost.home.inside.position);
+        ghost.home.Enable(duration);
         if (body != null)
         {
             body.enabled = false;
@@ -49,6 +43,7 @@ public class GhostFrightened : GhostBehavior
         {
             ghost.movement.speedMultiplier = 0.5f;
         }
+        eaten = false;
     }
      void OnDisable()
     {

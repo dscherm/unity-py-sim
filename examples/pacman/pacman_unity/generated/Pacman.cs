@@ -4,11 +4,11 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class Pacman : MonoBehaviour
 {
+    public AnimatedSprite deathSequence;
+    public SpriteRenderer spriteRenderer;
+    public CircleCollider2D circleCollider;
+    public Movement movement;
     public bool enabled;
-    public static AnimatedSprite deathSequence = null;
-    public static SpriteRenderer spriteRenderer = null;
-    public static CircleCollider2D circleCollider = null;
-    public static Movement movement = null;
      void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();

@@ -1,8 +1,8 @@
 using UnityEngine;
 public class Pellet : MonoBehaviour
 {
+    public int points = 10;
     public static int PACMAN_LAYER = 7;
-    public static int points = 10;
     public void Eat()
     {
         if (GameManager.instance != null)

@@ -72,6 +72,10 @@ class TypeMapper:
         """Convert a Python type to its C# equivalent."""
         t = python_type.strip()
 
+        # Strip forward reference quotes: 'GameManager | None' -> GameManager | None
+        if (t.startswith("'") and t.endswith("'")) or (t.startswith('"') and t.endswith('"')):
+            t = t[1:-1].strip()
+
         # Optional: int | None -> int?
         if t.endswith("| None"):
             base = self.python_to_csharp(t[:-7].strip())

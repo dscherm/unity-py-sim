@@ -3,9 +3,9 @@ public class GhostScatter : GhostBehavior
 {
      void OnDisable()
     {
-        if (ghost != null && ghost.chase != null)
+        if (ghost != null && ghost.chase != null && ghost.chase.enabled != null)
         {
-            ghost.chase.EnableBehavior();
+            ghost.chase.Enable();
         }
     }
      void OnTriggerEnter2D(Collider2D other)
@@ -24,7 +24,8 @@ public class GhostScatter : GhostBehavior
             }
             // Pick a random available direction
             var index = Random.Range(0, dirs.Count - 1);
-            // Prefer not to go back the same direction
+            // Prefer not to go back the same direction so increment the
+            // index to the next available direction
             if (dirs.Count > 1)
             {
                 Vector2 reverse = new Vector2( -ghost.movement.direction.x, -ghost.movement.direction.y);

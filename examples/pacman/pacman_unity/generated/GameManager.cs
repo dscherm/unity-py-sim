@@ -1,18 +1,17 @@
 using System.Collections.Generic;
-using System.Collections;
 using System;
 using UnityEngine;
 public class GameManager : MonoBehaviour
 {
+    public int score = 0;
+    public int lives = 3;
+    public int GhostMultiplier = 1;
+    public GameManager? instance;
+    public object? pacman;
+    public List<object> ghosts;
+    public List<object> AllPellets;
     public object ghosts;
     public object AllPellets;
-    public static 'GameManager | None' instance = null;
-    public static int score = 0;
-    public static int lives = 3;
-    public static int GhostMultiplier = 1;
-    public static object? pacman = null;
-    public static List<object> ghosts = null;
-    public static List<object> AllPellets = null;
      void Awake()
     {
         if (GameManager.instance != null)
@@ -43,8 +42,8 @@ public class GameManager : MonoBehaviour
     }
     public void NewGame()
     {
-        score = 0;
-        lives = 3;
+        SetScore(0);
+        SetLives(3);
         NewRound();
     }
     public void NewRound()
@@ -54,7 +53,6 @@ public class GameManager : MonoBehaviour
             go.SetActive(true);
         }
         ResetState();
-        UpdateTitle();
     }
     public void ResetState()
     {
@@ -77,36 +75,15 @@ public class GameManager : MonoBehaviour
         {
             pacman.gameObject.SetActive(false);
         }
+    }
+    public void SetLives(int lives)
+    {
+        lives = lives;
         UpdateTitle();
     }
-    public void PelletEaten(Component pellet)
+    public void SetScore(int score)
     {
-        pellet.gameObject.SetActive(false);
-        score += pellet.points;
-        UpdateTitle();
-        if (!HasRemainingPellets())
-        {
-            if (pacman != null)
-            {
-                pacman.gameObject.SetActive(false);
-            }
-            StartCoroutine(NewRoundDelay(3.0f));
-        }
-    }
-    public void PowerPelletEaten(object pellet)
-    {
-        foreach (var ghost in ghosts)
-        {
-            ghost.frightened.EnableBehavior(pellet.duration);
-        }
-        PelletEaten(pellet);
-        GhostMultiplier = 1;
-    }
-    public void GhostEaten(object ghost)
-    {
-        var points = ghost.points * GhostMultiplier;
-        score += points;
-        GhostMultiplier *= 2;
+        score = score;
         UpdateTitle();
     }
     public void PacmanEaten()
@@ -115,16 +92,45 @@ public class GameManager : MonoBehaviour
         {
             pacman.DeathSequenceStart();
         }
-        lives -= 1;
-        UpdateTitle();
+        SetLives(lives - 1);
         if (lives > 0)
         {
-            StartCoroutine(ResetStateDelay(3.0f));
+            invoke("ResetState", 3.0f);
         }
         else
         {
             GameOver();
         }
+    }
+    public void GhostEaten(object ghost)
+    {
+        var points = ghost.points * GhostMultiplier;
+        SetScore(score + points);
+        GhostMultiplier *= 2;
+        ghost.frightened.Eaten();
+    }
+    public void PelletEaten(Component pellet)
+    {
+        pellet.gameObject.SetActive(false);
+        SetScore(score + pellet.points);
+        if (!HasRemainingPellets())
+        {
+            if (pacman != null)
+            {
+                pacman.gameObject.SetActive(false);
+            }
+            invoke("NewRound", 3.0f);
+        }
+    }
+    public void PowerPelletEaten(object pellet)
+    {
+        foreach (var ghost in ghosts)
+        {
+            ghost.frightened.Enable(pellet.duration);
+        }
+        PelletEaten(pellet);
+        CancelInvoke("ResetGhostMultiplier");
+        invoke("ResetGhostMultiplier", pellet.duration);
     }
     public bool HasRemainingPellets()
     {
@@ -137,15 +143,9 @@ public class GameManager : MonoBehaviour
         }
         return false;
     }
-    public IEnumerator NewRoundDelay(float delay)
+    public void ResetGhostMultiplier()
     {
-        yield return new WaitForSeconds(delay);
-        NewRound();
-    }
-    public IEnumerator ResetStateDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        ResetState();
+        GhostMultiplier = 1;
     }
     public void UpdateTitle()
     {

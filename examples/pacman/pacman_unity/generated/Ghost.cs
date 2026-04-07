@@ -6,15 +6,15 @@ using UnityEngine;
 [RequireComponent(typeof(Movement))]
 public class Ghost : MonoBehaviour
 {
+    public int points = 200;
+    public Movement movement;
+    public GhostHome home;
+    public GhostScatter scatter;
+    public GhostChase chase;
+    public GhostFrightened frightened;
+    public object initialBehavior;
+    public object target;
     public static int PACMAN_LAYER = 7;
-    public static Movement movement = null;
-    public static GhostHome home = null;
-    public static GhostScatter scatter = null;
-    public static GhostChase chase = null;
-    public static GhostFrightened frightened = null;
-    public static object initialBehavior = null;
-    public static object target = null;
-    public static int points = 200;
      void Awake()
     {
         movement = GetComponent<Movement>();
@@ -31,16 +31,16 @@ public class Ghost : MonoBehaviour
     {
         gameObject.SetActive(true);
         movement.ResetState();
-        frightened.DisableBehavior();
-        chase.DisableBehavior();
-        scatter.EnableBehavior();
+        frightened.Disable();
+        chase.Disable();
+        scatter.Enable();
         if (home != initialBehavior)
         {
-            home.DisableBehavior();
+            home.Disable();
         }
         if (initialBehavior != null)
         {
-            initialBehavior.EnableBehavior();
+            initialBehavior.Enable();
         }
     }
     public void SetPosition(Vector2 position)
