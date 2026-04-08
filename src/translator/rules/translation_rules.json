@@ -15,6 +15,9 @@
       "constant_names": "preserve"
     }
   },
+  "reserved_method_renames": {
+    "reset": "ResetState"
+  },
   "lifecycle_method_mapping": {
     "Awake": "awake",
     "Start": "start",

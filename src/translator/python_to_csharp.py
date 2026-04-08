@@ -17,6 +17,7 @@ _RULES_DIR = Path(__file__).parent / "rules"
 _TEMPLATE_DIR = Path(__file__).parent / "templates"
 _translation_rules = json.loads((_RULES_DIR / "translation_rules.json").read_text())
 _lifecycle_map_reverse: dict[str, str] = {v: k for k, v in _translation_rules["lifecycle_method_mapping"].items()}
+_reserved_method_renames: dict[str, str] = _translation_rules.get("reserved_method_renames", {})
 _api_reverse: dict[str, str] = {v: k for k, v in _translation_rules["api_translations"].items()}
 
 _type_mapper = TypeMapper()
@@ -305,6 +306,8 @@ def _build_symbol_table(cls: PyClass) -> dict[str, str]:
         py_name = method.name
         if py_name in _lifecycle_map_reverse:
             symbols[py_name] = _lifecycle_map_reverse[py_name]
+        elif py_name in _reserved_method_renames:
+            symbols[py_name] = _reserved_method_renames[py_name]
         else:
             symbols[py_name] = snake_to_pascal(py_name)
         # Also map _private variants
@@ -645,6 +648,8 @@ def _translate_method(method: PyMethod) -> dict:
     # Name
     if method.name in _lifecycle_map_reverse:
         csharp_name = _lifecycle_map_reverse[method.name]
+    elif method.name in _reserved_method_renames:
+        csharp_name = _reserved_method_renames[method.name]
     else:
         csharp_name = snake_to_pascal(method.name)
 
@@ -741,7 +746,9 @@ def _add_locals_to_symbols(body_source: str) -> None:
         m = re.match(r"^for\s+(\w+)\s+in\s+", stripped)
         if m:
             py_name = m.group(1)
-            if py_name not in _current_symbols:
+            if py_name == "_":
+                pass  # Discard variable — don't register (snake_to_camel("_") is "")
+            elif py_name not in _current_symbols:
                 _current_symbols[py_name] = snake_to_camel(py_name)
         # Match: for idx, var in enumerate(...)
         m = re.match(r"^for\s+(\w+),\s*(\w+)\s+in\s+", stripped)
@@ -1204,7 +1211,8 @@ def _translate_for_loop(line: str) -> str:
         var = range_match.group(1)
         args_str = range_match.group(2)
         args = _split_args(args_str)
-        cs_var = snake_to_camel(var)
+        # Python discard variable '_' -> C# '_i' (snake_to_camel("_") returns "")
+        cs_var = "_i" if var == "_" else snake_to_camel(var)
         if len(args) == 1:
             # range(n) -> for (int var = 0; var < n; var++)
             limit = _translate_py_expression(args[0])
@@ -1824,6 +1832,12 @@ def _translate_py_expression(expr: str) -> str:
             # Also replace ClassName._field → ClassName.Field (static field access)
             if py_name.startswith("_"):
                 expr = re.sub(rf"(?<=\.){re.escape(py_name)}(?!\w)", cs_name, expr)
+
+    # Apply reserved method renames before generic snake_to_pascal conversion
+    for py_name, cs_name in _reserved_method_renames.items():
+        # .reset( → .ResetState(  and standalone reset( → ResetState(
+        expr = re.sub(rf"(?<=\.){re.escape(py_name)}\(", f"{cs_name}(", expr)
+        expr = re.sub(rf"(?<![.\w]){re.escape(py_name)}\(", f"{cs_name}(", expr)
 
     # Convert ALL remaining snake_case method calls to PascalCase (cross-class calls)
     def _snake_method_to_pascal(m):
