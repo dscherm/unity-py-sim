@@ -28,6 +28,7 @@ from src.translator.python_to_csharp import (
     _config, _TranslationConfig, detect_required_packages,
 )
 from src.translator.type_mapper import snake_to_camel, snake_to_pascal
+from src.translator.semantic_layer import transform as semantic_transform
 
 
 def translate_project(
@@ -82,6 +83,9 @@ def translate_project(
         cs_code = _post_process(cs_code, global_types, global_constants,
                                 global_functions=global_functions,
                                 local_functions=local_functions)
+
+        # Semantic post-processing: strip simulator artifacts, fix Unity patterns
+        cs_code = semantic_transform(cs_code)
 
         results[cs_name] = cs_code
 

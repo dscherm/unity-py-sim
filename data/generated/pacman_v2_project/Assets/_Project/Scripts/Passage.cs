@@ -1,6 +1,8 @@
 using UnityEngine;
 public class Passage : MonoBehaviour
 {
+    // TODO: populate _recent_teleports with game data
+    private static readonly object[] _recent_teleports = new object[0];
     [SerializeField] private GameObject connection;
     public static Dictionary<int, float> _recent_teleports = null;
     public static float _TELEPORT_COOLDOWN = 0.5f;
