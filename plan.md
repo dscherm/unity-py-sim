@@ -2174,3 +2174,269 @@ Post-task: spawn independent validation agent for contract + mutation tests.
   "note": "Structural 15/17 (2 remaining: animated_sprite.cs dot-access split, ghost_scatter.cs paren mismatch). Convention 17/17. Test suite 2280 pass/45 fail (down from 2112/97). 7/7 playtests clean. Smart gate fails on 45 remaining test failures."
 }
 ```
+
+---
+
+## Phase: Translator Runtime Fixes — Stage 2
+
+Generated C# compiles but doesn't run in Unity. These fixes close the "compiles → plays" gap.
+TDD-first with validation agent pattern.
+
+### Task 1: SerializeField emission for Inspector-wirable fields
+
+```json
+{
+  "category": "feature",
+  "priority": 1,
+  "description": "Template emits 'public object field;' for all fields. Fields referencing MonoBehaviours, GameObjects, or prefabs must emit '[SerializeField] private T field;' with concrete types. This is the #1 reason generated code can't be wired in Unity Inspector.",
+  "steps": [
+    "RED: Write tests asserting Ghost[] fields emit [SerializeField], List[Ghost] → Ghost[], Optional[GameManager] → nullable GameManager",
+    "Update python_parser.py to capture type annotations into PyField.type_hint",
+    "Update python_to_csharp.py field emission: if type is MonoBehaviour subclass or list thereof, emit [SerializeField] private T field",
+    "Update monobehaviour.cs.j2 template to support [SerializeField] attribute",
+    "Handle prefab fields discovered from Instantiate() calls — emit [SerializeField] private GameObject prefabName",
+    "Run structural + convention gates on Pacman V2 output",
+    "Spawn validation agent: contract tests for field type inference, mutation tests for missing SerializeField"
+  ],
+  "passes": false
+}
+```
+
+### Task 2: Parameter shadowing — emit this.field
+
+```json
+{
+  "category": "bugfix",
+  "priority": 1,
+  "description": "GameManager.SetScore(int score) emits 'score = score;' instead of 'this.score = score;'. Translator must detect when method parameter name matches a field name and prefix with 'this.'.",
+  "steps": [
+    "RED: Write test with SetScore(int score) method that assigns to self.score — assert 'this.score = score' in output",
+    "In _translate_method_body(), collect parameter names; when emitting field assignment where param name matches field, prepend 'this.'",
+    "Test on Space Invaders GameManager.SetScore and SetLives",
+    "Spawn validation agent"
+  ],
+  "passes": false
+}
+```
+
+### Task 3: Cross-file function call qualification
+
+```json
+{
+  "category": "bugfix",
+  "priority": 2,
+  "description": "Module-level functions called cross-file emit unqualified: MaybeSpawnPowerup() instead of Powerup.MaybeSpawnPowerup(). Fix project_translator.py post-process to qualify with source class name.",
+  "steps": [
+    "RED: Write test with two-file translation where file B calls function from file A — assert qualified call in output",
+    "In project_translator.py _post_process(), build function→class registry from all translated files",
+    "Scan for unqualified function calls and prepend class name",
+    "Test on Space Invaders cross-file patterns",
+    "Spawn validation agent"
+  ],
+  "passes": false
+}
+```
+
+### Task 4: Constants injected into enum blocks
+
+```json
+{
+  "category": "bugfix",
+  "priority": 2,
+  "description": "project_translator.py:173 replaces first '{\\n' in file. If first declaration is an enum, constants go inside enum definition → invalid C#.",
+  "steps": [
+    "RED: Write test with enum class + module constants — assert constants are outside enum block",
+    "Add enum detection: skip past enum blocks when finding injection point",
+    "Test with Angry Birds GameState enum + constants",
+    "Spawn validation agent"
+  ],
+  "passes": false
+}
+```
+
+### Task 5: Reset() method rename to avoid Unity lifecycle collision
+
+```json
+{
+  "category": "bugfix",
+  "priority": 3,
+  "description": "Python def reset(self) becomes public void Reset() which Unity auto-calls during editor AddComponent, firing before init → NullReferenceException.",
+  "steps": [
+    "RED: Write test asserting reset() translates to ResetState() not Reset()",
+    "Add 'reset' to lifecycle method rename table in translation_rules.json — map to ResetState",
+    "Update all callers: self.reset() → ResetState(), GameManager.reset() → ResetState()",
+    "Test on Pacman GameManager and Ghost reset flows",
+    "Spawn validation agent"
+  ],
+  "passes": false
+}
+```
+
+### Task 6: Underscore loop variable constant breakage
+
+```json
+{
+  "category": "bugfix",
+  "priority": 3,
+  "description": "for _ in range(N) translation does .replace('_', _i) which strips underscores from GRID_COLS → GRIDCOLS. Use word-boundary regex.",
+  "steps": [
+    "RED: Write test with for _ in range(GRID_COLS) — assert GRID_COLS preserved in output",
+    "Change .replace('_', ...) to re.sub with word boundary: r'\\b_\\b'",
+    "Test on Space Invaders invader grid setup",
+    "Spawn validation agent"
+  ],
+  "passes": false
+}
+```
+
+---
+
+## Phase: Project Scaffolder — Stage 3
+
+Generate a complete Unity project structure from translated C# output.
+Goal: `python -m src.exporter.scaffold --game breakout --output data/generated/breakout_project/`
+
+### Task 1: Create project_scaffolder.py with folder structure
+
+```json
+{
+  "category": "feature",
+  "priority": 1,
+  "description": "Create src/exporter/project_scaffolder.py. Generate Unity project folder structure from project_structure in asset mapping. Create Assets/_Project/Scripts/, Prefabs/, Scenes/, Assets/Art/Sprites/, Assets/Editor/, Packages/, ProjectSettings/.",
+  "steps": [
+    "RED: Write test asserting scaffold('breakout', output_dir) creates expected directory tree",
+    "Create src/exporter/project_scaffolder.py with scaffold_project(game_name, output_dir, asset_mapping_path) function",
+    "Read project_structure from asset mapping (data/mappings/{game}_mapping.json) or use defaults",
+    "Create all directories with .gitkeep files",
+    "Add CLI entry point: python -m src.exporter.scaffold --game <name> --output <dir>",
+    "Test on breakout and pacman_v2",
+    "Spawn validation agent"
+  ],
+  "passes": false
+}
+```
+
+### Task 2: Generate Packages/manifest.json
+
+```json
+{
+  "category": "feature",
+  "priority": 1,
+  "description": "Generate Unity Packages/manifest.json from _required_packages.json (already emitted by project_translator.py). Map to Unity registry format with version pins.",
+  "steps": [
+    "RED: Write test asserting manifest.json contains com.unity.render-pipelines.universal and com.unity.inputsystem",
+    "Read _required_packages.json from translator output",
+    "Map package names to Unity registry entries with locked versions (2022.3 LTS compatible)",
+    "Always include: URP, 2D sprite. Conditionally: Input System, UGUI, TextMeshPro",
+    "Write to Packages/manifest.json in scaffolded project",
+    "Spawn validation agent"
+  ],
+  "passes": false
+}
+```
+
+### Task 3: Generate ProjectSettings/TagManager.asset
+
+```json
+{
+  "category": "feature",
+  "priority": 2,
+  "description": "Generate TagManager.asset YAML with tags and sorting layers from scene export or asset manifest. Use Unity YAML format (%YAML 1.1, %TAG !u!).",
+  "steps": [
+    "RED: Write test asserting TagManager.asset contains Pacman tags (Wall, Pellet, Ghost, Pacman)",
+    "Extract tags and layers from scene_serializer output (physics.layers) or asset manifest",
+    "Generate YAML in Unity TagManager format — user layers start at index 6",
+    "Write to ProjectSettings/TagManager.asset",
+    "Test on Pacman (4 custom layers) and Breakout (no custom layers)",
+    "Spawn validation agent"
+  ],
+  "passes": false
+}
+```
+
+### Task 4: Copy translated C# and generate ProjectVersion.txt
+
+```json
+{
+  "category": "feature",
+  "priority": 2,
+  "description": "Copy translated C# files to Assets/_Project/Scripts/, skip non-class files (__init__.cs, maze_data.cs). Generate ProjectVersion.txt for Unity.",
+  "steps": [
+    "RED: Write test asserting C# files are in Scripts/ dir, __init__.cs is excluded, ProjectVersion.txt exists",
+    "Read translator output dict, filter out non-class files (check structural gate: valid=false with 0 classes → skip)",
+    "Write each file to Assets/_Project/Scripts/",
+    "Generate ProjectSettings/ProjectVersion.txt with configurable Unity version (default 2022.3.0f1)",
+    "Spawn validation agent"
+  ],
+  "passes": false
+}
+```
+
+---
+
+## Phase: Scene Construction & Prefabs — Stage 4
+
+### Task 1: Prefab candidate detection
+
+```json
+{
+  "category": "feature",
+  "priority": 1,
+  "description": "Create src/exporter/prefab_detector.py. Analyze Python source to classify GameObjects as prefabs (dynamically instantiated) vs scene objects (created in setup). Heuristic: anything in loops or Instantiate() calls is a prefab.",
+  "steps": [
+    "RED: Write test asserting Pacman pellets=prefab, maze walls=scene_object, ghosts=prefab",
+    "Parse Python source ASTs — find GameObject() calls in loops and Instantiate() patterns",
+    "Classify each type as 'prefab' or 'scene_object'",
+    "Output prefab_manifest.json listing prefab types with their required components",
+    "Test on Breakout (bricks=prefab, paddle=scene) and Pacman",
+    "Spawn validation agent"
+  ],
+  "passes": false
+}
+```
+
+### Task 2: Update CoPlay generator for prefab instantiation + field wiring
+
+```json
+{
+  "category": "feature",
+  "priority": 2,
+  "description": "Update coplay_generator.py to use PrefabUtility.InstantiatePrefab() for prefab candidates, wire SerializeField references properly instead of commenting them out, and create camera if missing.",
+  "steps": [
+    "RED: Write test asserting CoPlay script uses InstantiatePrefab for known prefabs",
+    "Read prefab_manifest.json to determine which GameObjects are prefabs",
+    "Use PrefabUtility.InstantiatePrefab() instead of new GameObject() for prefab types",
+    "After all objects created, wire SerializeField references via SerializedObject — handle arrays",
+    "Remove Main Camera assumption — create if not found",
+    "Test CoPlay output for Breakout scene",
+    "Spawn validation agent"
+  ],
+  "passes": false
+}
+```
+
+---
+
+## Phase: Validation Pipeline — Stage 5
+
+### Task 1: End-to-end scaffold + gate pipeline for Breakout
+
+```json
+{
+  "category": "validation",
+  "priority": 1,
+  "description": "Wire full pipeline: translate Breakout → scaffold Unity project → run all gates → report. Breakout is the simplest game (5 files, basic physics). This is the first end-to-end test of Stages 2-4.",
+  "steps": [
+    "Run project translator on examples/breakout/",
+    "Run scaffold_project() on translator output",
+    "Run structural gate on all generated C# — target: 5/5 pass",
+    "Run convention gate — target: 5/5 pass",
+    "Verify Packages/manifest.json is valid JSON with required packages",
+    "Verify ProjectSettings/ files exist and are valid YAML",
+    "Verify Assets/_Project/Scripts/ has all 5 C# files",
+    "Document any remaining gaps for Stage 6",
+    "Push to GitHub for home machine Unity validation"
+  ],
+  "passes": false
+}
+```
