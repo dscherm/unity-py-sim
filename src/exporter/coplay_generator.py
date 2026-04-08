@@ -37,6 +37,7 @@ def generate_scene_script(
     scene_data: dict[str, Any],
     mapping_data: dict[str, Any] | None = None,
     namespace: str = "",
+    prefab_manifest: dict[str, Any] | None = None,
 ) -> str:
     """Generate a C# editor script that reconstructs the scene.
 
@@ -44,12 +45,22 @@ def generate_scene_script(
         scene_data: Scene JSON from scene_serializer
         mapping_data: Asset mapping JSON (optional, for sprite/audio assignment)
         namespace: C# namespace for MonoBehaviour scripts (e.g. "AngryBirds")
+        prefab_manifest: Prefab manifest from prefab_detector (optional).
+            When provided, GameObjects whose name matches a prefab class_name
+            will be instantiated via PrefabUtility.InstantiatePrefab instead of
+            ``new GameObject()``.
 
     Returns:
         C# source code for an editor script
     """
     sprite_mappings = mapping_data.get("sprites", {}) if mapping_data else {}
     audio_mappings = mapping_data.get("audio", {}) if mapping_data else {}
+
+    # Build set of prefab class names for quick lookup
+    prefab_names: set[str] = set()
+    if prefab_manifest:
+        for p in prefab_manifest.get("prefabs", []):
+            prefab_names.add(p["class_name"])
 
     lines: list[str] = []
     lines.append("using UnityEngine;")
@@ -184,13 +195,18 @@ def generate_scene_script(
                 transform = comp
                 break
 
-        # Check if it's the camera (already exists in scene)
+        # Check if it's the camera — find existing or create new
         has_camera = any(c["type"] == "Camera" for c in go.get("components", []))
         if has_camera:
             camera_go_name = go_name
-            lines.append(f"        // --- {go_name} (use existing Main Camera) ---")
+            lines.append(f"        // --- {go_name} (find or create Main Camera) ---")
             lines.append(f"        var {var} = Camera.main?.gameObject;")
-            lines.append(f"        if ({var} != null)")
+            lines.append(f"        if ({var} == null)")
+            lines.append("        {")
+            lines.append(f"            {var} = new GameObject(\"{_escape_cs_string(go_name)}\");")
+            lines.append(f"            {var}.AddComponent<Camera>();")
+            lines.append(f"            {var}.tag = \"MainCamera\";")
+            lines.append("        }")
             lines.append("        {")
             lines.append(f"            var cam = {var}.GetComponent<Camera>();")
             for comp in go.get("components", []):
@@ -209,9 +225,14 @@ def generate_scene_script(
             lines.append("")
             continue
 
-        # Create new GameObject
+        # Create new GameObject (prefab or plain)
+        is_prefab = go_name in prefab_names
         lines.append(f"        // --- {go_name} ---")
-        lines.append(f"        var {var} = new GameObject(\"{_escape_cs_string(go_name)}\");")
+        if is_prefab:
+            lines.append(f"        var {var} = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(\"Assets/_Project/Prefabs/{_escape_cs_string(go_name)}.prefab\"));")
+            lines.append(f"        {var}.name = \"{_escape_cs_string(go_name)}\";")
+        else:
+            lines.append(f"        var {var} = new GameObject(\"{_escape_cs_string(go_name)}\");")
 
         if tag != "Untagged":
             lines.append(f"        {var}.tag = \"{_escape_cs_string(tag)}\";")
@@ -264,6 +285,21 @@ def generate_scene_script(
                     lines.append(f"            var so = new SerializedObject({var}.GetComponent<{ns_prefix}{ctype}>());")
                     lines.append(f"            var prop = so.FindProperty(\"{cs_field}\");")
                     lines.append(f"            if (prop != null) {{ prop.objectReferenceValue = {ref_var}; so.ApplyModifiedProperties(); }}")
+                    lines.append(f"        }}")
+                elif isinstance(field_val, dict) and field_val.get("_type") == "GameObjectRefArray":
+                    refs = field_val.get("refs", [])
+                    cs_field = _to_camel_case(field_name)
+                    lines.append(f"        {{")
+                    lines.append(f"            var so = new SerializedObject({var}.GetComponent<{ns_prefix}{ctype}>());")
+                    lines.append(f"            var prop = so.FindProperty(\"{cs_field}\");")
+                    lines.append(f"            if (prop != null)")
+                    lines.append(f"            {{")
+                    lines.append(f"                prop.arraySize = {len(refs)};")
+                    for i, ref in enumerate(refs):
+                        ref_var = _safe_var_name(ref["name"])
+                        lines.append(f"                prop.GetArrayElementAtIndex({i}).objectReferenceValue = {ref_var};")
+                    lines.append(f"                so.ApplyModifiedProperties();")
+                    lines.append(f"            }}")
                     lines.append(f"        }}")
 
     lines.append("")
@@ -373,13 +409,21 @@ def _generate_component(
     elif comp.get("is_monobehaviour"):
         ns_prefix = f"{namespace}." if namespace else ""
         lines.append(f"        {go_var}.AddComponent<{ns_prefix}{ctype}>();")
-        # Set simple serialized fields
-        for field_name, field_val in comp.get("fields", {}).items():
-            if isinstance(field_val, (int, float)) and not isinstance(field_val, bool):
-                cs_field = _to_camel_case(field_name)
-                # Use SerializedObject for private/serialized fields
-                if field_val != 0:
-                    lines.append(f"        // {ctype}.{cs_field} = {field_val}")
+        # Wire simple serialized fields via SerializedObject
+        numeric_fields = {
+            _to_camel_case(fn): fv
+            for fn, fv in comp.get("fields", {}).items()
+            if isinstance(fv, (int, float)) and not isinstance(fv, bool) and fv != 0
+        }
+        if numeric_fields:
+            lines.append(f"        {{")
+            lines.append(f"            var so = new SerializedObject({go_var}.GetComponent<{ns_prefix}{ctype}>());")
+            for cs_field, field_val in numeric_fields.items():
+                suffix = "f" if isinstance(field_val, float) else ""
+                lines.append(f"            var prop_{cs_field} = so.FindProperty(\"{cs_field}\");")
+                lines.append(f"            if (prop_{cs_field} != null) prop_{cs_field}.floatValue = {field_val}{suffix};")
+            lines.append(f"            so.ApplyModifiedProperties();")
+            lines.append(f"        }}")
 
 
 def _safe_var_name(name: str) -> str:

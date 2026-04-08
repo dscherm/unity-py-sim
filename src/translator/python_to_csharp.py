@@ -1568,17 +1568,28 @@ def _translate_py_expression(expr: str) -> str:
     # .get_component(T) (not self — already stripped) -> .GetComponent<T>()
     expr = re.sub(r"\.get_component\((\w+)\)", r".GetComponent<\1>()", expr)
 
-    # hasattr(x, "y") -> true (C# doesn't have hasattr; assume true for compiled code)
-    expr = re.sub(r"hasattr\([^,]+,\s*['\"][^'\"]+['\"]\)", "true", expr)
-
     # Python ternary: x if cond else y -> cond ? x : y
+    # Must run BEFORE hasattr replacement so condition is preserved
     ternary = re.match(r"^(.+?)\s+if\s+(.+?)\s+else\s+(.+)$", expr)
     if ternary:
         value_true = ternary.group(1).strip()
         cond = ternary.group(2).strip()
         value_false = ternary.group(3).strip()
-        cond = _translate_py_condition(cond)
-        expr = f"{cond} ? {value_true} : {value_false}"
+        # Recursively translate each part so nested ternaries and
+        # sub-expression transforms (get_component, hasattr, etc.) apply
+        cs_true = _translate_py_expression(value_true)
+        cs_cond = _translate_py_condition(cond)
+        cs_false = _translate_py_expression(value_false)
+        # Optimize: if condition is literal 'true' (e.g. from hasattr),
+        # collapse to just the true branch
+        if cs_cond == "true":
+            expr = cs_true
+        else:
+            expr = f"{cs_cond} ? {cs_true} : {cs_false}"
+        return expr
+
+    # hasattr(x, "y") -> true (C# doesn't have hasattr; assume true for compiled code)
+    expr = re.sub(r"hasattr\([^,]+,\s*['\"][^'\"]+['\"]\)", "true", expr)
 
     # List operations: .append(x) -> .Add(x), .remove(x) -> .Remove(x)
     expr = re.sub(r"\.append\(", ".Add(", expr)
