@@ -22,6 +22,69 @@ _api_reverse: dict[str, str] = {v: k for k, v in _translation_rules["api_transla
 _type_mapper = TypeMapper()
 _jinja_env = Environment(loader=FileSystemLoader(str(_TEMPLATE_DIR)), trim_blocks=True, lstrip_blocks=True)
 
+# ── Reference-type detection for [SerializeField] emission ───
+# Value types stay `public T field = default;`
+# Reference types become `[SerializeField] private T field;`
+
+_VALUE_TYPES = frozenset({
+    "int", "float", "bool", "string", "double", "byte", "short", "long",
+    "char", "void", "Color", "Color32", "Vector2", "Vector2Int",
+    "Vector3", "Vector3Int", "Vector4", "Quaternion", "Rect", "Bounds",
+    "LayerMask", "KeyCode",
+})
+
+_UNITY_REFERENCE_TYPES = frozenset({
+    "GameObject", "Transform", "Rigidbody2D", "Rigidbody",
+    "Collider2D", "Collider", "BoxCollider2D", "CircleCollider2D",
+    "SpriteRenderer", "Camera", "AudioSource", "AudioClip",
+    "Sprite", "Animator", "Canvas", "Text", "Image",
+    "TilemapRenderer", "Tilemap", "ParticleSystem",
+})
+
+
+def _is_reference_type(csharp_type: str, parsed: PyFile) -> bool:
+    """Determine if a C# type is a reference type that needs [SerializeField] private.
+
+    Reference types: GameObject, MonoBehaviour subclasses, arrays of those, etc.
+    Value types: int, float, bool, string, Vector2, Color, etc.
+    """
+    # Strip nullable suffix for checking
+    base = csharp_type.rstrip("?")
+
+    # Arrays: check the element type
+    if base.endswith("[]"):
+        element = base[:-2]
+        return _is_reference_type(element, parsed)
+
+    # List<T>: check element type
+    list_match = re.match(r"List<(.+)>", base)
+    if list_match:
+        return _is_reference_type(list_match.group(1), parsed)
+
+    # Known Unity reference types
+    if base in _UNITY_REFERENCE_TYPES:
+        return True
+
+    # 'object' is a reference type in C# (System.Object)
+    if base == "object":
+        return True
+
+    # Known value types — NOT reference
+    if base in _VALUE_TYPES:
+        return False
+
+    # Check if it's a class name from the parsed file (MonoBehaviour subclass or other user class)
+    class_names = {c.name for c in parsed.classes}
+    if base in class_names:
+        return True
+
+    # Unknown PascalCase type that isn't a value type — assume reference
+    # (covers types like GameManager, Ghost, Enemy from other files)
+    if base and base[0].isupper() and base not in _VALUE_TYPES:
+        return True
+
+    return False
+
 
 # ── Translation config (set per-call) ─────────────────────────
 
@@ -399,6 +462,7 @@ def _infer_field_types(cls: PyClass) -> dict[str, str]:
 
 # Thread-local symbol table for the current class being translated
 _current_symbols: dict[str, str] = {}
+_current_method_params: set[str] = set()
 _declared_vars: set[str] = set()
 _enumerate_inject: str | None = None
 _bool_fields: set[str] = set()  # C# names of fields with bool type
@@ -486,15 +550,24 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
                 expr_name = parts[0] + "".join(p.capitalize() for p in parts[1:])
                 _dict_fields.add(expr_name)
 
+        # For reference types, strip nullable ? suffix (C# reference types are already nullable)
+        is_ref = _is_reference_type(csharp_type, parsed)
+        if is_ref and csharp_type.endswith("?"):
+            csharp_type = csharp_type[:-1]
+
         entry = {
             "csharp_type": csharp_type,
             "csharp_name": csharp_name,
             "default": default,
+            "serialize": is_ref,
         }
 
         if field.is_class_level and field.name.isupper():
             # UPPER_CASE constants are truly static (e.g. PACMAN_LAYER = 7)
             static_fields.append(entry)
+        elif is_ref:
+            # Reference types -> [SerializeField] private T field;
+            private_fields.append(entry)
         elif default is not None and default != "null":
             serialized_fields.append(entry)
         else:
@@ -516,10 +589,11 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     existing_fields = {f['csharp_name'] for f in serialized_fields + private_fields + static_fields}
     for pf in _prefab_fields:
         if pf not in existing_fields:
-            serialized_fields.append({
+            private_fields.append({
                 "csharp_type": "GameObject",
                 "csharp_name": pf,
                 "default": None,
+                "serialize": True,
             })
 
     template = _jinja_env.get_template("monobehaviour.cs.j2")
@@ -612,14 +686,25 @@ def _translate_method(method: PyMethod) -> dict:
         _current_symbols[p.name] = csharp_param_name
     params_str = ", ".join(params)
 
+    # Track parameter names (camelCase) for this.X shadowing detection
+    global _current_method_params
+    _current_method_params = {snake_to_camel(p.name) for p in method.parameters}
+
     # Extract local variable names and add to symbol table
     _add_locals_to_symbols(method.body_source)
+
+    # Discover prefab fields from raw Python source: instantiate(self.xxx_prefab, ...)
+    for prefab_match in re.finditer(r'instantiate\(self\.(\w*prefab\w*)', method.body_source, re.IGNORECASE):
+        py_name = prefab_match.group(1)
+        camel = snake_to_camel(py_name)
+        _prefab_fields.add(camel)
 
     # Body
     body = _translate_body(method.body_source)
 
     # Restore symbol table (remove method-scoped names)
     _current_symbols = saved_symbols
+    _current_method_params = set()
 
     # Fix access for lifecycle methods
     if method.is_lifecycle:
@@ -1438,8 +1523,14 @@ def _translate_py_expression(expr: str) -> str:
 
     # self.transform -> transform
     expr = expr.replace("self.transform", "transform")
-    # self.X -> just X (instance field access)
-    expr = re.sub(r"\bself\.", "", expr)
+    # self.X -> this.X when X shadows a method parameter, else just X
+    def _self_dot_replace(m):
+        attr = m.group(1)
+        camel_attr = snake_to_camel(attr)
+        if camel_attr in _current_method_params:
+            return f"this.{attr}"
+        return attr
+    expr = re.sub(r"\bself\.(\w+)", _self_dot_replace, expr)
     # Standalone 'self' -> 'this'
     expr = re.sub(r"\bself\b", "this", expr)
 
@@ -1678,6 +1769,13 @@ def _translate_py_expression(expr: str) -> str:
         prefab_field = prefab_name[0].lower() + prefab_name[1:] + "Prefab"
         _prefab_fields.add(prefab_field)
         expr = f"Instantiate({prefab_field}, {pos_var}, Quaternion.identity)"
+
+    # Also discover prefab fields from Instantiate(self.xxx_prefab, ...) patterns
+    # After self. stripping and camelCase, these become Instantiate(xxxPrefab, ...)
+    inst_ref_match = re.match(r'^Instantiate\((\w*[Pp]refab)\b', expr)
+    if inst_ref_match:
+        prefab_field = inst_ref_match.group(1)
+        _prefab_fields.add(prefab_field)
 
     # Trailing commas in constructor args: (x, y, ) -> (x, y)
     expr = re.sub(r",\s*\)", ")", expr)

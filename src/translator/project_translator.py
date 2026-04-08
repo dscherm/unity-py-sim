@@ -56,10 +56,16 @@ def translate_project(
     # Phase 3: Build global constants (module-level from all files)
     global_constants = _build_global_constants(parsed_files)
 
+    # Phase 3.5: Build global function registry (function → source class name)
+    global_functions = _build_global_function_registry(parsed_files)
+
     # Phase 4: Translate each file with global awareness
     results = {}
     for py_name, parsed in parsed_files.items():
         cs_name = _py_filename_to_cs(py_name, parsed)
+
+        # Collect functions defined in THIS file (to skip intra-file qualification)
+        local_functions = _collect_local_functions(parsed)
 
         # Inject global types into parsed file's classes
         _inject_global_types(parsed, global_types, global_constants)
@@ -73,7 +79,9 @@ def translate_project(
         )
 
         # Post-process: fix cross-file references
-        cs_code = _post_process(cs_code, global_types, global_constants)
+        cs_code = _post_process(cs_code, global_types, global_constants,
+                                global_functions=global_functions,
+                                local_functions=local_functions)
 
         results[cs_name] = cs_code
 
@@ -133,6 +141,49 @@ def _build_global_constants(parsed_files: dict[str, PyFile]) -> dict[str, str]:
     return constants
 
 
+def _build_global_function_registry(parsed_files: dict[str, PyFile]) -> dict[str, tuple[str, str]]:
+    """Build mapping of PascalCase function name → (source_class, original_snake_name).
+
+    Covers module-level functions and static methods on classes.
+    """
+    registry: dict[str, tuple[str, str]] = {}
+
+    for py_name, parsed in parsed_files.items():
+        # For module-level functions, use the filename-derived class name
+        # (e.g., enemies.py → Enemies, utils.py → Utils)
+        filename_class = snake_to_pascal(py_name.replace(".py", ""))
+
+        # Module-level functions — qualify with filename class
+        for func in parsed.module_functions:
+            pascal_name = snake_to_pascal(func.name)
+            registry[pascal_name] = (filename_class, func.name)
+
+        # Static methods on classes
+        for cls in parsed.classes:
+            for method in cls.methods:
+                if method.is_static:
+                    pascal_name = snake_to_pascal(method.name)
+                    registry[pascal_name] = (cls.name, method.name)
+
+    return registry
+
+
+def _collect_local_functions(parsed: PyFile) -> set[str]:
+    """Collect PascalCase names of all functions/methods defined in this file."""
+    local: set[str] = set()
+
+    # Module-level functions
+    for func in parsed.module_functions:
+        local.add(snake_to_pascal(func.name))
+
+    # All methods in all classes (instance + static)
+    for cls in parsed.classes:
+        for method in cls.methods:
+            local.add(snake_to_pascal(method.name))
+
+    return local
+
+
 def _inject_global_types(parsed: PyFile, global_types: dict[str, str], global_constants: dict[str, str]) -> None:
     """Inject cross-file type information into a parsed file's classes."""
     for cls in parsed.classes:
@@ -144,8 +195,46 @@ def _inject_global_types(parsed: PyFile, global_types: dict[str, str], global_co
                     field.type_annotation = global_types[key]
 
 
-def _post_process(cs_code: str, global_types: dict[str, str], global_constants: dict[str, str]) -> str:
+# Unity/System built-in functions that must never be qualified with a user class
+_UNITY_BUILTINS = {
+    "Destroy", "Instantiate", "DontDestroyOnLoad", "FindObjectOfType",
+    "FindObjectsOfType", "FindWithTag", "Find",
+    "Invoke", "InvokeRepeating", "CancelInvoke",
+    "StartCoroutine", "StopCoroutine", "StopAllCoroutines",
+    "GetComponent", "GetComponentInChildren", "GetComponentInParent",
+    "GetComponents", "GetComponentsInChildren", "GetComponentsInParent",
+    "AddComponent",
+    "Print",
+}
+
+
+def _post_process(
+    cs_code: str,
+    global_types: dict[str, str],
+    global_constants: dict[str, str],
+    *,
+    global_functions: dict[str, str] | None = None,
+    local_functions: set[str] | None = None,
+) -> str:
     """Fix cross-file references in generated C# code."""
+    # --- Cross-file function call qualification ---
+    if global_functions and local_functions is not None:
+        for pascal_name, (source_class, snake_name) in global_functions.items():
+            # Skip if this function is defined in the current file
+            if pascal_name in local_functions:
+                continue
+            # Skip Unity/System built-ins
+            if pascal_name in _UNITY_BUILTINS:
+                continue
+            # Try both PascalCase and snake_case forms since the translator
+            # may emit either depending on context
+            for name_form in {pascal_name, snake_name}:
+                # Qualify unqualified calls: FuncName( → SourceClass.PascalName(
+                # Negative lookbehind: skip if preceded by dot or word char (already qualified)
+                pattern = r'(?<!\.)(?<!\w)' + re.escape(name_form) + r'\('
+                replacement = f'{source_class}.{pascal_name}('
+                cs_code = re.sub(pattern, replacement, cs_code)
+
     # Inject cross-file constants that are referenced but not defined in this class
     const_lines = []
     for const_name, const_value in global_constants.items():
@@ -169,12 +258,18 @@ def _post_process(cs_code: str, global_types: dict[str, str], global_constants: 
                 const_lines.append(f"    private static readonly object[] {const_name} = new object[0];")
 
     if const_lines:
-        # Insert after the class opening brace
-        cs_code = cs_code.replace(
-            "{\n",
-            "{\n" + "\n".join(const_lines) + "\n",
-            1,  # Only replace the first occurrence (class brace)
-        )
+        # Insert after the first CLASS opening brace (skip enum braces)
+        class_brace = re.search(r'class\s+\w+[^{]*\{', cs_code)
+        if class_brace:
+            insert_pos = class_brace.end()
+            cs_code = cs_code[:insert_pos] + "\n" + "\n".join(const_lines) + cs_code[insert_pos:]
+        else:
+            # Fallback: insert after first brace
+            cs_code = cs_code.replace(
+                "{\n",
+                "{\n" + "\n".join(const_lines) + "\n",
+                1,
+            )
 
     # Strip DisplayManager blocks (simulator-only) — entire try/catch
     cs_code = re.sub(r"\s*try\s*\{[^}]*DisplayManager[^}]*\}\s*catch\s*\([^)]*\)\s*\{[^}]*\}", "", cs_code)
