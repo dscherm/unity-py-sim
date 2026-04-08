@@ -2019,3 +2019,158 @@ simplified ghost scatter (random, no corner targeting), fruit sprites (unused in
   "passes": false
 }
 ```
+
+---
+
+## Phase: Translator Fix Round — Validation Gaps (2026-04-07)
+
+Derived from end-to-end validation: 97 test failures, 4 C# structural gate failures.
+TDD-first: each task writes failing tests before implementation.
+Post-task: spawn independent validation agent for contract + mutation tests.
+
+### Task 1: Translate Python `in` operator to C# equivalents
+
+```json
+{
+  "category": "bugfix",
+  "priority": 1,
+  "description": "Python `x in dict` and `x in list` leak as-is into C# output. Causes 4 structural gate failures in Pacman V2 (AnimatedSprite.cs, GameManager.cs, GhostScatter.cs, Passage.cs). Must translate membership tests to C# equivalents.",
+  "steps": [
+    "RED: Write failing tests in tests/translator/test_python_to_csharp.py for: `x in dict` → `dict.ContainsKey(x)`, `x in list` → `list.Contains(x)`, `x not in set` → `!set.Contains(x)`, `if key in dict` in conditions",
+    "Read src/translator/python_to_csharp.py — find where Compare nodes with In/NotIn ops are handled in _translate_py_expression() (around line 1335-1549)",
+    "GREEN: Add _translate_in_operator() — detect ast.Compare with ast.In/ast.NotIn, infer container type from symbol table (dict→ContainsKey, list/set→Contains), emit correct C# call",
+    "Handle edge case: `for x in dict` should remain `foreach (var x in dict)` (already works — don't break it)",
+    "Run: python -m pytest tests/translator/test_python_to_csharp.py -v -k 'in_operator or contains'",
+    "Re-run structural gate on data/generated/pacman_v2_cs/ — target: 16/16 pass (was 12/16)",
+    "Spawn validation agent: contract tests (in-operator edge cases), mutation tests (break ContainsKey→Contains swap)"
+  ],
+  "passes": true,
+  "note": "Added _translate_in_membership(), _dict_fields tracking, pass→/* pass */. 17/17 tests pass. Structural gate improved 12/16→15/17."
+}
+```
+
+### Task 2: Fix Math.Max/Min → Mathf.Max/Min
+
+```json
+{
+  "category": "bugfix",
+  "priority": 1,
+  "description": "Lines 1520-1521 of python_to_csharp.py emit Math.Max()/Math.Min() instead of Unity's Mathf.Max()/Mathf.Min(). Also handle abs()→Mathf.Abs(), round()→Mathf.Round(). 4 test failures.",
+  "steps": [
+    "RED: Write failing tests asserting `Mathf.Max(`, `Mathf.Min(`, `Mathf.Abs(`, `Mathf.Round(` in translated output",
+    "GREEN: Edit python_to_csharp.py lines 1520-1521: change `Math.Max(` to `Mathf.Max(` and `Math.Min(` to `Mathf.Min(`",
+    "Add regex for abs() → Mathf.Abs() and round() → Mathf.Round() in same section",
+    "Update translation_rules.json to match (lines 104-105 already say Mathf — code was ignoring rules file)",
+    "Run: python -m pytest tests/translator/ -v -k 'math or max or min or abs'",
+    "Run: python -m pytest tests/contracts/test_translator_compilability_contract.py -v",
+    "Spawn validation agent: mutation tests (swap Mathf back to Math, verify tests catch it)"
+  ],
+  "passes": true,
+  "note": "Fixed Math.Max→Mathf.Max, Math.Min→Mathf.Min, added round→Mathf.Round. 18/18 validation tests pass."
+}
+```
+
+### Task 3: Fix Input System translation plumbing
+
+```json
+{
+  "category": "bugfix",
+  "priority": 2,
+  "description": "New Input System translation code exists (lines 1282-1332) but translate_file() at line 44 doesn't forward input_system config. 60+ test failures because Input.get_key_down('escape') produces empty Update() body.",
+  "steps": [
+    "RED: Write minimal test — translate a file with Input.get_key_down('space'), assert 'Keyboard.current.spaceKey' in output",
+    "Read translate_file() at line 44 — trace how it calls parse_python_file() then translate(). Check if input_system='new' is passed",
+    "GREEN: Fix translate_file() to accept and forward input_system parameter (default='new')",
+    "Verify the key name mapping works: 'escape'→escapeKey, 'space'→spaceKey, 'a'→aKey, etc.",
+    "Verify mouse button mapping: get_mouse_button_down(0)→Mouse.current.leftButton.wasPressedThisFrame",
+    "Run: python -m pytest tests/translator/test_python_to_csharp.py -v -k 'input'",
+    "Run: python -m pytest tests/integration/test_translator_task10_validation.py -v",
+    "Spawn validation agent: contract tests for all key/mouse combos, mutation tests for wrong button maps"
+  ],
+  "passes": true,
+  "note": "Root cause: test fixtures used `pass` body which gets stripped. T1 fixed pass→/* pass */. Translation code was already correct. 31/31 new validation tests pass."
+}
+```
+
+### Task 4: Expand bool truthiness detection
+
+```json
+{
+  "category": "bugfix",
+  "priority": 2,
+  "description": "Bool detection (lines 76-87) only finds explicit ': bool' annotations or True/False defaults. Must handle compound conditions, Unity properties (activeSelf, enabled), and inferred bools. 4 test failures.",
+  "steps": [
+    "RED: Write failing tests for: `if self.flag and self.obj:` (flag=bool, obj=Component), `if gameObject.activeSelf:` bare truthiness, `if not self.is_dead:` with bool default",
+    "Read _translate_py_condition() at lines 1748-1768 and _bool_fields set at lines 76-87",
+    "GREEN: Expand _BOOL_PROPERTIES set to include all known Unity bool properties (activeSelf, activeInHierarchy, enabled, isKinematic, isTrigger, isActiveAndEnabled)",
+    "Add inference: if field is assigned comparison result (self.x = a > b) or set to True/False anywhere in class body, add to _bool_fields",
+    "Handle compound conditions: split on and/or, apply truthiness per sub-expression",
+    "Run: python -m pytest tests/translator/ -v -k 'bool or truthiness'",
+    "Run: python -m pytest tests/contracts/test_translator_compilability_contract.py -v",
+    "Spawn validation agent: edge-case contract tests, mutation tests (remove null check, verify test catches)"
+  ],
+  "passes": true,
+  "note": "Added negated object handling: !rb→rb == null. 19/19 tests pass. Only 2 were actually failing — most truthiness cases already worked."
+}
+```
+
+### Task 5: Rewrite Pacman V2 ghost tests for V2 API
+
+```json
+{
+  "category": "test",
+  "priority": 3,
+  "description": "30+ test failures from V1 ghost API tests applied to V2 code. V2 restructured ghost behaviors. Delete stale V1 tests and write fresh V2-aware tests via validation agent.",
+  "steps": [
+    "Read examples/pacman_v2/pacman_v2_python/ghost.py, ghost_behavior.py, ghost_scatter.py, ghost_chase.py, ghost_frightened.py, ghost_home.py, ghost_eyes.py — understand V2 API",
+    "Delete stale test files: tests/contracts/test_pacman_tasks45_contract.py, tests/integration/test_pacman_tasks45_integration.py, tests/mutation/test_pacman_tasks45_mutation.py",
+    "Spawn validation agent with instructions: read ONLY the V2 source in examples/pacman_v2/pacman_v2_python/, write fresh contract tests (tests/contracts/test_pacman_v2_ghost_contract.py — note: file already exists, extend it), integration tests (tests/integration/test_pacman_v2_integration.py), mutation tests (tests/mutation/test_pacman_v2_mutation.py)",
+    "Validation agent must NOT read old test files — derive from V2 source + Unity docs only",
+    "Run: python -m pytest tests/contracts/test_pacman_v2_ghost_contract.py tests/integration/test_pacman_v2_integration.py tests/mutation/test_pacman_v2_mutation.py -v",
+    "Fix any bugs the validation agent finds before marking complete"
+  ],
+  "passes": true,
+  "note": "Deleted 3 stale V1 test files (52 failures). Wrote 62 fresh V2 tests (contract+integration+mutation), all pass. No source bugs found."
+}
+```
+
+### Task 6: Register Pacman V2 in playtest.py
+
+```json
+{
+  "category": "bugfix",
+  "priority": 3,
+  "description": "python tools/playtest.py pacman_v2 fails with 'Unknown example'. Add entry to playtest registry.",
+  "steps": [
+    "Read tools/playtest.py — find the example registry (dict or if/elif mapping names to run scripts)",
+    "Add 'pacman_v2' entry pointing to examples/pacman_v2/run_pacman_v2.py",
+    "Handle the sys.path requirement — pacman_v2 imports from pacman_v2_python/ relative to its own directory",
+    "Run: python tools/playtest.py pacman_v2 --headless --frames 300",
+    "Verify clean run with no errors"
+  ],
+  "passes": true,
+  "note": "Added pacman_v2 to EXAMPLES dict. Headless 300 frames runs clean."
+}
+```
+
+### Task 7: Re-run Pacman V2 translation gate
+
+```json
+{
+  "category": "validation",
+  "priority": 4,
+  "description": "After Tasks 1-4, re-translate Pacman V2 and validate. Target: 16/16 structural pass, 16/16 convention pass. Then mark Pacman V2 Task 7 as passing.",
+  "steps": [
+    "Run project translator on examples/pacman_v2/pacman_v2_python/ → data/generated/pacman_v2_cs/",
+    "Run structural gate on all 16 generated C# files — target: 16/16 pass",
+    "Run convention gate on all 16 generated C# files — target: 16/16 pass",
+    "Diff new output against previous data/generated/pacman_v2_cs/ — document improvements",
+    "Run full test suite: python -m pytest tests/ -v — target: <10 failures (down from 97)",
+    "Update Pacman V2 Task 7 in plan.md to passes: true",
+    "Spawn validation agent: verify translated C# against zigurous original, check for remaining Python leaks",
+    "Commit all changes"
+  ],
+  "passes": false,
+  "note": "Structural 15/17 (2 remaining: animated_sprite.cs dot-access split, ghost_scatter.cs paren mismatch). Convention 17/17. Test suite 2280 pass/45 fail (down from 2112/97). 7/7 playtests clean. Smart gate fails on 45 remaining test failures."
+}
+```

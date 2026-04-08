@@ -671,3 +671,87 @@ class TestMathfBuiltins:
         result = translate(parsed)
         assert "Mathf.Abs(val)" in result
         assert "Math.Abs" not in result
+
+
+class TestInOperator:
+    """Test Python 'in' / 'not in' membership operator translation."""
+
+    def test_in_operator_list(self):
+        """x in my_list -> my_list.Contains(x)"""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        if x in self.items:\n"
+            "            pass\n"
+        )
+        result = translate(parsed)
+        assert "items.Contains(x)" in result
+        assert " in items" not in result or "Contains" in result
+
+    def test_in_operator_dict(self):
+        """key in my_dict -> my_dict.ContainsKey(key) when dict type known."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def __init__(self):\n"
+            "        super().__init__()\n"
+            "        self.lookup: dict[str, int] = {}\n"
+            "    def update(self):\n"
+            "        if key in self.lookup:\n"
+            "            pass\n"
+        )
+        result = translate(parsed)
+        assert "ContainsKey(key)" in result
+
+    def test_not_in_operator(self):
+        """x not in items -> !items.Contains(x)"""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        if x not in self.items:\n"
+            "            pass\n"
+        )
+        result = translate(parsed)
+        assert "!items.Contains(x)" in result
+
+    def test_not_in_operator_dict(self):
+        """key not in my_dict -> !my_dict.ContainsKey(key)"""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def __init__(self):\n"
+            "        super().__init__()\n"
+            "        self.cache: dict[str, float] = {}\n"
+            "    def update(self):\n"
+            "        if key not in self.cache:\n"
+            "            pass\n"
+        )
+        result = translate(parsed)
+        assert "!cache.ContainsKey(key)" in result
+
+    def test_in_does_not_break_foreach(self):
+        """for x in collection must still translate to foreach."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        for obj in self.enemies:\n"
+            "            print(obj)\n"
+        )
+        result = translate(parsed)
+        assert "foreach (var obj in enemies)" in result
+
+    def test_in_with_compound_condition(self):
+        """x in list and y > 0 -> list.Contains(x) && y > 0"""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        if x in self.items and y > 0:\n"
+            "            pass\n"
+        )
+        result = translate(parsed)
+        assert "items.Contains(x)" in result
+        assert "&&" in result

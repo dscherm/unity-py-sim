@@ -73,10 +73,11 @@ def translate(
                     pascal = _upper_snake_to_pascal(f.name)
                     _enum_values[f"{cls.name}.{f.name}"] = f"{cls.name}.{pascal}"
 
-    # Pre-pass: collect bool and array fields from ALL classes for truthiness/length checks
-    global _bool_fields, _array_fields
+    # Pre-pass: collect bool, array, and dict fields from ALL classes for truthiness/length/membership checks
+    global _bool_fields, _array_fields, _dict_fields
     _bool_fields = set()
     _array_fields = set()
+    _dict_fields = set()
     for cls in parsed.classes:
         for f in cls.fields:
             ann = (f.type_annotation or "").strip()
@@ -85,6 +86,27 @@ def translate(
                 _bool_fields.add(cs_name)
             if "list[" in ann or "[]" in ann:
                 _array_fields.add(cs_name)
+            if "dict[" in ann or ann.startswith("Dict[") or ann.startswith("Dictionary<"):
+                _dict_fields.add(cs_name)
+                # Also add expression-translator variant for _prefixed names
+                if f.name.startswith("_"):
+                    parts = f.name.lstrip("_").split("_")
+                    expr_name = parts[0] + "".join(p.capitalize() for p in parts[1:])
+                    _dict_fields.add(expr_name)
+
+    # Also collect dict fields from module-level constants
+    for mc in parsed.module_constants:
+        ann = (mc.type_annotation or "").strip()
+        if "dict[" in ann or ann.startswith("Dict[") or ann.startswith("Dictionary<"):
+            # Add both naming variants: snake_to_camel and the expression translator's
+            # _underscore_to_camel produce different results for _prefixed names.
+            mc_name = mc.name if mc.name.isupper() else snake_to_camel(mc.name)
+            _dict_fields.add(mc_name)
+            # Also add the variant that _translate_py_expression produces
+            if mc.name.startswith("_"):
+                parts = mc.name.lstrip("_").split("_")
+                expr_name = parts[0] + "".join(p.capitalize() for p in parts[1:])
+                _dict_fields.add(expr_name)
 
     results = []
     for cls in parsed.classes:
@@ -381,15 +403,17 @@ _declared_vars: set[str] = set()
 _enumerate_inject: str | None = None
 _bool_fields: set[str] = set()  # C# names of fields with bool type
 _array_fields: set[str] = set()  # C# names of fields with array types (use .Length not .Count)
+_dict_fields: set[str] = set()  # C# names of fields with dict types (use .ContainsKey not .Contains)
 _prefab_fields: set[str] = set()  # Prefab fields discovered from Instantiate() calls
 _enum_values: dict[str, str] = {}  # "EnumType.UPPER_SNAKE" -> "EnumType.PascalCase"
 
 
 def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     """Translate a MonoBehaviour subclass using the Jinja2 template."""
-    global _current_symbols, _bool_fields, _array_fields, _prefab_fields
+    global _current_symbols, _bool_fields, _array_fields, _dict_fields, _prefab_fields
     _bool_fields = set()
     _array_fields = set()
+    _dict_fields = set()
     _prefab_fields = set()
     extra_using = _infer_using_directives(cls, parsed)
     attributes = _infer_attributes(cls)
@@ -427,6 +451,15 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
             "csharp_name": mc.name,
             "default": mc_default,
         })
+        # Track dict-typed module constants for 'in' -> ContainsKey translation
+        if mc_type.startswith("Dictionary<"):
+            mc_cs_name = mc.name if mc.name.isupper() else snake_to_camel(mc.name)
+            _dict_fields.add(mc_cs_name)
+            # Also add expression-translator variant for _prefixed names
+            if mc.name.startswith("_"):
+                parts = mc.name.lstrip("_").split("_")
+                expr_name = parts[0] + "".join(p.capitalize() for p in parts[1:])
+                _dict_fields.add(expr_name)
 
     for field in cls.fields:
         # Use inferred type if available, otherwise fall back to annotation
@@ -444,6 +477,14 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
         # Track array fields so len() translator can use .Length not .Count
         if csharp_type.endswith("[]"):
             _array_fields.add(csharp_name)
+        # Track dict fields so 'in' operator uses .ContainsKey() not .Contains()
+        if csharp_type.startswith("Dictionary<"):
+            _dict_fields.add(csharp_name)
+            # Also add expression-translator variant for _prefixed names
+            if field.name.startswith("_"):
+                parts = field.name.lstrip("_").split("_")
+                expr_name = parts[0] + "".join(p.capitalize() for p in parts[1:])
+                _dict_fields.add(expr_name)
 
         entry = {
             "csharp_type": csharp_type,
@@ -811,7 +852,11 @@ def _translate_body(body: str) -> str:
             in_docstring = True
             continue
 
-        if not logical_line or logical_line == "pass" or logical_line == "super().__init__()":
+        if not logical_line or logical_line == "super().__init__()":
+            continue
+        if logical_line == "pass":
+            # Emit empty statement so parent if/else/while blocks aren't stripped
+            entries.append((indent_level, "/* pass */"))
             continue
         translated = _translate_py_statement(logical_line)
         if not translated:
@@ -1727,10 +1772,50 @@ def _translate_py_expression(expr: str) -> str:
     return expr
 
 
+def _translate_in_membership(cond: str) -> str:
+    """Translate Python 'in' / 'not in' membership operators to C# .Contains() / .ContainsKey().
+
+    Must be called BEFORE _translate_py_expression so that 'not in' isn't
+    mangled into '!in' by the general 'not' -> '!' rewrite.  Each side of
+    the match is individually translated through _translate_py_expression so
+    that self.field -> field and snake_case -> camelCase conversions happen.
+    """
+
+    def _replace_in(m):
+        needle = _translate_py_expression(m.group(1).strip())
+        negated = m.group(2) is not None  # "not" captured
+        collection_raw = m.group(3).strip()
+        collection = _translate_py_expression(collection_raw)
+
+        # Determine if collection is dict-typed: check last dotted part against _dict_fields
+        last_part = collection.rsplit(".", 1)[-1] if "." in collection else collection
+        if last_part in _dict_fields or collection in _dict_fields:
+            method = "ContainsKey"
+        else:
+            method = "Contains"
+
+        call = f"{collection}.{method}({needle})"
+        return f"!{call}" if negated else call
+
+    # Handle 'X not in Y' first (greedy — must come before plain 'in')
+    # Supports dotted names like self.items, _module_var, etc.
+    cond = re.sub(
+        r"([\w.]+(?:\[[\w.]+\])?)\s+(not\s+)?in\s+([\w.]+(?:\[[\w.]+\])?)",
+        _replace_in,
+        cond,
+    )
+    return cond
+
+
 def _translate_py_condition(cond: str) -> str:
     """Translate a Python condition to C#."""
     # Handle 'is not None' / 'is None' before expression translation mangles them
     cond = cond.replace(" is not None", " != null").replace(" is None", " == null")
+
+    # Handle 'not in' / 'in' membership operators BEFORE expression translation
+    # (otherwise 'not' gets converted to '!' and 'in' leaks as raw keyword)
+    cond = _translate_in_membership(cond)
+
     cond = _translate_py_expression(cond)
     cond = cond.replace(" and ", " && ").replace(" or ", " || ")
     cond = re.sub(r"\bnot\s+", "!", cond)
@@ -1765,7 +1850,17 @@ def _translate_py_condition(cond: str) -> str:
             else:
                 fixed_parts.append(f"{ident} != null")
         else:
-            fixed_parts.append(part)
+            # Handle negated identifiers: !identifier -> identifier == null (for non-bool objects)
+            neg_match = re.match(r"^!\s*([a-zA-Z_][\w.]*)$", part.strip())
+            if neg_match:
+                ident = neg_match.group(1)
+                last_prop = ident.rsplit(".", 1)[-1] if "." in ident else ident
+                if ident in _bool_fields or last_prop in _BOOL_PROPERTIES:
+                    fixed_parts.append(f"!{ident}")
+                else:
+                    fixed_parts.append(f"{ident} == null")
+            else:
+                fixed_parts.append(part)
     cond = " ".join(fixed_parts)
 
     return cond
