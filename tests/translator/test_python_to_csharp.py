@@ -624,3 +624,50 @@ class TestUnity6ApiMappings:
         assert ".velocity" in result
         assert "linearVelocity" not in result
         assert "Mouse.current" not in result
+
+
+class TestMathfBuiltins:
+    """Python math builtins should translate to Unity Mathf, not System.Math."""
+
+    def test_max_translates_to_mathf(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        x = max(a, b)\n"
+        )
+        result = translate(parsed)
+        assert "Mathf.Max(a, b)" in result
+        assert "Math.Max" not in result
+
+    def test_min_translates_to_mathf(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        x = min(a, b)\n"
+        )
+        result = translate(parsed)
+        assert "Mathf.Min(a, b)" in result
+        assert "Math.Min" not in result
+
+    def test_round_translates_to_mathf(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        x = round(val)\n"
+        )
+        result = translate(parsed)
+        assert "Mathf.Round(val)" in result
+
+    def test_abs_already_uses_mathf(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        x = abs(val)\n"
+        )
+        result = translate(parsed)
+        assert "Mathf.Abs(val)" in result
+        assert "Math.Abs" not in result

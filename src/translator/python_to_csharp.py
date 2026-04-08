@@ -1517,9 +1517,10 @@ def _translate_py_expression(expr: str) -> str:
     expr = re.sub(r"(?<!Vector2)(?<!Vector3)(?<!Quaternion)\((\d+),\s*(\d+),\s*(\d+)\)", _color_tuple_repl, expr)
 
     # Python builtins -> C# equivalents
-    expr = re.sub(r"\bmax\(", "Math.Max(", expr)
-    expr = re.sub(r"\bmin\(", "Math.Min(", expr)
+    expr = re.sub(r"\bmax\(", "Mathf.Max(", expr)
+    expr = re.sub(r"\bmin\(", "Mathf.Min(", expr)
     expr = re.sub(r"\babs\(", "Mathf.Abs(", expr)
+    expr = re.sub(r"\bround\(", "Mathf.Round(", expr)
 
     # Python list operations:
     # row[:] -> row.Clone() (array copy)
