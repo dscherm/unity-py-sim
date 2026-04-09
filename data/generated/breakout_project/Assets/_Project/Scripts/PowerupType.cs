@@ -1,5 +1,4 @@
 using System.Collections;
-using System;
 using UnityEngine;
 public enum PowerupType
 {
@@ -133,7 +132,7 @@ public class Powerup : MonoBehaviour
             }
         }
         string name = $"Powerup_{Random.Range(1000, 9999)}";
-        GameObject go = new GameObject(name);
+        GameObject go = new GameObject(name); // TODO: wire via Inspector or Instantiate
         go.transform.position = new Vector2(position.x, position.y);
         SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
         sr.color = GetColor(chosen);

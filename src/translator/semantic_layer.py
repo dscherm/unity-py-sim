@@ -37,12 +37,23 @@ def transform(cs_source: str) -> str:
         return cs_source
 
     cs_source = _strip_simulator_code(cs_source)
+    cs_source = _strip_ambiguous_usings(cs_source)
     cs_source = _rewrite_type_hints(cs_source)
     cs_source = _annotate_constructors(cs_source)
     cs_source = _annotate_singletons(cs_source)
     cs_source = _clean_empty_lines(cs_source)
 
     return cs_source
+
+
+def _strip_ambiguous_usings(cs: str) -> str:
+    """Strip 'using System;' to avoid CS0104 ambiguity with UnityEngine types (e.g. Random).
+
+    Unity code rarely needs bare System — Mathf covers math, and specific
+    System.* imports (System.Linq, System.Collections) are kept as-is.
+    """
+    cs = re.sub(r'^using System;\n', '', cs, count=1, flags=re.MULTILINE)
+    return cs
 
 
 def _strip_simulator_code(cs: str) -> str:

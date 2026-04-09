@@ -1,24 +1,23 @@
 using System.Linq;
-using System;
 using UnityEngine.UI;
 using UnityEngine;
 public class GameManager : MonoBehaviour
 {
-    public int score = 0;
-    public int lives = 3;
-    public bool gameOver = false;
-    public bool gameWon = false;
-    [SerializeField] private GameManager Instance;
     [SerializeField] private Canvas Canvas;
     [SerializeField] private Text ScoreText;
     [SerializeField] private Text LivesText;
     [SerializeField] private Text StatusText;
+    public static int score = 0;
+    public static int lives = 3;
+    public static bool gameOver = false;
+    public static bool gameWon = false;
+    public static GameManager Instance = null;
      void Start()
     {
         GameManager.Instance = this;
         SetupUi();
     }
-    public static GameManager? GetInstance()
+    public static GameManager GetInstance()
     {
         return GameManager.Instance;
     }
@@ -61,9 +60,9 @@ public class GameManager : MonoBehaviour
     }
     public void SetupUi()
     {
-        GameObject canvasGo = new GameObject("UICanvas");
+        GameObject canvasGo = new GameObject("UICanvas"); // TODO: wire via Inspector or Instantiate
         Canvas = canvasGo.AddComponent<Canvas>();
-        GameObject scoreGo = new GameObject("ScoreText");
+        GameObject scoreGo = new GameObject("ScoreText"); // TODO: wire via Inspector or Instantiate
         RectTransform rtScore = scoreGo.AddComponent<RectTransform>();
         rtScore.anchorMin = new Vector2(0.0f, 1.0f);
         rtScore.anchorMax = new Vector2(0.0f, 1.0f);
@@ -74,7 +73,7 @@ public class GameManager : MonoBehaviour
         ScoreText.fontSize = 20;
         ScoreText.color = new Color32(255, 255, 200, 255);
         ScoreText.alignment = TextAnchor.UpperLeft;
-        GameObject livesGo = new GameObject("LivesText");
+        GameObject livesGo = new GameObject("LivesText"); // TODO: wire via Inspector or Instantiate
         RectTransform rtLives = livesGo.AddComponent<RectTransform>();
         rtLives.anchorMin = new Vector2(1.0f, 1.0f);
         rtLives.anchorMax = new Vector2(1.0f, 1.0f);
@@ -85,7 +84,7 @@ public class GameManager : MonoBehaviour
         LivesText.fontSize = 20;
         LivesText.color = new Color32(255, 200, 200, 255);
         LivesText.alignment = TextAnchor.UpperRight;
-        GameObject statusGo = new GameObject("StatusText");
+        GameObject statusGo = new GameObject("StatusText"); // TODO: wire via Inspector or Instantiate
         RectTransform rtStatus = statusGo.AddComponent<RectTransform>();
         rtStatus.anchorMin = new Vector2(0.5f, 1.0f);
         rtStatus.anchorMax = new Vector2(0.5f, 1.0f);

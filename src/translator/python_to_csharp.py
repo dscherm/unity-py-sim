@@ -499,6 +499,13 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     # Infer field types from annotations and get_component() calls
     inferred_types = _infer_field_types(cls)
 
+    # Detect fields accessed via ClassName.field (static access pattern)
+    # e.g., GameManager.score, GameManager._instance — these must be `static`
+    classname_accessed_fields: set[str] = set()
+    for method in cls.methods:
+        for m in re.finditer(rf"{re.escape(cls.name)}\.(\w+)", method.body_source):
+            classname_accessed_fields.add(m.group(1))
+
     serialized_fields = []
     private_fields = []
     static_fields = []
@@ -567,6 +574,9 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
 
         if field.is_class_level and field.name.isupper():
             # UPPER_CASE constants are truly static (e.g. PACMAN_LAYER = 7)
+            static_fields.append(entry)
+        elif field.is_class_level and field.name in classname_accessed_fields:
+            # Fields accessed via ClassName.field in method bodies (e.g. GameManager.score)
             static_fields.append(entry)
         elif is_ref:
             # Reference types -> [SerializeField] private T field;
