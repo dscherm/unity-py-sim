@@ -56,11 +56,11 @@ public class Player : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Obstacle"))
         {
-            GameManager.instance.GameOver();
+            GameManager.Instance.GameOver();
         }
         else if (other.gameObject.CompareTag("Scoring"))
         {
-            GameManager.instance.IncreaseScore();
+            GameManager.Instance.IncreaseScore();
         }
     }
 }

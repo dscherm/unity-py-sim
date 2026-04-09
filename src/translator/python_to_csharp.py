@@ -1513,6 +1513,20 @@ def _translate_py_expression(expr: str) -> str:
     # Time API
     expr = expr.replace("Time.delta_time", "Time.deltaTime")
     expr = expr.replace("Time.fixed_delta_time", "Time.fixedDeltaTime")
+    # Time.set_time_scale(value) → Time.timeScale = value (property assignment, handled at statement level)
+    expr = re.sub(r"Time\.set_time_scale\((.+?)\)", r"Time.timeScale = \1", expr)
+    expr = re.sub(r"Time\.SetTimeScale\((.+?)\)", r"Time.timeScale = \1", expr)
+
+    # FindObjectsOfType — generic method
+    expr = re.sub(r"(?:GameObject\.)?find_objects_of_type\((\w+)\)", r"FindObjectsOfType<\1>()", expr)
+    expr = re.sub(r"(?:GameObject\.)?FindObjectsOfType\((\w+)\)", r"FindObjectsOfType<\1>()", expr)
+
+    # Random.range → Random.Range
+    expr = re.sub(r"Random\.range\(", "Random.Range(", expr)
+
+    # DestroyImmediate
+    expr = re.sub(r"(?:GameObject\.)?destroy_immediate\(", "DestroyImmediate(", expr)
+    expr = re.sub(r"GameObject\.DestroyImmediate\(", "DestroyImmediate(", expr)
 
     # Python math module -> Unity Mathf
     expr = re.sub(r"\bmath\.pi\b", "Mathf.PI", expr)

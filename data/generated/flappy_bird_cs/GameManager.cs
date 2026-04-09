@@ -9,27 +9,27 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject playButton;
     [SerializeField] private GameObject gameOverDisplay;
     // Singleton — wire via Inspector [SerializeField] on dependents
-    public static GameManager instance = null;
+    public static GameManager Instance = null;
     public int Score()
     {
         return Score;
     }
      void Awake()
     {
-        if (GameManager.instance != null)
+        if (GameManager.Instance != null)
         {
-            GameObject.DestroyImmediate(gameObject);
+            DestroyImmediate(gameObject);
         }
         else
         {
-            GameManager.instance = this;
+            GameManager.Instance = this;
         }
     }
      void OnDestroy()
     {
-        if (GameManager.instance == this)
+        if (GameManager.Instance == this)
         {
-            GameManager.instance = null;
+            GameManager.Instance = null;
         }
     }
      void Start()
@@ -38,7 +38,7 @@ public class GameManager : MonoBehaviour
     }
     public void Pause()
     {
-        Time.SetTimeScale(0.0f);
+        Time.timeScale = 0.0f;
         if (player != null)
         {
             player.enabled = false;
@@ -59,12 +59,12 @@ public class GameManager : MonoBehaviour
         {
             gameOverDisplay.SetActive(false);
         }
-        Time.SetTimeScale(1.0f);
+        Time.timeScale = 1.0f;
         if (player != null)
         {
             player.enabled = true;
         }
-        var pipes = GameObject.FindObjectsOfType(Pipes);
+        var pipes = FindObjectsOfType<Pipes>();
         for (int i = 0; i < pipes.Count; i++)
         {
             Destroy(pipes[i].gameObject);

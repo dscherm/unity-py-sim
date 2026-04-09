@@ -146,7 +146,10 @@ def _annotate_constructors(cs: str) -> str:
 
 
 def _annotate_singletons(cs: str) -> str:
-    """Priority 4: Detect and annotate singleton pattern."""
+    """Priority 4: Detect and annotate singleton pattern.
+
+    Also renames 'instance' to 'Instance' (Unity convention for singleton properties).
+    """
 
     # Match: public static ClassName instance (with or without assignment)
     def _add_singleton_comment(m: re.Match) -> str:
@@ -162,6 +165,16 @@ def _annotate_singletons(cs: str) -> str:
         cs,
         flags=re.MULTILINE,
     )
+
+    # Rename 'instance' to 'Instance' for static singleton fields and all references
+    # Static field declaration: public static GameManager instance → Instance
+    cs = re.sub(
+        r'(public\s+static\s+\w+\s+)instance\b',
+        r'\1Instance',
+        cs,
+    )
+    # References: ClassName.instance → ClassName.Instance
+    cs = re.sub(r'(\w+)\.instance\b', r'\1.Instance', cs)
 
     return cs
 
