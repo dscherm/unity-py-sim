@@ -1,0 +1,7 @@
+[
+  {
+    "package": "com.unity.ugui",
+    "reason": "using UnityEngine.UI",
+    "source_file": "GameManager.cs"
+  }
+]
