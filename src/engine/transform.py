@@ -46,6 +46,16 @@ class Transform(Component):
         self._local_scale = value
 
     @property
+    def euler_angles(self) -> Vector3:
+        """Get rotation as euler angles in degrees. Matches Unity's transform.eulerAngles."""
+        return self._rotation.euler_angles
+
+    @euler_angles.setter
+    def euler_angles(self, value: Vector3) -> None:
+        """Set rotation from euler angles in degrees. Matches Unity's transform.eulerAngles = ..."""
+        self._rotation = Quaternion.euler(value.x, value.y, value.z)
+
+    @property
     def parent(self) -> Transform | None:
         return self._parent
 

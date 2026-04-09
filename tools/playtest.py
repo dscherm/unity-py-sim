@@ -39,6 +39,7 @@ EXAMPLES = {
     "space_invaders": "examples/space_invaders/run_space_invaders.py",
     "pacman": "examples/pacman/run_pacman.py",
     "pacman_v2": "examples/pacman_v2/run_pacman_v2.py",
+    "flappy_bird": "examples/flappy_bird/run_flappy_bird.py",
 }
 
 

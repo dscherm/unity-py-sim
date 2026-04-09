@@ -136,6 +136,30 @@ class MonoBehaviour(Component):
         elif method_name in pending:
             self.stop_coroutine(pending.pop(method_name))
 
+    def invoke_repeating(self, method_name: str, delay: float, repeat_rate: float) -> None:
+        """Repeatedly call a method by name after an initial delay, then every repeat_rate seconds.
+
+        Matches Unity's MonoBehaviour.InvokeRepeating(string methodName, float time, float repeatRate).
+        """
+        if not hasattr(self, '_pending_invokes'):
+            self._pending_invokes: dict[str, object] = {}
+        # Cancel any existing invoke for this method
+        if method_name in getattr(self, '_pending_invokes', {}):
+            old = self._pending_invokes[method_name]
+            self.stop_coroutine(old)
+        coro = self.start_coroutine(self._invoke_repeating_loop(method_name, delay, repeat_rate))
+        self._pending_invokes[method_name] = coro
+
+    def _invoke_repeating_loop(self, method_name: str, delay: float, repeat_rate: float):
+        """Coroutine: wait initial delay, then call repeatedly at repeat_rate."""
+        from src.engine.coroutine import WaitForSeconds
+        yield WaitForSeconds(delay)
+        while True:
+            method = getattr(self, method_name, None)
+            if method is not None:
+                method()
+            yield WaitForSeconds(repeat_rate)
+
     def _invoke_delayed(self, method_name: str, delay: float):
         """Coroutine: wait then call the named method."""
         from src.engine.coroutine import WaitForSeconds
@@ -293,6 +317,72 @@ class GameObject:
             if obj is not None and obj.active:
                 result.append(obj)
         return result
+
+    def compare_tag(self, tag: str) -> bool:
+        """Check if this GameObject's tag matches. Matches Unity's CompareTag."""
+        return self._tag == tag
+
+    def set_active(self, active: bool) -> None:
+        """Activate or deactivate this GameObject. Matches Unity's SetActive."""
+        self.active = active
+
+    @staticmethod
+    def find_objects_of_type(cls: Type[T]) -> list[T]:
+        """Find all active components of the given type. Matches Unity's FindObjectsOfType<T>()."""
+        results: list[T] = []
+        for go in _game_objects.values():
+            if go.active:
+                for comp in go._components:
+                    if isinstance(comp, cls):
+                        results.append(comp)
+        return results
+
+    @staticmethod
+    def destroy_immediate(obj: 'GameObject | Component') -> None:
+        """Immediately destroy a GameObject. Matches Unity's DestroyImmediate."""
+        GameObject.destroy(obj)
+
+    @staticmethod
+    def instantiate(original: 'GameObject', position: 'Vector3 | None' = None, rotation: 'Quaternion | None' = None) -> 'GameObject':
+        """Instantiate a copy of a GameObject. Simplified clone for prefab-like behavior.
+
+        Matches Unity's Object.Instantiate(original, position, rotation).
+        Creates a new GameObject with the same name and tag, copies components and children.
+        """
+        new_go = GameObject._clone_hierarchy(original)
+        new_go.active = True  # Always activate the clone (even if template was inactive)
+        if position is not None:
+            new_go.transform.position = position
+        return new_go
+
+    @staticmethod
+    def _clone_hierarchy(original: 'GameObject') -> 'GameObject':
+        """Recursively clone a GameObject and its children."""
+        from src.engine.transform import Transform
+        new_go = GameObject(original.name, original.tag)
+        new_go.active = original.active
+        if original._transform is not None:
+            new_go.transform.position = original.transform.position
+            new_go.transform.local_scale = original.transform.local_scale
+        # Copy non-Transform components
+        for comp in original._components:
+            if isinstance(comp, Transform):
+                continue
+            new_comp = new_go.add_component(type(comp))
+            # Copy public attributes
+            for attr in vars(comp):
+                if not attr.startswith('_'):
+                    try:
+                        setattr(new_comp, attr, getattr(comp, attr))
+                    except (AttributeError, TypeError):
+                        pass
+        # Recursively clone children
+        if original._transform is not None:
+            for child_transform in original.transform.children:
+                child_clone = GameObject._clone_hierarchy(child_transform.game_object)
+                child_clone.transform.set_parent(new_go.transform)
+                child_clone.active = True  # Activate cloned children
+        return new_go
 
     @staticmethod
     def destroy(obj: 'GameObject | Component', delay: float = 0.0) -> None:

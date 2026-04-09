@@ -2444,3 +2444,194 @@ Goal: `python -m src.exporter.scaffold --game breakout --output data/generated/b
   "passes": false
 }
 ```
+
+---
+
+## Phase: Flappy Bird — C# → Python → C# End-to-End Roundtrip
+
+Source: https://github.com/zigurous/unity-flappy-bird-tutorial (5 scripts, ~150 LOC)
+Reference C#: `data/reference/flappy_bird/`
+Asset mapping: `data/mappings/flappy_bird_mapping.json`
+API catalog: `data/reference/flappy_bird/api_catalog.md`
+
+### Task 1: C# → Python line-by-line translation
+
+```json
+{
+  "category": "feature",
+  "priority": 1,
+  "description": "Translate all 5 C# scripts from zigurous/unity-flappy-bird-tutorial into Python 1:1 line-by-line. Every field, method, and name must match the C# reference. Missing Unity APIs must be ADDED to the engine, never worked around.",
+  "steps": [
+    "Read all 5 C# files in data/reference/flappy_bird/",
+    "Translate Player.cs → player.py (Sprite[] array, InvokeRepeating, euler angles, CompareTag, singleton access)",
+    "Translate GameManager.cs → game_manager.py (singleton Instance, DefaultExecutionOrder, SerializeField refs, FindObjectsOfType, Time.timeScale, UI.Text)",
+    "Translate Pipes.cs → pipes.py (child Transform refs, Camera.main.ScreenToWorldPoint, Vector3 arithmetic)",
+    "Translate Spawner.cs → spawner.py (InvokeRepeating/CancelInvoke, Instantiate with type, Random.Range)",
+    "Translate Parallax.cs → parallax.py (MeshRenderer.material.mainTextureOffset or transform-based scroll substitute)",
+    "Place all files in examples/flappy_bird/flappy_bird_python/",
+    "Verify every public field, private field, method name, and lifecycle hook matches C# reference exactly",
+    "Spawn validation agent"
+  ],
+  "passes": false
+}
+```
+
+### Task 2: Engine gap fills for Flappy Bird APIs
+
+```json
+{
+  "category": "feature",
+  "priority": 1,
+  "description": "Add missing Unity APIs to the engine that Flappy Bird requires. Do NOT work around missing APIs — add them to src/engine/.",
+  "steps": [
+    "Add InvokeRepeating(method_name, delay, interval) to MonoBehaviour — timer-based repeated calls",
+    "Add CancelInvoke(method_name) to MonoBehaviour — cancel specific or all invokes",
+    "Add DestroyImmediate(go) alias in core.py",
+    "Verify Camera.main.screen_to_world_point() works correctly",
+    "Verify find_objects_of_type<T>() returns correct results",
+    "Add compare_tag(tag) to GameObject if not present",
+    "Add DefaultExecutionOrder support (or document as translator-only attribute)",
+    "Add Sprite[] public field support (list of sprite references for animation)",
+    "Run existing test suite — no regressions",
+    "Spawn validation agent"
+  ],
+  "passes": false
+}
+```
+
+### Task 3: Python playable game — wire and playtest
+
+```json
+{
+  "category": "feature",
+  "priority": 1,
+  "description": "Wire up the Flappy Bird Python example as a playable pygame game. Create run_flappy_bird.py entry point and register in playtest.py.",
+  "steps": [
+    "Create examples/flappy_bird/run_flappy_bird.py with scene setup matching Unity hierarchy",
+    "Set up scene: Player (bird), Spawner, Background parallax, Ground parallax, UI (score, game over, play button)",
+    "Create Pipes prefab equivalent (parent + top/bottom children + scoring trigger)",
+    "Configure tags: Obstacle, Scoring",
+    "Configure colliders: trigger on pipe children and scoring zone, trigger on player",
+    "Wire GameManager singleton with score UI and game state",
+    "Register in tools/playtest.py as 'flappy_bird'",
+    "Playtest: python tools/playtest.py flappy_bird",
+    "Verify: bird flaps on space/click, pipes scroll left, score increments on pass, game over on collision, restart works",
+    "Spawn validation agent"
+  ],
+  "passes": false
+}
+```
+
+### Task 4: Python → C# forward translation
+
+```json
+{
+  "category": "feature",
+  "priority": 1,
+  "description": "Translate the Python Flappy Bird back to C# using the project translator. This tests the full roundtrip pipeline.",
+  "steps": [
+    "Run project_translator.py on examples/flappy_bird/flappy_bird_python/",
+    "Output to data/generated/flappy_bird_cs/",
+    "Run structural gate on all 5 generated files — target: 5/5 pass",
+    "Run convention gate — target: 5/5 pass",
+    "Run compilation gate (syntax check) — target: 5/5 pass",
+    "Run roundtrip gate vs original C# reference — record scores",
+    "Compare generated C# against data/reference/flappy_bird/ originals — document all deviations",
+    "Add translation pairs to data/corpus/"
+  ],
+  "passes": false
+}
+```
+
+### Task 5: Fix translator issues exposed by Flappy Bird
+
+```json
+{
+  "category": "bugfix",
+  "priority": 1,
+  "description": "Fix any translator bugs that Flappy Bird roundtrip exposes. These are likely Stage 2 items: SerializeField emission, singleton pattern, CompareTag, InvokeRepeating translation.",
+  "steps": [
+    "Catalog all deviations found in Task 4 roundtrip comparison",
+    "Fix SerializeField emission for typed references (Player, Spawner, Text, GameObject)",
+    "Fix singleton pattern: static Instance property with get/private set",
+    "Fix DefaultExecutionOrder attribute translation",
+    "Fix CompareTag translation (ensure proper method call generation)",
+    "Fix InvokeRepeating/CancelInvoke translation (nameof pattern)",
+    "Fix Instantiate with typed return (Pipes pipes = Instantiate(prefab, ...))",
+    "Re-run all gates after fixes — target: all pass",
+    "Run full test suite — no regressions",
+    "Spawn validation agent"
+  ],
+  "passes": false
+}
+```
+
+### Task 6: Asset mapping and Unity project scaffold
+
+```json
+{
+  "category": "feature",
+  "priority": 1,
+  "description": "Generate a complete Unity project scaffold for Flappy Bird that uses original assets from the zigurous repo. The output project should be openable in Unity with <3 manual steps.",
+  "steps": [
+    "Download original sprites from zigurous repo to data/assets/flappy_bird/Sprites/",
+    "Download original materials to data/assets/flappy_bird/Materials/",
+    "Download original .meta files (preserve import settings: PPU, texture type, sprite mode)",
+    "Download original Pipes.prefab and .meta to data/assets/flappy_bird/Prefabs/",
+    "Run project scaffolder to generate Unity project structure at data/generated/flappy_bird_project/",
+    "Copy original assets (sprites, materials, prefabs with .meta files) into scaffolded project",
+    "Copy generated C# scripts into Assets/Scripts/",
+    "Generate TagManager.asset with Obstacle and Scoring tags",
+    "Generate Physics2DSettings.asset (gravity 0, -9.81)",
+    "Verify folder structure matches: Assets/{Scripts,Sprites,Materials,Prefabs,Scenes}/",
+    "Document deployment steps: clone assets → open in Unity → assign SerializeField refs → play"
+  ],
+  "passes": false
+}
+```
+
+### Task 7: CoPlay scene reconstruction with original assets
+
+```json
+{
+  "category": "feature",
+  "priority": 1,
+  "description": "Generate a CoPlay MCP script that reconstructs the Flappy Bird scene in Unity Editor using the original assets. The script must wire sprite references, prefab instantiation, tag assignments, and SerializeField connections.",
+  "steps": [
+    "Serialize the Python Flappy Bird scene to JSON via scene_serializer",
+    "Generate CoPlay editor script from scene JSON + flappy_bird_mapping.json",
+    "Script must: create Camera, Player GO with SpriteRenderer (Bird_01 sprite), Spawner GO",
+    "Script must: create Background + Ground parallax GOs with MeshRenderer + materials",
+    "Script must: assign tags (Obstacle on pipe colliders, Scoring on gap trigger)",
+    "Script must: wire SerializeField references (GameManager.player, GameManager.spawner, etc.)",
+    "Script must: reference Pipes.prefab for Spawner.prefab field",
+    "Script must: create UI Canvas with score Text, gameOver Image, playButton Image",
+    "Script must: use original sprites from Assets/Sprites/ (not colored rectangles)",
+    "Test script generation — verify valid C# editor script output",
+    "Document any manual steps remaining after CoPlay execution"
+  ],
+  "passes": false
+}
+```
+
+### Task 8: End-to-end validation — Unity playable
+
+```json
+{
+  "category": "validation",
+  "priority": 1,
+  "description": "Full end-to-end validation: Python game → translated C# → scaffolded Unity project with original assets → CoPlay scene setup → playable in Unity. This is the first complete pipeline test with a third-party game.",
+  "steps": [
+    "Run full pipeline: translate → scaffold → copy assets → generate CoPlay script",
+    "Push scaffolded project to GitHub",
+    "On home machine: open project in Unity, run CoPlay script, verify scene loads",
+    "Verify: bird sprite animates (3 frames), pipes use Pipe.png, background scrolls",
+    "Verify: gameplay works (flap, score, game over, restart)",
+    "Verify: no console errors, no missing references",
+    "Record any manual steps required (target: <3)",
+    "Document results in data/lessons/flappy_bird_deploy.md",
+    "Update accuracy metrics in data/metrics/",
+    "If bugs found: fix and re-validate before marking complete"
+  ],
+  "passes": false
+}

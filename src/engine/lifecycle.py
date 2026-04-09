@@ -61,10 +61,14 @@ class LifecycleManager:
 
         Unity calls Awake() regardless of enabled state — it runs once when
         the component is first created, even if the component starts disabled.
+        Unity also fires OnEnable() right after Awake() for components that start enabled.
         """
         while self._awake_queue:
             comp = self._awake_queue.pop(0)
             comp.awake()
+            # Unity fires OnEnable right after Awake for initially-enabled components
+            if comp.enabled and comp.game_object.active:
+                comp.on_enable()
             self._start_queue.append(comp)
 
     def process_start_queue(self) -> None:
@@ -90,13 +94,13 @@ class LifecycleManager:
     def run_fixed_update(self) -> None:
         """Run FixedUpdate on all registered MonoBehaviours."""
         for comp in list(self._fixed_update_list):
-            if comp.enabled:
+            if comp.enabled and comp.game_object.active:
                 comp.fixed_update()
 
     def run_update(self) -> None:
         """Run Update on all registered MonoBehaviours."""
         for comp in list(self._update_list):
-            if comp.enabled:
+            if comp.enabled and comp.game_object.active:
                 comp.update()
         # Tick coroutines after Update (Unity order)
         self._tick_coroutines()
@@ -110,7 +114,7 @@ class LifecycleManager:
     def run_late_update(self) -> None:
         """Run LateUpdate on all registered MonoBehaviours."""
         for comp in list(self._late_update_list):
-            if comp.enabled:
+            if comp.enabled and comp.game_object.active:
                 comp.late_update()
 
     def process_destroy_queue(self) -> None:

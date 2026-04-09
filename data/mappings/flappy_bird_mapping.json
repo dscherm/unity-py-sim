@@ -1,0 +1,109 @@
+{
+  "game": "flappy_bird",
+  "source_repo": "https://github.com/zigurous/unity-flappy-bird-tutorial",
+  "unity_version": "2019.4",
+  "scripts": [
+    "Player.cs",
+    "GameManager.cs",
+    "Pipes.cs",
+    "Spawner.cs",
+    "Parallax.cs"
+  ],
+  "sprites": {
+    "bird_01": {
+      "unity_path": "Assets/Sprites/Bird_01.png",
+      "source_url": "https://raw.githubusercontent.com/zigurous/unity-flappy-bird-tutorial/main/Assets/Sprites/Bird_01.png",
+      "ppu": 32,
+      "description": "Bird animation frame 1"
+    },
+    "bird_02": {
+      "unity_path": "Assets/Sprites/Bird_02.png",
+      "source_url": "https://raw.githubusercontent.com/zigurous/unity-flappy-bird-tutorial/main/Assets/Sprites/Bird_02.png",
+      "ppu": 32,
+      "description": "Bird animation frame 2"
+    },
+    "bird_03": {
+      "unity_path": "Assets/Sprites/Bird_03.png",
+      "source_url": "https://raw.githubusercontent.com/zigurous/unity-flappy-bird-tutorial/main/Assets/Sprites/Bird_03.png",
+      "ppu": 32,
+      "description": "Bird animation frame 3"
+    },
+    "background": {
+      "unity_path": "Assets/Sprites/Background.png",
+      "source_url": "https://raw.githubusercontent.com/zigurous/unity-flappy-bird-tutorial/main/Assets/Sprites/Background.png",
+      "ppu": 32,
+      "description": "Scrolling background"
+    },
+    "ground": {
+      "unity_path": "Assets/Sprites/Ground.png",
+      "source_url": "https://raw.githubusercontent.com/zigurous/unity-flappy-bird-tutorial/main/Assets/Sprites/Ground.png",
+      "ppu": 32,
+      "description": "Scrolling ground"
+    },
+    "pipe": {
+      "unity_path": "Assets/Sprites/Pipe.png",
+      "source_url": "https://raw.githubusercontent.com/zigurous/unity-flappy-bird-tutorial/main/Assets/Sprites/Pipe.png",
+      "ppu": 32,
+      "description": "Pipe obstacle sprite"
+    },
+    "game_over": {
+      "unity_path": "Assets/Sprites/GameOver.png",
+      "source_url": "https://raw.githubusercontent.com/zigurous/unity-flappy-bird-tutorial/main/Assets/Sprites/GameOver.png",
+      "ppu": 32,
+      "description": "Game over UI overlay"
+    },
+    "get_ready": {
+      "unity_path": "Assets/Sprites/GetReady.png",
+      "source_url": "https://raw.githubusercontent.com/zigurous/unity-flappy-bird-tutorial/main/Assets/Sprites/GetReady.png",
+      "ppu": 32,
+      "description": "Get ready UI overlay"
+    },
+    "play_button": {
+      "unity_path": "Assets/Sprites/PlayButton.png",
+      "source_url": "https://raw.githubusercontent.com/zigurous/unity-flappy-bird-tutorial/main/Assets/Sprites/PlayButton.png",
+      "ppu": 32,
+      "description": "Play button UI sprite"
+    }
+  },
+  "materials": {
+    "background_mat": {
+      "unity_path": "Assets/Materials/Background.mat",
+      "description": "Parallax scrolling material for background"
+    },
+    "ground_mat": {
+      "unity_path": "Assets/Materials/Ground.mat",
+      "description": "Parallax scrolling material for ground"
+    }
+  },
+  "prefabs": {
+    "pipes": {
+      "unity_path": "Assets/Prefabs/Pipes.prefab",
+      "description": "Pipe pair with top, bottom, and scoring trigger children",
+      "children": ["Top", "Bottom", "Scoring"]
+    }
+  },
+  "tags": ["Obstacle", "Scoring"],
+  "sorting_layers": ["Default"],
+  "scene": {
+    "unity_path": "Assets/Scenes/Flappy Bird.unity",
+    "description": "Main game scene"
+  },
+  "project_structure": {
+    "scripts_dir": "Assets/Scripts",
+    "sprites_dir": "Assets/Sprites",
+    "materials_dir": "Assets/Materials",
+    "prefabs_dir": "Assets/Prefabs",
+    "scenes_dir": "Assets/Scenes"
+  },
+  "asset_sourcing": {
+    "strategy": "clone_from_original",
+    "note": "All sprites, materials, and prefabs should be copied from the original zigurous repo when deploying to Unity. The .meta files contain import settings (PPU, texture type) that must be preserved.",
+    "download_steps": [
+      "Clone or download https://github.com/zigurous/unity-flappy-bird-tutorial",
+      "Copy Assets/Sprites/*.png and *.meta to Unity project Assets/Sprites/",
+      "Copy Assets/Materials/*.mat and *.meta to Unity project Assets/Materials/",
+      "Copy Assets/Prefabs/*.prefab and *.meta to Unity project Assets/Prefabs/",
+      "Generated C# scripts go to Assets/Scripts/ (replacing originals)"
+    ]
+  }
+}
