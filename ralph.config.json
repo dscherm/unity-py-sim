@@ -102,6 +102,16 @@
         "roundtrip-fidelity",
         "breaking-change"
       ]
+    },
+    "blind_tdd": {
+      "enabled": true,
+      "enforcement": "warn",
+      "spawner": "manual",
+      "test_dirs": ["tests/contracts/", "tests/integration/"],
+      "public_api_file": "public_api.md",
+      "max_challenges_per_task": 3,
+      "max_challenges_per_criterion": 1,
+      "human_input_timeout": 3600
     }
   },
   "harness": {

@@ -1,0 +1,53 @@
+{
+  "id": "demo-blind-tdd-delta-angle",
+  "title": "Mathf.delta_angle matches UnityEngine.Mathf.DeltaAngle",
+  "category": "engine_api",
+  "priority": 1,
+  "passes": false,
+  "description": "Add Mathf.delta_angle(current, target) to the Python engine. Matches UnityEngine.Mathf.DeltaAngle — returns the shortest signed angular difference between two angles in degrees, in the half-open range (-180, 180]. This task is being used as the first adopter for the ralph-universal blind-TDD gate.",
+  "public_surface": {
+    "module": "src.engine.math.mathf",
+    "adds": [
+      "Mathf.delta_angle(current: float, target: float) -> float"
+    ]
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "current=0.0 degrees and target=90.0 degrees",
+      "when": "Mathf.delta_angle(current, target) is called",
+      "then": "the result is 90.0 (within 1e-4 tolerance)"
+    },
+    {
+      "id": "AC-2",
+      "given": "current=0.0 degrees and target=180.0 degrees (the half-open boundary)",
+      "when": "Mathf.delta_angle(current, target) is called",
+      "then": "the result is exactly 180.0, not -180.0 (Unity returns the positive boundary value)"
+    },
+    {
+      "id": "AC-3",
+      "given": "current=350.0 degrees and target=10.0 degrees (wraps forward across the 360-degree boundary)",
+      "when": "Mathf.delta_angle(current, target) is called",
+      "then": "the result is 20.0 (within 1e-4 tolerance), not -340.0"
+    },
+    {
+      "id": "AC-4",
+      "given": "current=10.0 degrees and target=350.0 degrees (wraps backward across the 360-degree boundary)",
+      "when": "Mathf.delta_angle(current, target) is called",
+      "then": "the result is -20.0 (within 1e-4 tolerance), not 340.0"
+    },
+    {
+      "id": "AC-5",
+      "given": "current=5.0 degrees and target=5.0 degrees (identical angles)",
+      "when": "Mathf.delta_angle(current, target) is called",
+      "then": "the result is 0.0 (within 1e-4 tolerance)"
+    },
+    {
+      "id": "AC-6",
+      "given": "current=1080.0 degrees (three full rotations) and target=90.0 degrees",
+      "when": "Mathf.delta_angle(current, target) is called",
+      "then": "the result is 90.0 (within 1e-4 tolerance); inputs outside [0, 360) are normalized before comparison"
+    }
+  ],
+  "notes": "This is the E2a demo task for the ralph-universal blind-TDD adoption. The test writer MUST NOT read src/engine/math/mathf.py; it writes tests only from public_api.md and this task spec. Test file location: tests/contracts/test_mathf_delta_angle_contract.py"
+}
