@@ -28,6 +28,11 @@ _EXCLUDED_FILES = {"__init__.cs", "_required_packages.json"}
 _DEFAULT_PACKAGES: dict[str, str] = {
     "com.unity.render-pipelines.universal": "14.0.11",
     "com.unity.2d.sprite": "1.0.0",
+    # Built-in modules required for Collider2D, Rigidbody2D, UI.Text, GameObject.Find
+    "com.unity.modules.physics2d": "1.0.0",
+    "com.unity.modules.ui": "1.0.0",
+    "com.unity.modules.uielements": "1.0.0",
+    "com.unity.modules.imgui": "1.0.0",
 }
 
 # Well-known optional packages and their versions
@@ -228,6 +233,7 @@ def _write_tag_manager(
     lines.append("%TAG !u! tag:unity3d.com,2011:")
     lines.append("--- !u!78 &1")
     lines.append("TagManager:")
+    lines.append("  serializedVersion: 2")
 
     # Tags section
     lines.append("  tags:")
@@ -242,8 +248,8 @@ def _write_tag_manager(
         else:
             lines.append("  -")
 
-    # Sorting layers section
-    lines.append("  sortingLayers:")
+    # Sorting layers section (Unity requires m_ prefix)
+    lines.append("  m_SortingLayers:")
     lines.append("  - name: Default")
     lines.append("    uniqueID: 0")
     lines.append("    locked: 0")

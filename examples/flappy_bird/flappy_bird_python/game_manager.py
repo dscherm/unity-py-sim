@@ -20,11 +20,7 @@ class GameManager(MonoBehaviour):
         self.play_button: GameObject | None = None         # [SerializeField] private GameObject playButton
         self.game_over_display: GameObject | None = None   # [SerializeField] private GameObject gameOver
 
-        self._score: int = 0
-
-    @property
-    def score(self) -> int:
-        return self._score
+        self.score: int = 0  # public int score { get; private set; } = 0 in C#
 
     def awake(self) -> None:
         if GameManager.instance is not None:
@@ -45,9 +41,9 @@ class GameManager(MonoBehaviour):
             self.player.enabled = False
 
     def play(self) -> None:
-        self._score = 0
+        self.score = 0
         if self.score_text is not None:
-            self.score_text.text = str(self._score)
+            self.score_text.text = str(self.score)
 
         if self.play_button is not None:
             self.play_button.set_active(False)
@@ -73,6 +69,6 @@ class GameManager(MonoBehaviour):
         self.pause()
 
     def increase_score(self) -> None:
-        self._score += 1
+        self.score += 1
         if self.score_text is not None:
-            self.score_text.text = str(self._score)
+            self.score_text.text = str(self.score)
