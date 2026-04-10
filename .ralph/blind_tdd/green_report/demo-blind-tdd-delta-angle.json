@@ -1,0 +1,57 @@
+{
+  "task": "demo-blind-tdd-delta-angle",
+  "agent_id": "blind-runner-subagent",
+  "phase": "green",
+  "runner_command": ".venv/Scripts/python.exe -m pytest tests/contracts/test_mathf_delta_angle_contract.py -v --tb=short",
+  "runner_exit_code": 0,
+  "tests_collected": 6,
+  "tests_passed": 6,
+  "tests_failed": 0,
+  "tests_skipped": 0,
+  "per_test": [
+    {
+      "name": "test_delta_angle_simple_forward",
+      "file": "tests/contracts/test_mathf_delta_angle_contract.py",
+      "result": "pass",
+      "covers": ["AC-1"]
+    },
+    {
+      "name": "test_delta_angle_180_boundary_is_positive",
+      "file": "tests/contracts/test_mathf_delta_angle_contract.py",
+      "result": "pass",
+      "covers": ["AC-2"]
+    },
+    {
+      "name": "test_delta_angle_forward_wrap_around_zero",
+      "file": "tests/contracts/test_mathf_delta_angle_contract.py",
+      "result": "pass",
+      "covers": ["AC-3"]
+    },
+    {
+      "name": "test_delta_angle_backward_wrap_around_zero",
+      "file": "tests/contracts/test_mathf_delta_angle_contract.py",
+      "result": "pass",
+      "covers": ["AC-4"]
+    },
+    {
+      "name": "test_delta_angle_identical_inputs_zero",
+      "file": "tests/contracts/test_mathf_delta_angle_contract.py",
+      "result": "pass",
+      "covers": ["AC-5"]
+    },
+    {
+      "name": "test_delta_angle_normalizes_large_inputs",
+      "file": "tests/contracts/test_mathf_delta_angle_contract.py",
+      "result": "pass",
+      "covers": ["AC-6"]
+    }
+  ],
+  "coverage_verification": {
+    "all_criteria_covered": true,
+    "tested_criteria": ["AC-1", "AC-2", "AC-3", "AC-4", "AC-5", "AC-6"],
+    "missing_criteria": [],
+    "needs_human_criteria": [],
+    "untested_criteria_without_triage": []
+  },
+  "overall": "pass"
+}
