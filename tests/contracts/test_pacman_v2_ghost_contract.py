@@ -386,4 +386,5 @@ class TestPowerPelletCallsCorrectMethod:
         pp.eat()
 
         assert calls["power"] == 1, "PowerPellet should call power_pellet_eaten"
-        assert calls["pellet"] == 0, "PowerPellet should NOT call pellet_eaten"
+        # power_pellet_eaten chains into pellet_eaten for deactivation + remaining check
+        assert calls["pellet"] == 1, "power_pellet_eaten should chain into pellet_eaten"
