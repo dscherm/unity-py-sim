@@ -466,6 +466,7 @@ def _infer_field_types(cls: PyClass) -> dict[str, str]:
 # Thread-local symbol table for the current class being translated
 _current_symbols: dict[str, str] = {}
 _current_method_params: set[str] = set()
+_in_trigger_callback: bool = False
 _declared_vars: set[str] = set()
 _enumerate_inject: str | None = None
 _bool_fields: set[str] = set()  # C# names of fields with bool type
@@ -702,8 +703,9 @@ def _translate_method(method: PyMethod) -> dict:
     params_str = ", ".join(params)
 
     # Track parameter names (camelCase) for this.X shadowing detection
-    global _current_method_params
+    global _current_method_params, _in_trigger_callback
     _current_method_params = {snake_to_camel(p.name) for p in method.parameters}
+    _in_trigger_callback = method.name in _trigger_methods
 
     # Extract local variable names and add to symbol table
     _add_locals_to_symbols(method.body_source)
@@ -720,6 +722,7 @@ def _translate_method(method: PyMethod) -> dict:
     # Restore symbol table (remove method-scoped names)
     _current_symbols = saved_symbols
     _current_method_params = set()
+    _in_trigger_callback = False
 
     # Fix access for lifecycle methods
     if method.is_lifecycle:
@@ -1761,13 +1764,15 @@ def _translate_py_expression(expr: str) -> str:
 
     # OnTriggerEnter2D: other → other.gameObject for property access and method args
     # Collider2D has no .layer, .tag, .name directly — need .gameObject accessor
-    expr = re.sub(r"\bother\.layer\b", "other.gameObject.layer", expr)
-    expr = re.sub(r"\bother\.tag\b", "other.gameObject.tag", expr)
-    expr = re.sub(r"\bother\.name\b", "other.gameObject.name", expr)
-    # When 'other' is passed as a bare argument (Collider2D → GameObject)
-    # In trigger callbacks, standalone 'other' in args should be other.gameObject
-    expr = re.sub(r"(?<=\()other(?=[,)])", "other.gameObject", expr)
-    expr = re.sub(r"(?<=, )other(?=[,)])", "other.gameObject", expr)
+    # Only apply inside trigger callbacks where 'other' is a Collider2D
+    if _in_trigger_callback:
+        expr = re.sub(r"\bother\.layer\b", "other.gameObject.layer", expr)
+        expr = re.sub(r"\bother\.tag\b", "other.gameObject.tag", expr)
+        expr = re.sub(r"\bother\.name\b", "other.gameObject.name", expr)
+        # When 'other' is passed as a bare argument (Collider2D → GameObject)
+        # In trigger callbacks, standalone 'other' in args should be other.gameObject
+        expr = re.sub(r"(?<=\()other(?=[,)])", "other.gameObject", expr)
+        expr = re.sub(r"(?<=, )other(?=[,)])", "other.gameObject", expr)
 
     # Simulator-only calls — strip entirely
     # .build() is simulator physics setup
