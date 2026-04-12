@@ -111,7 +111,9 @@ class GameManager(MonoBehaviour):
             ghost.frightened.enable(pellet.duration)
 
         self.pellet_eaten(pellet)
-        # Reset multiplier after power pellet duration expires
+        # Reset multiplier immediately (each power pellet resets the chain)
+        self._ghost_multiplier = 1
+        # Schedule end-of-frightened multiplier reset as a safety net
         self.cancel_invoke("reset_ghost_multiplier")
         self.invoke("reset_ghost_multiplier", pellet.duration)
 

@@ -248,8 +248,9 @@ class TestGameManagerContract:
     def test_has_remaining_pellets_true_when_active(self):
         gm_go = GameObject("GM")
         gm = gm_go.add_component(GameManager)
-        _run_lifecycle()
+        # Create pellet BEFORE lifecycle so start() snapshots it into _all_pellets
         GameObject("P", tag="Pellet").add_component(Pellet)
+        _run_lifecycle()
         assert gm.has_remaining_pellets() is True
 
     def test_has_remaining_pellets_false_when_all_inactive(self):

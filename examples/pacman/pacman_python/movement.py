@@ -7,7 +7,7 @@ Grid-snapping added to handle engine difference (no physics-resolved MovePositio
 
 from src.engine.core import MonoBehaviour
 from src.engine.math.vector import Vector2
-from src.engine.physics.rigidbody import Rigidbody2D
+from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
 from src.engine.physics.physics_manager import Physics2D
 from src.engine.time_manager import Time
 
@@ -47,7 +47,7 @@ class Movement(MonoBehaviour):
         self.transform.position = Vector2(
             self.starting_position.x, self.starting_position.y
         )
-        self.rb.is_kinematic = False
+        self.rb.body_type = RigidbodyType2D.KINEMATIC
         self.enabled = True
 
     def update(self) -> None:
