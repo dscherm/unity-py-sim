@@ -1,3 +1,4 @@
+from __future__ import annotations
 """GhostHome — bounce inside home box, exit transition via coroutine.
 
 Line-by-line port of GhostHome.cs from zigurous/unity-pacman-tutorial.

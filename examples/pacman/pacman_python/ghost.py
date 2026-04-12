@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Ghost — aggregates all ghost behaviors and handles Pacman collision.
 
 Line-by-line port of Ghost.cs from zigurous/unity-pacman-tutorial.

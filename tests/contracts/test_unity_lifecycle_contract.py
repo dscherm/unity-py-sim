@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Contract tests: Unity lifecycle behaviour contracts.
 
 These tests verify that the engine honours Unity's documented lifecycle guarantees,

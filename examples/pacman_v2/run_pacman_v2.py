@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Run Pacman V2 in the Python Unity simulator.
 
 Port of the zigurous/unity-pacman-tutorial using real sprites.
@@ -185,10 +186,9 @@ def setup_scene():
 
         pacman_comp = pacman_go.add_component(Pacman)
 
-    # ── GameManager ──────────────────────────────────────────
-    gm_go = GameObject("GameManager")
-    gm = gm_go.add_component(GameManager)
-    gm.pacman = pacman_comp
+    # Collect pellets and ghosts for GameManager (created after all entities)
+    all_pellets = []
+    ghost_components = []
 
     # ── Nodes (intersections) ────────────────────────────────
     def _is_intersection(col: int, row: int) -> bool:
@@ -214,15 +214,12 @@ def setup_scene():
                 node_go.transform.position.x = nx
                 node_go.transform.position.y = ny
 
-                node = node_go.add_component(Node)
-
-                from src.engine.physics.collider import CircleCollider2D
-                trigger = node_go.add_component(CircleCollider2D)
-                trigger.radius = 0.25
-                trigger.is_trigger = True
-
                 rb = node_go.add_component(Rigidbody2D)
                 rb.body_type = RigidbodyType2D.STATIC
+                trigger = node_go.add_component(BoxCollider2D)
+                trigger.is_trigger = True
+                trigger.size = Vector2(0.5, 0.5)
+                node_go.add_component(Node)
 
     # ── Pellets ──────────────────────────────────────────────
     pellet_sprite = load_sprite("Pellet_Small.png", max(4, ppu // 4))
@@ -242,7 +239,7 @@ def setup_scene():
                 sr.sorting_order = 1
 
                 pellet = p_go.add_component(Pellet)
-                gm.register_pellet(pellet)
+                all_pellets.append(pellet)
 
                 trigger = p_go.add_component(CircleCollider2D)
                 trigger.radius = 0.15
@@ -262,7 +259,7 @@ def setup_scene():
                 sr.sorting_order = 1
 
                 pp = p_go.add_component(PowerPellet)
-                gm.register_pellet(pp)
+                all_pellets.append(pp)
 
                 trigger = p_go.add_component(CircleCollider2D)
                 trigger.radius = 0.5
@@ -311,10 +308,19 @@ def setup_scene():
     outside_go.transform.position.x, outside_go.transform.position.y = cell_to_world(13, 11)
 
     # ── Ghosts ───────────────────────────────────────────────
-    ghost_body_sprites = [
+    ghost_body_base = [
         load_sprite("Ghost_Body_01.png", ppu),
         load_sprite("Ghost_Body_02.png", ppu),
     ]
+
+    def tint_sprite(surf: pygame.Surface, color: tuple[int, int, int]) -> pygame.Surface:
+        """Apply color tint to a sprite surface."""
+        tinted = surf.copy()
+        tint_overlay = pygame.Surface(tinted.get_size(), pygame.SRCALPHA)
+        tint_overlay.fill((*color, 0))
+        # Use BLEND_MULT to tint white areas with the color
+        tinted.blit(tint_overlay, (0, 0), special_flags=pygame.BLEND_RGB_MULT)
+        return tinted
     eye_sprites = {
         "up": load_sprite("Ghost_Eyes_Up.png", ppu),
         "down": load_sprite("Ghost_Eyes_Down.png", ppu),
@@ -323,57 +329,75 @@ def setup_scene():
     }
 
     ghost_configs = [
-        {"name": "Blinky", "color": (255, 0, 0),     "col": 13, "row": 11, "initial": "scatter", "scatter_dur": 7.0, "chase_dur": 20.0},
-        {"name": "Pinky",  "color": (255, 184, 255),  "col": 13, "row": 14, "initial": "home",    "scatter_dur": 7.0, "chase_dur": 20.0},
-        {"name": "Inky",   "color": (0, 255, 255),    "col": 12, "row": 14, "initial": "home",    "scatter_dur": 5.0, "chase_dur": 20.0},
-        {"name": "Clyde",  "color": (255, 184, 82),   "col": 14, "row": 14, "initial": "home",    "scatter_dur": 5.0, "chase_dur": 20.0},
+        # (name, color, col, row, scatter_dur, start_in_home)
+        ("Blinky", (255, 0, 0),     14, 11, 7.0, False),   # Starts outside
+        ("Pinky",  (255, 184, 255), 14, 14, 7.0, True),    # Starts in home
+        ("Inky",   (0, 255, 255),   12, 14, 5.0, True),    # Starts in home
+        ("Clyde",  (255, 184, 82),  16, 14, 5.0, True),    # Starts in home
     ]
 
-    for cfg in ghost_configs:
-        gx, gy = cell_to_world(cfg["col"], cfg["row"])
-        ghost_go = GameObject(f"Ghost_{cfg['name']}")
-        ghost_go.transform.position.x = gx
-        ghost_go.transform.position.y = gy
-        ghost_go.layer = 7  # Ghost layer
+    from src.engine.physics.collider import CircleCollider2D
 
-        # Body sprite with color tint
+    for name, color, g_col, g_row, scatter_dur, start_in_home in ghost_configs:
+        gx, gy = cell_to_world(g_col, g_row)
+        ghost_go = GameObject(f"Ghost_{name}", tag="Ghost")
+        ghost_go.transform.position = Vector2(gx, gy)
+        ghost_go.layer = 8  # Ghost layer
+
+        # KINEMATIC rigidbody (matching v1 — ghosts move via MovePosition, not forces)
+        rb = ghost_go.add_component(Rigidbody2D)
+        rb.body_type = RigidbodyType2D.KINEMATIC
+        col_comp = ghost_go.add_component(CircleCollider2D)
+        col_comp.radius = 0.5
+
+        # Body sprite with color tint applied to the surface
+        tinted_bodies = [tint_sprite(s, color) for s in ghost_body_base]
         sr = ghost_go.add_component(SpriteRenderer)
-        sr.sprite = ghost_body_sprites[0]
-        sr.color = cfg["color"]
+        sr.sprite = tinted_bodies[0]
         sr.sorting_order = 4
 
-        rb = ghost_go.add_component(Rigidbody2D)
-        col_comp = ghost_go.add_component(BoxCollider2D)
-        col_comp.size = Vector2(1.0, 1.0)
+        # Movement
+        mov = ghost_go.add_component(Movement)
+        mov.speed = 7.0
+        mov.initial_direction = Vector2(0, -1) if start_in_home else Vector2(-1, 0)
 
-        movement = ghost_go.add_component(Movement)
-        movement.speed = 7.0
-        movement.initial_direction = Vector2(0, -1) if cfg["initial"] == "home" else Vector2(-1, 0)
-
-        # Body animation
+        # Body animation (using tinted sprites)
         anim = ghost_go.add_component(AnimatedSprite)
-        anim.sprites = ghost_body_sprites
+        anim.sprites = tinted_bodies
         anim.animation_time = 0.2
 
-        # Behaviors
+        # Ghost aggregator — added BEFORE behaviors so GhostBehavior.awake() can find it
+        ghost_comp = ghost_go.add_component(Ghost)
+        ghost_comp.target = pacman_go
+
+        # Behaviors — added AFTER Ghost, ALL start disabled
         home = ghost_go.add_component(GhostHome)
         home.inside = inside_go
         home.outside = outside_go
+        home.enabled = False
 
         scatter = ghost_go.add_component(GhostScatter)
-        scatter.duration = cfg["scatter_dur"]
+        scatter.duration = scatter_dur
+        scatter.enabled = False
 
         chase = ghost_go.add_component(GhostChase)
-        chase.duration = cfg["chase_dur"]
+        chase.duration = 20.0
+        chase.enabled = False
 
         frightened = ghost_go.add_component(GhostFrightened)
+        frightened.duration = 8.0
+        frightened.blue_sprite = load_sprite("Ghost_Vulnerable_Blue_01.png", ppu)
+        frightened.white_sprite = load_sprite("Ghost_Vulnerable_White_01.png", ppu)
+        frightened.enabled = False
 
-        ghost = ghost_go.add_component(Ghost)
-        ghost.initial_behavior = cfg["initial"]
-        ghost.target = pacman_go  # All ghosts chase Pacman (simplified)
+        # Set initial behavior (component reference, not string)
+        if start_in_home:
+            ghost_comp.initial_behavior = home
+        else:
+            ghost_comp.initial_behavior = scatter
 
         # Eyes child object
-        eyes_go = GameObject(f"Ghost_{cfg['name']}_Eyes")
+        eyes_go = GameObject(f"Ghost_{name}_Eyes")
         eyes_go.transform.set_parent(ghost_go.transform)
 
         eyes_sr = eyes_go.add_component(SpriteRenderer)
@@ -386,27 +410,36 @@ def setup_scene():
         eyes.sprite_left = eye_sprites["left"]
         eyes.sprite_right = eye_sprites["right"]
 
-        gm.register_ghost(ghost)
+        ghost_components.append(ghost_comp)
 
-    # ── Ghost House Gate (obstacle walls at rows 11-12) ──────
-    for col in [11, 16]:
-        for row in [11, 12]:
-            gx, gy = cell_to_world(col, row)
-            gate_go = GameObject(f"Gate_{col}_{row}")
-            gate_go.transform.position.x = gx
-            gate_go.transform.position.y = gy
-            gate_go.layer = OBSTACLE_LAYER
+    # ── Ghost House Gate (matching v1: obstacle-layer walls at entrance) ──
+    # Gate at row 12, columns 13-14 with half-height box.
+    # Prevents scatter/chase ghosts from walking back into the house.
+    # Exit transition bypasses this because ghost is kinematic during lerp.
+    for gate_col in (13, 14):
+        gx, gy = cell_to_world(gate_col, 12)
+        gate_go = GameObject(f"GhostGate_{gate_col}")
+        gate_go.transform.position.x = gx
+        gate_go.transform.position.y = gy
+        gate_go.layer = OBSTACLE_LAYER
 
-            rb = gate_go.add_component(Rigidbody2D)
-            rb.body_type = RigidbodyType2D.STATIC
+        rb = gate_go.add_component(Rigidbody2D)
+        rb.body_type = RigidbodyType2D.STATIC
 
-            col_comp = gate_go.add_component(BoxCollider2D)
-            col_comp.size = Vector2(1.0, 1.0)
+        col_comp = gate_go.add_component(BoxCollider2D)
+        col_comp.size = Vector2(1.0, 0.5)  # Half-height so exit lerp clears it
+
+    # ── GameManager (created LAST so its start() runs after all ghosts) ──
+    gm_go = GameObject("GameManager")
+    gm = gm_go.add_component(GameManager)
+    gm.pacman = pacman_comp
+    gm.ghosts = ghost_components
+    gm._all_pellets = all_pellets
 
 
 def main():
     headless = "--headless" in sys.argv
-    max_frames = 0
+    max_frames = None
     if "--frames" in sys.argv:
         idx = sys.argv.index("--frames")
         if idx + 1 < len(sys.argv):

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """GameManager — singleton managing score, lives, and game flow.
 
 Line-by-line port of GameManager.cs from zigurous/unity-pacman-tutorial.

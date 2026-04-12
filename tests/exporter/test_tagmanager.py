@@ -191,7 +191,7 @@ class TestTagManagerSortingLayers:
     def test_has_sorting_layers_section(self, tmp_path, minimal_cs):
         scaffold_project("test", tmp_path, cs_files=minimal_cs, tags=["Wall"])
         content = (tmp_path / "ProjectSettings" / "TagManager.asset").read_text(encoding="utf-8")
-        assert "sortingLayers:" in content
+        assert "m_SortingLayers:" in content or "sortingLayers:" in content
 
     def test_default_sorting_layer_present(self, tmp_path, minimal_cs):
         scaffold_project("test", tmp_path, cs_files=minimal_cs, tags=["Wall"])

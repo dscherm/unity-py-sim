@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Pacman player controller — port of zigurous Pacman.cs.
 
 Reads WASD/arrow input, sets movement direction, rotates sprite to face

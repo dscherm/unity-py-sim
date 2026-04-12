@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Passage — tunnel teleporter connecting two sides of the maze.
 
 Line-by-line port of Passage.cs from zigurous/unity-pacman-tutorial.

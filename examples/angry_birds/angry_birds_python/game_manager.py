@@ -1,3 +1,4 @@
+from __future__ import annotations
 """GameManager — controls bird queue, turn flow, win/lose conditions."""
 
 from src.engine.core import GameObject, MonoBehaviour

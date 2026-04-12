@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Spawner — Flappy Bird pipe spawner.
 
 Line-by-line translation of Spawner.cs from zigurous/unity-flappy-bird-tutorial.

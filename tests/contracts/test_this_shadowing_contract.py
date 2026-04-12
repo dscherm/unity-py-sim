@@ -8,6 +8,7 @@ These tests derive from C# language specification, NOT implementation details.
 """
 
 from __future__ import annotations
+import re
 
 import textwrap
 
@@ -75,7 +76,7 @@ class TestSimpleShadowing:
         assert "this.score = score;" in cs, (
             f"Expected 'this.score = score;' but got:\n{cs}"
         )
-        assert "score = score;" not in cs, (
+        assert not re.search(r"(?<!this\.)score = score;", cs), (
             f"Found self-assignment 'score = score;' (missing 'this.'):\n{cs}"
         )
 
@@ -95,7 +96,7 @@ class TestSimpleShadowing:
         assert "this.lives = lives;" in cs, (
             f"Expected 'this.lives = lives;' but got:\n{cs}"
         )
-        assert "lives = lives;" not in cs, (
+        assert not re.search(r"(?<!this\.)lives = lives;", cs), (
             f"Found self-assignment 'lives = lives;' (missing 'this.'):\n{cs}"
         )
 
@@ -256,9 +257,9 @@ class TestSpaceInvadersSetters:
 
     def test_set_score_no_self_assignment(self):
         cs = _translate_src(self.GAME_MANAGER_SRC)
-        # Must NOT produce 'score = score;'
-        assert "score = score;" not in cs, (
-            f"Bug reproduced: 'score = score;' found in output:\n{cs}"
+        # Must NOT produce bare 'score = score;' (without 'this.' prefix)
+        assert not re.search(r"(?<!this\.)score = score;", cs), (
+            f"Bug reproduced: bare 'score = score;' found in output:\n{cs}"
         )
 
     def test_set_score_uses_this_qualifier(self):

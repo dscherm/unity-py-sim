@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Movement — grid-based movement with wall detection and direction queuing.
 
 Line-by-line port of Movement.cs from zigurous/unity-pacman-tutorial.

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """GhostEyes — swap eye sprite based on movement direction.
 
 Line-by-line port of GhostEyes.cs from zigurous/unity-pacman-tutorial.

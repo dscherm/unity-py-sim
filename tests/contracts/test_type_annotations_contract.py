@@ -139,7 +139,12 @@ class TestSpotCheckParamAnnotations:
 
     def test_bunker_check_collision_params(self):
         from space_invaders_python.bunker import Bunker
-        hints = typing.get_type_hints(Bunker.check_collision)
+        try:
+            hints = typing.get_type_hints(Bunker.check_collision)
+        except TypeError:
+            # Python 3.9 can't evaluate X | None in get_type_hints even with
+            # from __future__ import annotations. Fall back to raw annotations.
+            hints = typing.get_type_hints(Bunker.check_collision, include_extras=False) if sys.version_info >= (3, 10) else Bunker.check_collision.__annotations__
         assert "hit_point" in hints, "Bunker.check_collision missing hit_point annotation"
 
     def test_mystery_ship_init_returns_none(self):

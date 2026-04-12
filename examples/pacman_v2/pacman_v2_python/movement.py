@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Movement — continuous physics-based movement matching zigurous Movement.cs.
 
 Uses Rigidbody2D.MovePosition in FixedUpdate with direction queuing.
@@ -43,11 +44,12 @@ class Movement(MonoBehaviour):
         self.speed_multiplier = 1.0
         self.direction = Vector2(self.initial_direction.x, self.initial_direction.y)
         self.next_direction = Vector2(0, 0)
-        self.transform.position = Vector2(
-            self.starting_position.x, self.starting_position.y
-        )
+        new_pos = Vector2(self.starting_position.x, self.starting_position.y)
+        self.transform.position = new_pos
+        # Sync rigidbody position (lesson: teleport must sync rb)
         if self.rb:
-            self.rb.is_kinematic = False
+            self.rb.move_position(new_pos)
+            # Don't change body_type — ghosts are KINEMATIC and should stay that way
         self.enabled = True
 
     def update(self) -> None:

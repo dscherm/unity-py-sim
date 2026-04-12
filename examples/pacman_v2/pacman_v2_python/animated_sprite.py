@@ -1,3 +1,4 @@
+from __future__ import annotations
 """AnimatedSprite — generic frame-based sprite animation.
 
 Port of zigurous AnimatedSprite.cs. Uses timer in update() to advance frames.

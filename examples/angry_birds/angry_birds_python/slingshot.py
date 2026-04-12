@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Slingshot launcher — drag to aim, release to throw."""
 
 from src.engine.core import GameObject, MonoBehaviour

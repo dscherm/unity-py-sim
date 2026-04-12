@@ -1,3 +1,4 @@
+from __future__ import annotations
 """GhostFrightened — at nodes, pick direction maximizing distance from Pacman.
 
 Line-by-line port of GhostFrightened.cs from zigurous/unity-pacman-tutorial.

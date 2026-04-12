@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Pacman — player controller with input, rotation, and death sequence.
 
 Line-by-line port of Pacman.cs from zigurous/unity-pacman-tutorial.

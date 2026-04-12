@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Forward-translation scoring — translate Python→C# and compare to hand-written reference.
 
 Does NOT require tree_sitter_c_sharp. Uses regex-based extraction of class names,

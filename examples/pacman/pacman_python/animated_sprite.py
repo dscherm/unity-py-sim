@@ -1,3 +1,4 @@
+from __future__ import annotations
 """AnimatedSprite — frame-based sprite animation via timer.
 
 Line-by-line port of AnimatedSprite.cs from zigurous/unity-pacman-tutorial.

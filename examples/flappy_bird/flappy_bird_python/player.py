@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Player — Flappy Bird player controller.
 
 Line-by-line translation of Player.cs from zigurous/unity-flappy-bird-tutorial.

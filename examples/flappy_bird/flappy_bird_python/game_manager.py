@@ -1,3 +1,4 @@
+from __future__ import annotations
 """GameManager — Flappy Bird game state manager.
 
 Line-by-line translation of GameManager.cs from zigurous/unity-flappy-bird-tutorial.

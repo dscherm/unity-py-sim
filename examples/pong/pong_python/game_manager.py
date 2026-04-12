@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Game manager — Python equivalent of GameManager.cs"""
 
 from src.engine.core import MonoBehaviour, GameObject

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Pipes — Flappy Bird pipe obstacle.
 
 Line-by-line translation of Pipes.cs from zigurous/unity-flappy-bird-tutorial.

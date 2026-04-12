@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Integration tests for auto-registration lifecycle.
 
 Validates that add_component() automatically registers components with

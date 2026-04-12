@@ -37,7 +37,15 @@ def _make_monobehaviour(name: str, methods: list[PyMethod], fields=None, imports
 
 
 def _translate_simple_body(body: str, *, unity_version=6, input_system="new") -> str:
-    """Translate a MonoBehaviour with a single update() method containing the given body."""
+    """Translate a MonoBehaviour with a single update() method containing the given body.
+
+    If body is a bare ``if ...:`` with no indented block, a placeholder body
+    is appended so the translator doesn't strip the empty-bodied if statement.
+    """
+    # Ensure if/elif statements have a body so the translator keeps them
+    lines = body.split("\n")
+    if len(lines) == 1 and lines[0].rstrip().endswith(":"):
+        body = body.rstrip() + "\n    pass"
     parsed = _make_monobehaviour(
         "TestBehaviour",
         methods=[PyMethod(
