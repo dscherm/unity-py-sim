@@ -9,7 +9,7 @@ using UnityEngine;
 {% endfor %}
 {% for field in private_fields %}
 {% if field.serialize %}
-    [SerializeField] private {{ field.csharp_type }} {{ field.csharp_name }};
+    [SerializeField] private {{ field.csharp_type }} {{ field.csharp_name }}{% if field.default and field.default != "null" %} = {{ field.default }}{% endif %};
 {% else %}
     public {{ field.csharp_type }} {{ field.csharp_name }};
 {% endif %}
