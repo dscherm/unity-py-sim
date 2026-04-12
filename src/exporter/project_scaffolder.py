@@ -57,7 +57,7 @@ _PROJECT_DIRS = [
     "ProjectSettings",
 ]
 
-_EDITOR_VERSION = "2022.3.0f1"
+_EDITOR_VERSION = "6000.4.0f1"
 
 
 def scaffold_project(

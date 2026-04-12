@@ -3,8 +3,8 @@
   "title": "Mathf.delta_angle matches UnityEngine.Mathf.DeltaAngle",
   "category": "engine_api",
   "priority": 1,
-  "passes": false,
-  "description": "Add Mathf.delta_angle(current, target) to the Python engine. Matches UnityEngine.Mathf.DeltaAngle — returns the shortest signed angular difference between two angles in degrees, in the half-open range (-180, 180]. This task is being used as the first adopter for the ralph-universal blind-TDD gate.",
+  "passes": true,
+  "description": "Add Mathf.delta_angle(current, target) to the Python engine. Matches UnityEngine.Mathf.DeltaAngle \u2014 returns the shortest signed angular difference between two angles in degrees, in the half-open range (-180, 180]. This task is being used as the first adopter for the ralph-universal blind-TDD gate.",
   "public_surface": {
     "module": "src.engine.math.mathf",
     "adds": [

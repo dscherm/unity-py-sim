@@ -196,9 +196,9 @@ class TestPacmanV2GameLoop:
             if hasattr(obj, "start"):
                 obj.start()
 
-        # Run 60 update frames
-        Time.delta_time = 1 / 60
-        Time.fixed_delta_time = 1 / 50
+        # Run 60 update frames (use backing fields, not descriptors)
+        Time._delta_time = 1 / 60
+        Time._fixed_delta_time = 1 / 50
         for _ in range(60):
             for obj in all_objects:
                 if hasattr(obj, "update"):
