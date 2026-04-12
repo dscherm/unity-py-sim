@@ -30,6 +30,7 @@ _DEFAULT_PACKAGES: dict[str, str] = {
     "com.unity.2d.sprite": "1.0.0",
     # Built-in modules required for Collider2D, Rigidbody2D, UI.Text, GameObject.Find
     "com.unity.modules.physics2d": "1.0.0",
+    "com.unity.modules.audio": "1.0.0",
     "com.unity.modules.ui": "1.0.0",
     "com.unity.modules.uielements": "1.0.0",
     "com.unity.modules.imgui": "1.0.0",
