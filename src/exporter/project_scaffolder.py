@@ -113,6 +113,9 @@ def scaffold_project(
     # 6. Generate Physics2DSettings.asset (always — defaults if no config)
     _write_physics_2d_settings(output_dir, physics)
 
+    # 7. Generate minimal Scene.unity
+    _write_scene(output_dir, game_name)
+
     return output_dir
 
 
@@ -354,3 +357,119 @@ def _write_physics_2d_settings(
 
     ps_path = output_dir / "ProjectSettings" / "Physics2DSettings.asset"
     ps_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _write_scene(output_dir: Path, game_name: str) -> None:
+    """Generate a minimal Scene.unity with camera + directional light.
+
+    This lets Unity open the scene immediately. Full population happens
+    via the CoPlay generator's Execute().
+    """
+    scene = """%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!29 &1
+OcclusionCullingSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_OcclusionBakeSettings:
+    smallestOccluder: 5
+    smallestHole: 0.25
+    backfaceThreshold: 100
+--- !u!104 &2
+RenderSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 9
+  m_Fog: 0
+  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+  m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
+  m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
+  m_AmbientIntensity: 1
+  m_AmbientMode: 3
+--- !u!157 &3
+LightmapSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 12
+--- !u!196 &4
+NavMeshSettings:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+--- !u!1 &100
+GameObject:
+  m_ObjectHideFlags: 0
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 101}
+  - component: {fileID: 102}
+  m_Layer: 0
+  m_Name: Main Camera
+  m_TagString: MainCamera
+  m_IsActive: 1
+--- !u!4 &101
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabInstance: {fileID: 0}
+  m_GameObject: {fileID: 100}
+  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+--- !u!20 &102
+Camera:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_GameObject: {fileID: 100}
+  m_Enabled: 1
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_SensorSize: {x: 36, y: 24}
+  m_FOVAxisMode: 0
+  orthographic: 1
+  m_OrthographicSize: 16
+  m_Depth: -1
+  m_TargetDisplay: 0
+--- !u!1 &200
+GameObject:
+  m_ObjectHideFlags: 0
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 201}
+  - component: {fileID: 202}
+  m_Layer: 0
+  m_Name: Directional Light
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &201
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabInstance: {fileID: 0}
+  m_GameObject: {fileID: 200}
+  m_LocalPosition: {x: 0, y: 3, z: 0}
+  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+--- !u!108 &202
+Light:
+  m_ObjectHideFlags: 0
+  serializedVersion: 10
+  m_GameObject: {fileID: 200}
+  m_Enabled: 1
+  m_Type: 1
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Intensity: 1
+  m_Range: 10
+  m_SpotAngle: 30
+  m_InnerSpotAngle: 21.80208
+  m_CookieSize: 10
+  m_Shadows:
+    m_Type: 2
+    m_Resolution: -1
+    m_Strength: 1
+"""
+    scene_dir = output_dir / "Assets" / "_Project" / "Scenes"
+    scene_dir.mkdir(parents=True, exist_ok=True)
+    scene_path = scene_dir / "Scene.unity"
+    scene_path.write_text(scene, encoding="utf-8")
