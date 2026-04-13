@@ -70,6 +70,7 @@ def scaffold_project(
     layers: dict[str, int] | None = None,
     required_packages: list[str] | None = None,
     physics: dict | None = None,
+    prefab_data: dict | None = None,
 ) -> Path:
     """Create a Unity project folder structure with translated C# files.
 
@@ -82,6 +83,9 @@ def scaffold_project(
         required_packages: Optional list of additional Unity package names.
         physics: Optional dict with "gravity" ([x, y]) and "ignore_pairs"
             ([[layerA, layerB], ...]) for Physics2DSettings.asset generation.
+        prefab_data: Optional output from prefab_detector.detect_prefabs().
+            If provided, generates .prefab and .prefab.meta stubs in
+            Assets/_Project/Prefabs/.
 
     Returns:
         The output_dir Path.
@@ -116,6 +120,10 @@ def scaffold_project(
 
     # 7. Generate minimal Scene.unity
     _write_scene(output_dir, game_name)
+
+    # 8. Generate .prefab stubs if prefab data provided
+    if prefab_data:
+        _write_prefabs(output_dir, prefab_data)
 
     return output_dir
 
@@ -474,3 +482,15 @@ Light:
     scene_dir.mkdir(parents=True, exist_ok=True)
     scene_path = scene_dir / "Scene.unity"
     scene_path.write_text(scene, encoding="utf-8")
+
+
+def _write_prefabs(output_dir: Path, prefab_data: dict) -> None:
+    """Write .prefab and .prefab.meta stubs for detected prefabs."""
+    from src.exporter.prefab_generator import generate_prefab_files
+
+    prefab_dir = output_dir / "Assets" / "_Project" / "Prefabs"
+    prefab_dir.mkdir(parents=True, exist_ok=True)
+
+    files = generate_prefab_files(prefab_data)
+    for filename, content in files.items():
+        (prefab_dir / filename).write_text(content, encoding="utf-8")

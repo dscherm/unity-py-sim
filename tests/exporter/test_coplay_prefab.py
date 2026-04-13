@@ -85,7 +85,8 @@ class TestCameraCreation:
         # Must not blindly assume Camera.main exists — should create if null
         assert "Camera.main" in result
         # Should have a fallback creation when Camera.main is null
-        assert 'new GameObject("Main Camera")' in result
+        assert "new GameObject()" in result
+        assert '.name = "Main Camera"' in result
         assert "AddComponent<Camera>" in result
 
     def test_camera_null_guard(self):
