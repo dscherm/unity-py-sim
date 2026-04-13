@@ -190,6 +190,10 @@ def _get_layer_name(layer_index: int) -> str | None:
     return f"Layer{layer_index}"
 
 
+# GameObjects that only exist in the Python simulator and have no Unity equivalent
+_SIMULATOR_ONLY_OBJECTS = {"QuitHandler"}
+
+
 def serialize_scene() -> dict[str, Any]:
     """Serialize the current scene state to a dict."""
     scene_data: dict[str, Any] = {
@@ -205,6 +209,10 @@ def serialize_scene() -> dict[str, Any]:
         scene_data["physics"]["ignore_collision_pairs"] = layer_info["ignore_pairs"]
 
     for go in _game_objects.values():
+        # Skip simulator-only GameObjects that have no Unity equivalent
+        if go.name in _SIMULATOR_ONLY_OBJECTS:
+            continue
+
         go_data: dict[str, Any] = {
             "name": go.name,
             "tag": go.tag,

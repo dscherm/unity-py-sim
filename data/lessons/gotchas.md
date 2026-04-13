@@ -92,3 +92,56 @@ Behavioral differences discovered during C# <-> Python translation.
 - **SystemError**: `could not initialize PyUIntArrType_Type` — found in space_invaders playtest (2026-04-05)
 - **ImportError**: `DLL load failed while importing constants: The paging file is too small for this operation to comple` — found in angry_birds playtest (2026-04-05)
 - **ImportError**: `DLL load failed while importing rwobject: The paging file is too small for this operation to complet` — found in angry_birds playtest (2026-04-05)
+
+## V2 Reimplementation Failures (2026-04-07)
+
+Lessons that existed from v1 but were NOT correctly applied during v2 implementation:
+
+- **Passage cooldown is mandatory** — documented in v1 passage.py comments, but v2 initially omitted it. Engine fires triggers every physics step. Without `_recent_teleports` dict + 0.5s cooldown, objects teleport back and forth every frame.
+- **GhostBehavior.enable() must force disable→enable** — v1 lesson says "enabled property must fire callbacks" but v2 initially just set `self.enabled = True` which is a no-op if already True. Must explicitly set False then True.
+- **Ghost house gate: position matters** — v1 places gate at row 12, cols 13-14 (entrance center) with half-height box. v2 initially placed at cols 11,16 (sides) which blocked ghosts from exiting entirely. Gate must be at the entrance, not the pen walls.
+- **Ghost.start() not awake() for behavior lookup** — Behaviors are added to the GameObject after Ghost in scene setup. awake() runs when the component is added, so behaviors don't exist yet. Must use start() for get_component lookups. v1 documented this in a comment but v2 initially used awake().
+- **GhostBehavior.invoke method name** — v1 uses `self.invoke("disable", duration)`. v2 initially used `self.invoke("_disable_self", duration)`. The invoke system matches method names exactly — a renamed method silently fails.
+
+**Root cause:** The lessons were documented as text descriptions in gotchas.md but the implementation agent (Claude) didn't cross-reference them during coding. The lesson injection system (`prepare_context.py`) injects ralph-universal cross-project lessons but does NOT inject project-specific lessons from `data/lessons/`. This is a gap.
+
+- **Ghost behaviors must NOT use forced=True in set_direction** — `forced=True` bypasses grid-snapping in Movement.set_direction(). Ghosts drift off the grid after one turn, never overlap with Node triggers again, and freeze at the next wall. V1 uses `set_direction(dir)` without forced in scatter/chase/frightened. Only GhostHome exit transition should use forced (to set initial direction after the lerp).
+
+## V2 Additional Discoveries (2026-04-07)
+
+New lessons discovered during v2 that did NOT exist in v1:
+
+### Engine Bugs Found
+
+- **Engine doesn't propagate active=False to children** — Setting `parent.active = False` does NOT deactivate child GameObjects. Children must check parent state explicitly. In Unity, inactive parents hide all children. Workaround: child components should check `self._parent_go.active` in update().
+- **Engine didn't stop updates on inactive objects** — `lifecycle.py` was calling `update()`/`fixed_update()` on components of inactive GameObjects. Objects were invisible but still moving, colliding, and eating pellets. Fixed in lifecycle.py and physics_manager.py to check `game_object.active` before dispatching. This is a CRITICAL engine fix.
+- **CoroutineManager list mutation during tick** — `stop_all_coroutines()` and `stop_coroutine()` replace `self._coroutines` with a new list. When called from INSIDE `tick()` (e.g., reset_state triggered by invoke), new coroutines added during the call are appended to the new list, but `tick()` overwrites it with `still_running` from the old list. Result: coroutines silently lost. Workaround: use `update()`-based timers instead of `self.invoke()` for operations that create new coroutines (like reset_state).
+
+### Ghost System Lessons
+
+- **Ghost component must be added BEFORE behaviors in scene setup** — `GhostBehavior.awake()` calls `self.get_component(Ghost)`. If Ghost is added after behaviors, awake() returns None and the ghost reference is never set. V1 adds Ghost first (line 251 of run_pacman.py). V2 initially added Ghost last.
+- **All behaviors must start disabled (enabled=False) in scene setup** — If behaviors start enabled (Component default), `Ghost.reset_state()` triggers cascading on_disable callbacks that corrupt state. Set `home.enabled = False`, `scatter.enabled = False`, `chase.enabled = False`, `frightened.enabled = False` explicitly after adding each component.
+- **Ghost reset must NOT disable scatter before enabling it** — Calling `scatter.disable()` triggers `GhostScatter.on_disable()` which calls `chase.enable()`, leaving both scatter AND chase active. V1 pattern: only disable frightened and chase, then enable scatter.
+- **Rigidbody type must not change on reset** — `Movement.reset_state()` had `rb.is_kinematic = False` which switched KINEMATIC ghosts to DYNAMIC, breaking their physics. Ghosts that use MovePosition must stay KINEMATIC.
+- **AnimatedSprite overwrites sprite every frame** — When GhostFrightened swaps the body sprite to blue, the AnimatedSprite component overwrites it on the next update(). Fix: disable AnimatedSprite during frightened mode, re-enable on disable.
+
+### Sprite/Rendering Lessons
+
+- **SpriteRenderer.color does NOT tint sprite blits** — The renderer only uses `color` for the colored-rectangle fallback. When a `.sprite` surface is set, it's blitted directly with no tint. To color-tint a sprite, apply `BLEND_RGB_MULT` to a copy of the surface at creation time.
+- **Node triggers need BoxCollider2D(size=0.5), not CircleCollider2D(radius=0.25)** — CircleCollider2D with small radius doesn't reliably overlap with ghost colliders at grid-aligned positions. V1 uses BoxCollider2D with 0.5 size, which gives a larger trigger area.
+- **Pygame convert_alpha() requires a display surface** — Loading sprites in headless mode fails with "No video mode has been set". Must call `pygame.display.set_mode((1,1))` before loading any sprites.
+- **run() max_frames default must be None, not 0** — `max_frames=0` matches `frames >= 0` on the first frame and exits immediately. Use `None` for unlimited.
+
+### System Architecture Lessons
+
+- **prepare_context.py does NOT inject project-specific lessons** — Only injects cross-project lessons from ralph-universal/lessons/. Project lessons in data/lessons/ are invisible to the loop agent. This is the #1 reason v1 lessons weren't applied in v2.
+- **GameManager must be created LAST in scene setup** — GameManager.start() calls new_game() → reset_state() which operates on ghosts. If ghosts haven't had their start() called yet, they have null behavior references. Create GameManager after all ghosts.
+- **GameManager deferred calls must use update() timers, not invoke()** — `self.invoke("reset_state", 3.0)` runs reset_state from inside CoroutineManager.tick(), which causes coroutine list mutation bugs. Use a timer in update() instead.
+
+## Simulator-only GameObjects in scene export (2026-04-13)
+
+**Problem:** QuitHandler (and similar simulator-only MonoBehaviours) get serialized into scene JSON and generate `GetComponent<QuitHandler>()` in CoPlay scripts. Unity has no QuitHandler class → CS0246 compile error.
+
+**Fix:** Added `_SIMULATOR_ONLY_OBJECTS` skip set in scene_serializer.py. GameObjects whose names match are excluded from export. Currently: `{"QuitHandler"}`.
+
+**Rule:** Any MonoBehaviour that only exists for the Python simulator (pygame event handling, display management, etc.) must be added to this set. If a new game has a similar pattern, add the name before exporting.

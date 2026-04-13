@@ -6418,45 +6418,6 @@
           "parent": null
         }
       ]
-    },
-    {
-      "name": "QuitHandler",
-      "tag": "Untagged",
-      "layer": 0,
-      "active": true,
-      "components": [
-        {
-          "type": "QuitHandler",
-          "is_monobehaviour": true,
-          "fields": {
-            "enabled": true,
-            "game_object": {
-              "_type": "GameObjectRef",
-              "name": "QuitHandler"
-            }
-          }
-        },
-        {
-          "type": "Transform",
-          "position": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "rotation": [
-            0.0,
-            0.0,
-            0.0,
-            1.0
-          ],
-          "local_scale": [
-            1.0,
-            1.0,
-            1.0
-          ],
-          "parent": null
-        }
-      ]
     }
   ],
   "physics": {}

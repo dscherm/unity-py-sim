@@ -2046,12 +2046,6 @@ public class GeneratedSceneSetup
         }
         EditorUtility.SetDirty(go_GameManager);
 
-        // --- QuitHandler ---
-        var go_QuitHandler = new GameObject("QuitHandler");
-        go_QuitHandler.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
-        go_QuitHandler.AddComponent<QuitHandler>();
-        EditorUtility.SetDirty(go_QuitHandler);
-
         // === WIRE CROSS-REFERENCES ===
         {
             var so = new SerializedObject(go_Paddle.GetComponent<PaddleController>());
@@ -2468,18 +2462,13 @@ public class GeneratedSceneSetup
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_GameManager; so.ApplyModifiedProperties(); }
         }
-        {
-            var so = new SerializedObject(go_QuitHandler.GetComponent<QuitHandler>());
-            var prop = so.FindProperty("gameObject");
-            if (prop != null) { prop.objectReferenceValue = go_QuitHandler; so.ApplyModifiedProperties(); }
-        }
 
         // === SAVE ===
         UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
             UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene());
         UnityEditor.SceneManagement.EditorSceneManager.SaveOpenScenes();
 
-        result = "Scene setup complete: 88 GameObjects";
+        result = "Scene setup complete: 87 GameObjects";
         return result;
     }
 
