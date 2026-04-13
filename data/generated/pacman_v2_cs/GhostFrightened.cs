@@ -2,12 +2,12 @@ using UnityEngine;
 public class GhostFrightened : GhostBehavior
 {
     public bool eaten = false;
-    public pygame.Surface? blueSprite = null;
-    public pygame.Surface? whiteSprite = null;
-    public SpriteRenderer? BodySr = null;
-    public pygame.Surface? OriginalSprite = null;
-    public SpriteRenderer? EyesSr = null;
-    public AnimatedSprite? BodyAnim = null;
+    public Sprite blueSprite = null;
+    public Sprite whiteSprite = null;
+    public SpriteRenderer BodySr = null;
+    public Sprite OriginalSprite = null;
+    public SpriteRenderer EyesSr = null;
+    public AnimatedSprite BodyAnim = null;
     public void Enable(float duration)
     {
         super().Enable(duration);
@@ -102,7 +102,7 @@ public class GhostFrightened : GhostBehavior
             return;
         }
         var available = node.availableDirections;
-        if (!available)
+        if (available == null)
         {
             return;
         }

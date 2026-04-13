@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System;
 using UnityEngine;
 public class GameManager : MonoBehaviour
 {
@@ -7,16 +6,15 @@ public class GameManager : MonoBehaviour
     public int lives = 3;
     public int ghostMultiplier = 1;
     public float DeferredTimer = 0.0f;
-    public List<Ghost> ghosts = new List<Ghost>();
-    public List<Pellet> AllPellets = new List<Pellet>();
-    public GameManager? instance;
-    public List<Ghost> ghosts;
-    public Pacman pacman;
-    public List<Pellet> AllPellets;
+    [SerializeField] private List<Ghost> ghosts;
+    [SerializeField] private Pacman pacman;
+    [SerializeField] private List<Pellet> AllPellets;
     public string DeferredAction;
+    // Singleton — wire via Inspector [SerializeField] on dependents
+    public static GameManager Instance = null;
      void Awake()
     {
-        GameManager.instance = this;
+        GameManager.Instance = this;
     }
      void Update()
     {
@@ -145,19 +143,19 @@ public class GameManager : MonoBehaviour
         score = value;
         try
         {
-            pygame.display.SetCaption($"Pacman V2 — Score: {score}  Lives: {lives}");
+            /* pass */
         }
     }
     public void RegisterPellet(Pellet pellet)
     {
-        if (pellet !in AllPellets)
+        if (!AllPellets.Contains(pellet))
         {
             AllPellets.Add(pellet);
         }
     }
     public void RegisterGhost(Ghost ghost)
     {
-        if (ghost !in ghosts)
+        if (!ghosts.Contains(ghost))
         {
             ghosts.Add(ghost);
         }

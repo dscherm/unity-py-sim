@@ -3,7 +3,7 @@ using UnityEngine;
 public class GhostBehavior : MonoBehaviour
 {
     public float duration = 0.0f;
-    public Ghost ghost;
+    [SerializeField] private Ghost ghost;
     public bool enabled;
      void Awake()
     {
@@ -14,7 +14,7 @@ public class GhostBehavior : MonoBehaviour
         enabled = true;
         if (duration < 0)
         {
-            var duration = duration;
+            var duration = this.duration;
         }
         CancelInvoke();
         invoke("Disable", duration);

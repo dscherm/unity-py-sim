@@ -26,11 +26,11 @@ public class GhostScatter : GhostBehavior
             return;
         }
         var available = node.availableDirections;
-        if (!available)
+        if (available == null)
         {
             return;
         }
-        var direction = /* Random.choice */ available);
+        var direction = available[Random.Range(0, available.Count)];
         Vector2 reverse = new Vector2(-movement.direction.x, -movement.direction.y);
         if (direction.x == reverse.x && direction.y == reverse.y && available.Count > 1)
         {

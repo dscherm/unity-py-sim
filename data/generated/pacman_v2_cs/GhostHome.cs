@@ -2,8 +2,8 @@ using UnityEngine;
 public class GhostHome : GhostBehavior
 {
     private const int OBSTACLE_LAYER = 6;
-    public GameObject? inside = null;
-    public GameObject? outside = null;
+    public GameObject inside = null;
+    public GameObject outside = null;
      void OnEnable()
     {
         StopAllCoroutines();

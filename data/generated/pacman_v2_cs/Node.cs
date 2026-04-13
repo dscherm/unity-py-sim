@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 public class Node : MonoBehaviour
 {
+    private const int OBSTACLE_LAYER = 6;
     public int obstacleLayer = OBSTACLE_LAYER;
-    public List<Vector2> availableDirections = new List<Vector2>();
     public List<Vector2> availableDirections;
      void Start()
     {

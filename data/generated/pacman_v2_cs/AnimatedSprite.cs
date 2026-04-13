@@ -7,10 +7,8 @@ public class AnimatedSprite : MonoBehaviour
     public bool loop = true;
     public int AnimationFrame = 0;
     public float Timer = 0.0f;
-    public pygame.Surface[] sprites;
-    public SpriteRenderer SpriteRenderer;
-    public pygame.Surface[] sprites;
-    public static object SPRITES_DIR = os.path.join(os.path.dirname(__file__), '..', 'sprites');
+    public Sprite[] sprites;
+    [SerializeField] private SpriteRenderer SpriteRenderer;
      void Awake()
     {
         SpriteRenderer = GetComponent<SpriteRenderer>();
@@ -62,21 +60,14 @@ public class AnimatedSprite : MonoBehaviour
         Timer = 0.0f;
         Advance();
     }
-    public static pygame.Surface LoadSpriteFile(string name, int? sizePx)
+    public static Sprite LoadSpriteFile(string name, int? sizePx)
     {
-        if (!pygame.GetInit())
         {
-            pygame.Init();
         }
-        if (pygame.display.GetSurface() == null)
         {
-            pygame.display.SetMode((1, 1), pygame.NOFRAME);
         }
-        var path = os.path.Join(SPRITES_DIR, name);
-        var surf = pygame.image.Load(path).ConvertAlpha();
         if (sizePx != null)
         {
-            surf = pygame.transform.Scale(surf, (sizePx, sizePx));
         }
         return surf;
     }

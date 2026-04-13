@@ -279,12 +279,23 @@ def _parse_class_node(cls_node: ast.ClassDef, source_lines: list[str]) -> PyClas
             else:
                 methods.append(_parse_method(item, source_lines))
 
+    # Deduplicate fields: class-level annotations take priority over __init__ assignments
+    seen_field_names: set[str] = set()
+    merged_fields: list[PyField] = []
+    for f in class_fields:
+        seen_field_names.add(f.name)
+        merged_fields.append(f)
+    for f in instance_fields:
+        if f.name not in seen_field_names:
+            seen_field_names.add(f.name)
+            merged_fields.append(f)
+
     return PyClass(
         name=cls_node.name,
         base_classes=base_classes,
         is_monobehaviour=is_mono,
         is_enum=is_enum,
-        fields=class_fields + instance_fields,
+        fields=merged_fields,
         methods=methods,
     )
 

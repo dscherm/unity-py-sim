@@ -83,6 +83,10 @@ def _strip_simulator_code(cs: str) -> str:
     cs = re.sub(r'\s*var dm = [^;]*;\n?', '', cs)
     cs = re.sub(r'[^\n]*\bdm\.[^\n]*\n?', '', cs)
 
+    # --- Python stdlib filesystem references ---
+    cs = re.sub(r'[^\n]*\bos\.path\b[^\n]*\n?', '', cs)
+    cs = re.sub(r'[^\n]*\b__file__\b[^\n]*\n?', '', cs)
+
     # --- app.run() ---
     cs = re.sub(r'[^\n]*\bapp\.run\s*\([^)]*\)\s*;[^\n]*\n?', '', cs)
 

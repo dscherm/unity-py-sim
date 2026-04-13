@@ -5,9 +5,9 @@ public class Pellet : MonoBehaviour
     public static int PACMAN_LAYER = 3;
     public void Eat()
     {
-        if (GameManager.instance != null)
+        if (GameManager.Instance != null)
         {
-            GameManager.instance.PelletEaten(this);
+            GameManager.Instance.PelletEaten(this);
         }
     }
      void OnTriggerEnter2D(Collider2D other)

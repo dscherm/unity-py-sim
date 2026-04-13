@@ -1551,7 +1551,11 @@ def _translate_py_expression(expr: str) -> str:
     expr = re.sub(r"random\.random\(\)", "Random.value", expr)
     expr = re.sub(r"random\.uniform\(", "Random.Range(", expr)
     expr = re.sub(r"random\.randint\(", "Random.Range(", expr)
-    expr = re.sub(r"random\.choice\(", "/* Random.choice */ ", expr)
+    # random.choice(collection) → collection[Random.Range(0, collection.Count)]
+    def _replace_random_choice(m):
+        arg = m.group(1).strip()
+        return f"{arg}[Random.Range(0, {arg}.Count)]"
+    expr = re.sub(r"random\.choice\((\w[\w.]*)\)", _replace_random_choice, expr)
 
     # print -> Debug.Log
     expr = re.sub(r"\bprint\(", "Debug.Log(", expr)

@@ -1,0 +1,7 @@
+[
+  {
+    "package": "com.unity.inputsystem",
+    "reason": "using UnityEngine.InputSystem",
+    "source_file": "Pacman.cs"
+  }
+]

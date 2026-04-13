@@ -27,7 +27,7 @@ public class GhostChase : GhostBehavior
             return;
         }
         var available = node.availableDirections;
-        if (!available)
+        if (available == null)
         {
             return;
         }

@@ -5,9 +5,9 @@ public class PowerPellet : Pellet
     public float duration = 8.0f;
     public void Eat()
     {
-        if (GameManager.instance != null)
+        if (GameManager.Instance != null)
         {
-            GameManager.instance.PowerPelletEaten(this);
+            GameManager.Instance.PowerPelletEaten(this);
         }
     }
 }

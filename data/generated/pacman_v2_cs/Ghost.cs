@@ -77,17 +77,17 @@ public class Ghost : MonoBehaviour
             if (frightened != null && frightened.enabled && frightened.eaten == null)
             {
                 // Ghost is eaten by Pacman
-                if (GameManager.instance != null)
+                if (GameManager.Instance != null)
                 {
-                    GameManager.instance.GhostEaten(this);
+                    GameManager.Instance.GhostEaten(this);
                 }
             }
             else
             {
                 // Pacman is eaten by ghost
-                if (GameManager.instance != null)
+                if (GameManager.Instance != null)
                 {
-                    GameManager.instance.PacmanEaten();
+                    GameManager.Instance.PacmanEaten();
                 }
             }
         }

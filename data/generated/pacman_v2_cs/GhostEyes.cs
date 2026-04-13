@@ -3,13 +3,13 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class GhostEyes : MonoBehaviour
 {
-    public pygame.Surface spriteUp;
-    public pygame.Surface spriteDown;
-    public pygame.Surface spriteLeft;
-    public pygame.Surface spriteRight;
-    public SpriteRenderer SpriteRenderer;
-    public Movement? Movement;
-    public GameObject? ParentGo;
+    public Sprite spriteUp;
+    public Sprite spriteDown;
+    public Sprite spriteLeft;
+    public Sprite spriteRight;
+    [SerializeField] private SpriteRenderer SpriteRenderer;
+    [SerializeField] private Movement Movement;
+    [SerializeField] private GameObject ParentGo;
      void Awake()
     {
         SpriteRenderer = GetComponent<SpriteRenderer>();
