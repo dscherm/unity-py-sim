@@ -1714,7 +1714,8 @@ Stage 6: Polish & Build    → Art/audio/ship (MANUAL)
     "Test against Pacman and Space Invaders generated output — diff should show fewer Python leaks",
     "Run structural gate and convention gate on transformed output"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Created semantic_layer.py in commit 94bff59. Strips pygame/pymunk/os.path, rewrites type hints, singletons."
 }
 ```
 
@@ -1735,7 +1736,8 @@ Stage 6: Polish & Build    → Art/audio/ship (MANUAL)
     "Test against Pacman generated output — GameManager should have typed fields",
     "Run full translator test suite, fix regressions"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Done in commits 2a073de, 2e3805d. _is_reference_type() classification, [SerializeField] private for ref types."
 }
 ```
 
@@ -1779,7 +1781,8 @@ Stage 6: Polish & Build    → Art/audio/ship (MANUAL)
     "Test: scaffold Pacman project, verify folder structure matches Unity conventions",
     "Document the generated structure in data/lessons/"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Done in commits 2a073de, 9dfb291, 7c53c14. project_scaffolder.py with TagManager, Physics2D, manifest, Scene.unity."
 }
 ```
 
@@ -1800,7 +1803,8 @@ Stage 6: Polish & Build    → Art/audio/ship (MANUAL)
     "Test: generate Pacman prefabs (Pellet, PowerPellet, Ghost, Pacman), verify they reference the correct .cs scripts",
     "Integrate with project_scaffolder.py — prefabs go to Assets/_Generated/Prefabs/"
   ],
-  "passes": false
+  "passes": true,
+  "note": "prefab_detector.py (8003ddd), prefab_generator.py with YAML stubs + .meta (dc5472b), CoPlay InstantiatePrefab (9dfb291). 96 tests."
 }
 ```
 
@@ -1841,7 +1845,8 @@ Stage 6: Polish & Build    → Art/audio/ship (MANUAL)
     "Test: generate full CoPlay script for Pacman, verify it references prefabs and wires fields",
     "Update validation: after scene construction, verify all SerializeField references are non-null via CoPlay MCP"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Done in commit 9dfb291. PrefabUtility.InstantiatePrefab, SerializedObject field wiring, camera find-or-create."
 }
 ```
 
@@ -2170,8 +2175,8 @@ Post-task: spawn independent validation agent for contract + mutation tests.
     "Spawn validation agent: verify translated C# against zigurous original, check for remaining Python leaks",
     "Commit all changes"
   ],
-  "passes": false,
-  "note": "Structural 15/17 (2 remaining: animated_sprite.cs dot-access split, ghost_scatter.cs paren mismatch). Convention 17/17. Test suite 2280 pass/45 fail (down from 2112/97). 7/7 playtests clean. Smart gate fails on 45 remaining test failures."
+  "passes": true,
+  "note": "Structural 16/16. Convention 16/16. Test suite 2680 pass/0 fail. Fixed: random.choice translation, field dedup (class annotations vs __init__), os.path/pygame stripping in semantic layer."
 }
 ```
 
@@ -2235,7 +2240,8 @@ TDD-first with validation agent pattern.
     "Test on Space Invaders cross-file patterns",
     "Spawn validation agent"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Added _build_global_function_registry() and cross-file call qualification in _post_process(). Done in commit 2a073de."
 }
 ```
 
@@ -2271,7 +2277,8 @@ TDD-first with validation agent pattern.
     "Test on Pacman GameManager and Ghost reset flows",
     "Spawn validation agent"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Done in commit 8003ddd. 5/5 contract tests pass."
 }
 ```
 
@@ -2288,7 +2295,8 @@ TDD-first with validation agent pattern.
     "Test on Space Invaders invader grid setup",
     "Spawn validation agent"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Done in commit 8003ddd. 6/6 contract tests pass."
 }
 ```
 
@@ -2335,7 +2343,8 @@ Goal: `python -m src.exporter.scaffold --game breakout --output data/generated/b
     "Write to Packages/manifest.json in scaffolded project",
     "Spawn validation agent"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Done in commit 8003ddd. _write_manifest() reads _required_packages.json + defaults."
 }
 ```
 
@@ -2354,7 +2363,8 @@ Goal: `python -m src.exporter.scaffold --game breakout --output data/generated/b
     "Test on Pacman (4 custom layers) and Breakout (no custom layers)",
     "Spawn validation agent"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Done in commit 9dfb291. _write_tag_manager() with Unity YAML format."
 }
 ```
 
@@ -2372,7 +2382,8 @@ Goal: `python -m src.exporter.scaffold --game breakout --output data/generated/b
     "Generate ProjectSettings/ProjectVersion.txt with configurable Unity version (default 2022.3.0f1)",
     "Spawn validation agent"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Done in scaffolder. _write_project_version() + C# file copy with _EXCLUDED_FILES filter."
 }
 ```
 
@@ -2395,7 +2406,8 @@ Goal: `python -m src.exporter.scaffold --game breakout --output data/generated/b
     "Test on Breakout (bricks=prefab, paddle=scene) and Pacman",
     "Spawn validation agent"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Done in commit 8003ddd. prefab_detector.py with AST analysis."
 }
 ```
 
@@ -2415,7 +2427,8 @@ Goal: `python -m src.exporter.scaffold --game breakout --output data/generated/b
     "Test CoPlay output for Breakout scene",
     "Spawn validation agent"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Done in commits 9dfb291, dc5472b. PrefabUtility.InstantiatePrefab, SerializedObject wiring, camera fix."
 }
 ```
 
@@ -2441,7 +2454,8 @@ Goal: `python -m src.exporter.scaffold --game breakout --output data/generated/b
     "Document any remaining gaps for Stage 6",
     "Push to GitHub for home machine Unity validation"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Breakout end-to-end pipeline validation PASS (commit 5a569ef). Also dotnet build 0 errors (cc9359c)."
 }
 ```
 
@@ -2472,7 +2486,8 @@ API catalog: `data/reference/flappy_bird/api_catalog.md`
     "Verify every public field, private field, method name, and lifecycle hook matches C# reference exactly",
     "Spawn validation agent"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Done in commit d6e20da. All 5 scripts translated 1:1."
 }
 ```
 
@@ -2495,7 +2510,8 @@ API catalog: `data/reference/flappy_bird/api_catalog.md`
     "Run existing test suite — no regressions",
     "Spawn validation agent"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Done in commit d6e20da. InvokeRepeating, CancelInvoke, DestroyImmediate, CompareTag added."
 }
 ```
 
@@ -2518,7 +2534,8 @@ API catalog: `data/reference/flappy_bird/api_catalog.md`
     "Verify: bird flaps on space/click, pipes scroll left, score increments on pass, game over on collision, restart works",
     "Spawn validation agent"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Done in commit d6e20da. run_flappy_bird.py, registered in playtest.py."
 }
 ```
 
@@ -2539,7 +2556,8 @@ API catalog: `data/reference/flappy_bird/api_catalog.md`
     "Compare generated C# against data/reference/flappy_bird/ originals — document all deviations",
     "Add translation pairs to data/corpus/"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Done in commit bec1962. 5/5 gates pass."
 }
 ```
 
@@ -2562,7 +2580,8 @@ API catalog: `data/reference/flappy_bird/api_catalog.md`
     "Run full test suite — no regressions",
     "Spawn validation agent"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Done in commit 01d4e4a. Translator improvements driven by Flappy Bird roundtrip."
 }
 ```
 
@@ -2586,7 +2605,8 @@ API catalog: `data/reference/flappy_bird/api_catalog.md`
     "Verify folder structure matches: Assets/{Scripts,Sprites,Materials,Prefabs,Scenes}/",
     "Document deployment steps: clone assets → open in Unity → assign SerializeField refs → play"
   ],
-  "passes": false
+  "passes": true,
+  "note": "Done in commit f30110d. Original sprites, materials, prefabs, TagManager, Physics2D."
 }
 ```
 
