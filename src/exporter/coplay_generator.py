@@ -227,10 +227,18 @@ def generate_scene_script(
             continue
 
         # Create new GameObject (prefab or plain)
+        # Check exact match first, then prefix match for dynamic names (Brick_0_0 → Brick)
         is_prefab = go_name in prefab_names
+        prefab_class = go_name
+        if not is_prefab:
+            for pn in prefab_names:
+                if go_name.startswith(pn + "_") or go_name.startswith(pn + " "):
+                    is_prefab = True
+                    prefab_class = pn
+                    break
         lines.append(f"        // --- {go_name} ---")
         if is_prefab:
-            lines.append(f"        var {var} = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(\"Assets/_Project/Prefabs/{_escape_cs_string(go_name)}.prefab\"));")
+            lines.append(f"        var {var} = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(\"Assets/_Project/Prefabs/{_escape_cs_string(prefab_class)}.prefab\"));")
             lines.append(f"        {var}.name = \"{_escape_cs_string(go_name)}\";")
         else:
             lines.append(f"        var {var} = new GameObject(\"{_escape_cs_string(go_name)}\");")

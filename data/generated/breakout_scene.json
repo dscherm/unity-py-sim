@@ -1,0 +1,6463 @@
+{
+  "version": 2,
+  "game_objects": [
+    {
+      "name": "MainCamera",
+      "tag": "Untagged",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Camera",
+          "orthographic_size": 7.0,
+          "background_color": [
+            15,
+            15,
+            25
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Paddle",
+      "tag": "Paddle",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            0.0,
+            -5.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Kinematic",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            2.0,
+            0.4
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            200,
+            200,
+            220
+          ],
+          "size": [
+            2.0,
+            0.4
+          ],
+          "sorting_order": 0,
+          "asset_ref": "paddle"
+        },
+        {
+          "type": "PaddleController",
+          "is_monobehaviour": true,
+          "fields": {
+            "ball_attached": true,
+            "bound_x": 6.5,
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Paddle"
+            },
+            "speed": 12.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ball",
+      "tag": "Ball",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            0.0,
+            -4.4,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Dynamic",
+          "mass": 0.1,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "CircleCollider2D",
+          "radius": 0.2,
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            255,
+            255,
+            100
+          ],
+          "size": [
+            0.4,
+            0.4
+          ],
+          "sorting_order": 0,
+          "asset_ref": "ball"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "ball_hit",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "BallController",
+          "is_monobehaviour": true,
+          "fields": {
+            "attached": true,
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Ball"
+            },
+            "max_speed": 12.0,
+            "paddle_offset": {
+              "_type": "Vector2",
+              "value": [
+                0.0,
+                0.6
+              ]
+            },
+            "show_trajectory": true,
+            "speed": 6.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "LeftWall",
+      "tag": "Wall",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -8.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.0,
+            14.0
+          ],
+          "is_trigger": false
+        }
+      ]
+    },
+    {
+      "name": "RightWall",
+      "tag": "Wall",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            8.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.0,
+            14.0
+          ],
+          "is_trigger": false
+        }
+      ]
+    },
+    {
+      "name": "TopWall",
+      "tag": "Wall",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            0.0,
+            6.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            18.0,
+            1.0
+          ],
+          "is_trigger": false
+        }
+      ]
+    },
+    {
+      "name": "Brick_0_0",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -6.300000000000001,
+            4.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_0_0"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_0_1",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -4.9,
+            4.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_0_1"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_0_2",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -3.5000000000000004,
+            4.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_0_2"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_0_3",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -2.1000000000000005,
+            4.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_0_3"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_0_4",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -0.7000000000000002,
+            4.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_0_4"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_0_5",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            0.7000000000000002,
+            4.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_0_5"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_0_6",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            2.0999999999999996,
+            4.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_0_6"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_0_7",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            3.5,
+            4.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_0_7"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_0_8",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            4.9,
+            4.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_0_8"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_0_9",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            6.300000000000001,
+            4.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_0_9"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_1_0",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -6.300000000000001,
+            3.9,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_1_0"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_1_1",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -4.9,
+            3.9,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_1_1"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_1_2",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -3.5000000000000004,
+            3.9,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_1_2"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_1_3",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -2.1000000000000005,
+            3.9,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_1_3"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_1_4",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -0.7000000000000002,
+            3.9,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_1_4"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_1_5",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            0.7000000000000002,
+            3.9,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_1_5"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_1_6",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            2.0999999999999996,
+            3.9,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_1_6"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_1_7",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            3.5,
+            3.9,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_1_7"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_1_8",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            4.9,
+            3.9,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_1_8"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_1_9",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            6.300000000000001,
+            3.9,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_1_9"
+            },
+            "health": 1,
+            "points": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_2_0",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -6.300000000000001,
+            3.3,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_2_0"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_2_1",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -4.9,
+            3.3,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_2_1"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_2_2",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -3.5000000000000004,
+            3.3,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_2_2"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_2_3",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -2.1000000000000005,
+            3.3,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_2_3"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_2_4",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -0.7000000000000002,
+            3.3,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_2_4"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_2_5",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            0.7000000000000002,
+            3.3,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_2_5"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_2_6",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            2.0999999999999996,
+            3.3,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_2_6"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_2_7",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            3.5,
+            3.3,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_2_7"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_2_8",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            4.9,
+            3.3,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_2_8"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_2_9",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            6.300000000000001,
+            3.3,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_2_9"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_3_0",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -6.300000000000001,
+            2.7,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_3_0"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_3_1",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -4.9,
+            2.7,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_3_1"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_3_2",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -3.5000000000000004,
+            2.7,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_3_2"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_3_3",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -2.1000000000000005,
+            2.7,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_3_3"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_3_4",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -0.7000000000000002,
+            2.7,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_3_4"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_3_5",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            0.7000000000000002,
+            2.7,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_3_5"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_3_6",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            2.0999999999999996,
+            2.7,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_3_6"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_3_7",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            3.5,
+            2.7,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_3_7"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_3_8",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            4.9,
+            2.7,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_3_8"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_3_9",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            6.300000000000001,
+            2.7,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            140,
+            40
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_3_9"
+            },
+            "health": 1,
+            "points": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_4_0",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -6.300000000000001,
+            2.1,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_4_0"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_4_1",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -4.9,
+            2.1,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_4_1"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_4_2",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -3.5000000000000004,
+            2.1,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_4_2"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_4_3",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -2.1000000000000005,
+            2.1,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_4_3"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_4_4",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -0.7000000000000002,
+            2.1,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_4_4"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_4_5",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            0.7000000000000002,
+            2.1,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_4_5"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_4_6",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            2.0999999999999996,
+            2.1,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_4_6"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_4_7",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            3.5,
+            2.1,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_4_7"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_4_8",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            4.9,
+            2.1,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_4_8"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_4_9",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            6.300000000000001,
+            2.1,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_4_9"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_5_0",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -6.300000000000001,
+            1.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_5_0"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_5_1",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -4.9,
+            1.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_5_1"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_5_2",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -3.5000000000000004,
+            1.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_5_2"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_5_3",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -2.1000000000000005,
+            1.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_5_3"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_5_4",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -0.7000000000000002,
+            1.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_5_4"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_5_5",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            0.7000000000000002,
+            1.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_5_5"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_5_6",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            2.0999999999999996,
+            1.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_5_6"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_5_7",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            3.5,
+            1.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_5_7"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_5_8",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            4.9,
+            1.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_5_8"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_5_9",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            6.300000000000001,
+            1.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            180,
+            50
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_5_9"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_6_0",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -6.300000000000001,
+            0.9000000000000004,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_6_0"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_6_1",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -4.9,
+            0.9000000000000004,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_6_1"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_6_2",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -3.5000000000000004,
+            0.9000000000000004,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_6_2"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_6_3",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -2.1000000000000005,
+            0.9000000000000004,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_6_3"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_6_4",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -0.7000000000000002,
+            0.9000000000000004,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_6_4"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_6_5",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            0.7000000000000002,
+            0.9000000000000004,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_6_5"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_6_6",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            2.0999999999999996,
+            0.9000000000000004,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_6_6"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_6_7",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            3.5,
+            0.9000000000000004,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_6_7"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_6_8",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            4.9,
+            0.9000000000000004,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_6_8"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_6_9",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            6.300000000000001,
+            0.9000000000000004,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_6_9"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_7_0",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -6.300000000000001,
+            0.2999999999999998,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_7_0"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_7_1",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -4.9,
+            0.2999999999999998,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_7_1"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_7_2",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -3.5000000000000004,
+            0.2999999999999998,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_7_2"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_7_3",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -2.1000000000000005,
+            0.2999999999999998,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_7_3"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_7_4",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -0.7000000000000002,
+            0.2999999999999998,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_7_4"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_7_5",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            0.7000000000000002,
+            0.2999999999999998,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_7_5"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_7_6",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            2.0999999999999996,
+            0.2999999999999998,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_7_6"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_7_7",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            3.5,
+            0.2999999999999998,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_7_7"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_7_8",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            4.9,
+            0.2999999999999998,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_7_8"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brick_7_9",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            6.300000000000001,
+            0.2999999999999998,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.3,
+            0.5
+          ],
+          "is_trigger": false
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            120,
+            220
+          ],
+          "size": [
+            1.3,
+            0.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Brick_7_9"
+            },
+            "health": 1,
+            "points": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "GameManager",
+      "tag": "Untagged",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "GameManager",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "GameManager"
+            },
+            "game_over": false,
+            "game_won": false,
+            "lives": 3,
+            "score": 0
+          }
+        },
+        {
+          "type": "Transform",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        }
+      ]
+    },
+    {
+      "name": "QuitHandler",
+      "tag": "Untagged",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "QuitHandler",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "QuitHandler"
+            }
+          }
+        },
+        {
+          "type": "Transform",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        }
+      ]
+    }
+  ],
+  "physics": {}
+}
