@@ -1,3 +1,4 @@
+using UnityEngine.InputSystem;
 using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class PaddleController : MonoBehaviour
@@ -12,7 +13,7 @@ public class PaddleController : MonoBehaviour
     }
      void Update()
     {
-        float inputVal = Input.GetAxis("Horizontal");
+        float inputVal = ((Keyboard.current.dKey.isPressed ? 1f : 0f) - (Keyboard.current.aKey.isPressed ? 1f : 0f));
         if (Mathf.Abs(inputVal) > 0.01f)
         {
             Vector2 pos = transform.position;

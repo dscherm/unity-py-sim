@@ -1473,10 +1473,18 @@ def _translate_new_input_system(expr: str) -> str:
         expr,
     )
 
-    # Input.get_axis('Horizontal') -> keep as comment/TODO since new input system uses Actions
+    # Input.get_axis('Horizontal') -> keyboard-based axis emulation for new input system
+    def _replace_axis(m):
+        axis = m.group(1)
+        if axis == "Horizontal":
+            return "((Keyboard.current.dKey.isPressed ? 1f : 0f) - (Keyboard.current.aKey.isPressed ? 1f : 0f))"
+        elif axis == "Vertical":
+            return "((Keyboard.current.wKey.isPressed ? 1f : 0f) - (Keyboard.current.sKey.isPressed ? 1f : 0f))"
+        else:
+            return f"0f /* unknown axis: {axis} */"
     expr = re.sub(
         r"Input\.get_axis\(['\"](\w+)['\"]\)",
-        r'/* TODO: use InputAction for \1 axis */ 0f',
+        _replace_axis,
         expr,
     )
 
@@ -2001,7 +2009,7 @@ def _translate_py_condition(cond: str) -> str:
             ident = part.strip()
             # Check if it's a known bool field or ends with a bool property
             last_prop = ident.rsplit(".", 1)[-1] if "." in ident else ident
-            if ident in _bool_fields or last_prop in _BOOL_PROPERTIES:
+            if ident in _bool_fields or last_prop in _BOOL_PROPERTIES or last_prop in _bool_fields:
                 fixed_parts.append(ident)
             else:
                 fixed_parts.append(f"{ident} != null")
@@ -2011,7 +2019,7 @@ def _translate_py_condition(cond: str) -> str:
             if neg_match:
                 ident = neg_match.group(1)
                 last_prop = ident.rsplit(".", 1)[-1] if "." in ident else ident
-                if ident in _bool_fields or last_prop in _BOOL_PROPERTIES:
+                if ident in _bool_fields or last_prop in _BOOL_PROPERTIES or last_prop in _bool_fields:
                     fixed_parts.append(f"!{ident}")
                 else:
                     fixed_parts.append(f"{ident} == null")

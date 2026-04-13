@@ -559,8 +559,8 @@ class TestUnity6ApiMappings:
         result = translate(parsed, input_system="new")
         assert "Keyboard.current.escapeKey.isPressed" in result
 
-    def test_new_input_axis_emits_todo(self):
-        """get_axis has no direct equivalent in new input system — emit TODO."""
+    def test_new_input_axis_emits_keyboard(self):
+        """get_axis('Horizontal') emits keyboard-based axis emulation."""
         parsed = parse_python(
             "from src.engine.core import MonoBehaviour\n"
             "from src.engine.input_manager import Input\n"
@@ -569,8 +569,8 @@ class TestUnity6ApiMappings:
             "        h = Input.get_axis('Horizontal')\n"
         )
         result = translate(parsed, input_system="new")
-        assert "TODO" in result
-        assert "Horizontal" in result
+        assert "Keyboard.current.dKey.isPressed" in result
+        assert "Keyboard.current.aKey.isPressed" in result
 
     def test_using_input_system_added(self):
         parsed = parse_python(

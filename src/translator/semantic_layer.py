@@ -41,6 +41,7 @@ def transform(cs_source: str) -> str:
     cs_source = _rewrite_type_hints(cs_source)
     cs_source = _annotate_constructors(cs_source)
     cs_source = _annotate_singletons(cs_source)
+    cs_source = _clean_redundant_conditions(cs_source)
     cs_source = _clean_empty_lines(cs_source)
 
     return cs_source
@@ -180,6 +181,19 @@ def _annotate_singletons(cs: str) -> str:
     # References: ClassName.instance → ClassName.Instance
     cs = re.sub(r'(\w+)\.instance\b', r'\1.Instance', cs)
 
+    return cs
+
+
+def _clean_redundant_conditions(cs: str) -> str:
+    """Remove redundant condition fragments left by translation.
+
+    - ``&& true`` and ``|| false`` are no-ops
+    - ``true &&`` at the start of a condition is also a no-op
+    - ``hasattr(...)`` translates to ``true`` — strip these artifacts
+    """
+    cs = re.sub(r'\s*&&\s*true\b', '', cs)
+    cs = re.sub(r'\btrue\s*&&\s*', '', cs)
+    cs = re.sub(r'\s*\|\|\s*false\b', '', cs)
     return cs
 
 

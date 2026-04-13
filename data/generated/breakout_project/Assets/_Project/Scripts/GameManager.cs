@@ -36,7 +36,7 @@ public class GameManager : MonoBehaviour
     }
     public static void OnBallLost()
     {
-        if (GameManager.gameOver != null || GameManager.gameWon != null)
+        if (GameManager.gameOver || GameManager.gameWon)
         {
             return;
         }
@@ -99,15 +99,15 @@ public class GameManager : MonoBehaviour
     public static void UpdateDisplay()
     {
         GameManager inst = GameManager.Instance;
-        if (inst != null && true)
+        if (inst != null)
         {
             inst.ScoreText.text = $"Score: {GameManager.score}";
             inst.LivesText.text = $"Lives: {GameManager.lives}";
-            if (GameManager.gameOver != null)
+            if (GameManager.gameOver)
             {
                 inst.StatusText.text = "Game Over!";
             }
-            else if (GameManager.gameWon != null)
+            else if (GameManager.gameWon)
             {
                 inst.StatusText.text = "You Win!";
             }

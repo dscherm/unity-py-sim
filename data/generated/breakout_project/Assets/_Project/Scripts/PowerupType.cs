@@ -17,7 +17,7 @@ public class PowerupConfig
 public class Powerup : MonoBehaviour
 {
     public float fallSpeed = 3.0f;
-    [SerializeField] private PowerupType powerupType;
+    [SerializeField] private PowerupType powerupType = PowerupType.WidePaddle;
     public static PowerupConfig[] POWERUP_CONFIGS = new PowerupConfig[] { new PowerupConfig { color = new Color32(100, 200, 255, 255), weight = 0.4f }, new PowerupConfig { color = new Color32(255, 100, 200, 255), weight = 0.2f }, new PowerupConfig { color = new Color32(255, 200, 50, 255), weight = 0.4f } };
      void Update()
     {

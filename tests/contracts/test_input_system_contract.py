@@ -175,12 +175,12 @@ class TestNewInputMouse:
 # ══════════════════════════════════════════════════════════════════════
 
 class TestNewInputAxis:
-    def test_axis_emits_todo(self):
+    def test_axis_emits_keyboard(self):
         result = _translate_source(
             _make_input_source("Input.get_axis('Horizontal')", as_condition=False)
         )
-        assert "TODO" in result
-        assert "Horizontal" in result
+        assert "Keyboard.current.dKey.isPressed" in result
+        assert "Keyboard.current.aKey.isPressed" in result
 
 
 # ══════════════════════════════════════════════════════════════════════

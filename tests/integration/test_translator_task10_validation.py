@@ -221,11 +221,11 @@ class TestNewInputSystemContract:
         result = _translate_simple_body("if Input.get_key_down('backspace'):")
         assert "Keyboard.current.backspaceKey.wasPressedThisFrame" in result
 
-    def test_axis_becomes_todo(self):
-        """Input.get_axis should produce a TODO comment for new input system."""
+    def test_axis_becomes_keyboard(self):
+        """Input.get_axis('Horizontal') emits keyboard-based axis emulation."""
         result = _translate_simple_body("h = Input.get_axis('Horizontal')")
-        assert "TODO" in result
-        assert "InputAction" in result or "Horizontal" in result
+        assert "Keyboard.current.dKey.isPressed" in result
+        assert "Keyboard.current.aKey.isPressed" in result
 
     # ── Using directive ──
 
