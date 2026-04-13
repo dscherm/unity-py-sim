@@ -1,20 +1,21 @@
+from __future__ import annotations
 """GhostHome — ghost pen behavior with bounce and exit animation.
 
-Port of zigurous GhostHome.cs. Bounces inside the pen, then
-exits via a coroutine lerp animation when disabled.
+Port of zigurous GhostHome.cs, matching v1's working implementation.
 
-Lesson applied: coroutines translate well between Python and C#.
-Lesson applied: ghost house needs a gate to prevent re-entry.
+Lesson from v1: on_disable must check game_object.active before starting coroutine.
+Lesson from v1: exit transition must set is_kinematic and disable movement.
+Lesson from v1: use ghost.set_position or sync rigidbody after position change.
 """
 
-from src.engine.core import MonoBehaviour, GameObject
+import random
+
+from src.engine.core import GameObject
 from src.engine.math.vector import Vector2
-from src.engine.physics.rigidbody import Rigidbody2D
 from src.engine.time_manager import Time
-from src.engine.coroutine import WaitForSeconds
 
 from .ghost_behavior import GhostBehavior
-from .movement import Movement
+from .movement import OBSTACLE_LAYER
 
 
 class GhostHome(GhostBehavior):
@@ -25,66 +26,74 @@ class GhostHome(GhostBehavior):
         self.stop_all_coroutines()
 
     def on_disable(self) -> None:
-        self.start_coroutine(self._exit_transition())
+        # Guard: don't start exit if ghost isn't wired or object is inactive
+        if self.ghost is not None and self.game_object.active:
+            self.start_coroutine(self._exit_transition())
 
     def on_collision_enter_2d(self, collision) -> None:
-        # Bounce inside the pen — reverse direction
-        if self.enabled and self.ghost and self.ghost.movement:
-            movement = self.ghost.movement
-            movement.set_direction(
-                Vector2(-movement.direction.x, -movement.direction.y),
-                forced=True,
-            )
+        """Bounce inside the pen — reverse direction on wall collision."""
+        other_go = getattr(collision, "game_object", collision)
+        if self.enabled and other_go is not None and other_go.layer == OBSTACLE_LAYER:
+            if self.ghost and self.ghost.movement:
+                movement = self.ghost.movement
+                movement.set_direction(
+                    Vector2(-movement.direction.x, -movement.direction.y),
+                    forced=True,
+                )
 
     def _exit_transition(self):
-        """Coroutine: lerp from current position to inside, then to outside."""
+        """Coroutine: animate ghost from current position → inside → outside."""
         movement = self.ghost.movement if self.ghost else None
         if movement is None:
             return
 
         # Disable physics movement during transition
-        movement.set_direction(Vector2(0, 0), forced=True)
-        movement.enabled = False
+        movement.set_direction(Vector2(0, 1), forced=True)
         if movement.rb:
             movement.rb.is_kinematic = True
+        movement.enabled = False
 
-        position = self.ghost.game_object.transform.position
+        ghost_go = self.ghost.game_object
+        start_pos = Vector2(ghost_go.transform.position.x, ghost_go.transform.position.y)
 
-        # Lerp to inside point (0.5s)
+        # Phase 1: lerp to inside point (0.5s)
         if self.inside:
             target = self.inside.transform.position
             elapsed = 0.0
-            start_x, start_y = position.x, position.y
             while elapsed < 0.5:
                 t = elapsed / 0.5
-                self.ghost.game_object.transform.position = Vector2(
-                    start_x + (target.x - start_x) * t,
-                    start_y + (target.y - start_y) * t,
-                )
+                x = start_pos.x + (target.x - start_pos.x) * t
+                y = start_pos.y + (target.y - start_pos.y) * t
+                ghost_go.transform.position = Vector2(x, y)
+                if movement.rb:
+                    movement.rb.move_position(Vector2(x, y))
                 elapsed += Time.delta_time
                 yield None
+            ghost_go.transform.position = Vector2(target.x, target.y)
+            if movement.rb:
+                movement.rb.move_position(Vector2(target.x, target.y))
 
-            self.ghost.game_object.transform.position = Vector2(target.x, target.y)
-
-        # Lerp to outside point (0.5s)
+        # Phase 2: lerp to outside point (0.5s)
         if self.outside:
+            inside_pos = Vector2(ghost_go.transform.position.x, ghost_go.transform.position.y)
             target = self.outside.transform.position
-            position = self.ghost.game_object.transform.position
             elapsed = 0.0
-            start_x, start_y = position.x, position.y
             while elapsed < 0.5:
                 t = elapsed / 0.5
-                self.ghost.game_object.transform.position = Vector2(
-                    start_x + (target.x - start_x) * t,
-                    start_y + (target.y - start_y) * t,
-                )
+                x = inside_pos.x + (target.x - inside_pos.x) * t
+                y = inside_pos.y + (target.y - inside_pos.y) * t
+                ghost_go.transform.position = Vector2(x, y)
+                if movement.rb:
+                    movement.rb.move_position(Vector2(x, y))
                 elapsed += Time.delta_time
                 yield None
+            ghost_go.transform.position = Vector2(target.x, target.y)
+            if movement.rb:
+                movement.rb.move_position(Vector2(target.x, target.y))
 
-            self.ghost.game_object.transform.position = Vector2(target.x, target.y)
-
-        # Re-enable movement, pick a direction
+        # Re-enable movement, pick random left/right
+        dir_x = -1.0 if random.random() < 0.5 else 1.0
+        movement.set_direction(Vector2(dir_x, 0), forced=True)
         if movement.rb:
             movement.rb.is_kinematic = False
         movement.enabled = True
-        movement.set_direction(Vector2(-1, 0), forced=True)  # Default left

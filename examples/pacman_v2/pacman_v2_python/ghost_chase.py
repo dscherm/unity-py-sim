@@ -13,7 +13,7 @@ class GhostChase(GhostBehavior):
 
     def on_disable(self) -> None:
         if self.ghost and self.ghost.scatter:
-            self.ghost.scatter.enable(self.ghost.scatter.duration)
+            self.ghost.scatter.enable()  # Uses scatter.duration by default
 
     def on_trigger_enter_2d(self, other) -> None:
         other_go = getattr(other, "game_object", other)
@@ -52,4 +52,4 @@ class GhostChase(GhostBehavior):
                 min_dist = dist
                 best_dir = d
 
-        movement.set_direction(best_dir, forced=True)
+        movement.set_direction(best_dir)

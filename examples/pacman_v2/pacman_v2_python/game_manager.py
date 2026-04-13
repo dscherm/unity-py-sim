@@ -1,3 +1,4 @@
+from __future__ import annotations
 """GameManager — singleton managing score, lives, game flow.
 
 Port of zigurous GameManager.cs. DefaultExecutionOrder(-100).
@@ -7,6 +8,7 @@ Lesson applied: ghost multiplier resets when frightened mode starts.
 """
 
 from src.engine.core import MonoBehaviour, GameObject
+from src.engine.time_manager import Time
 
 from .ghost import Ghost
 from .pellet import Pellet
@@ -25,6 +27,11 @@ class GameManager(MonoBehaviour):
     lives: int = 3
     ghost_multiplier: int = 1
 
+    # Deferred action timer — avoids calling reset_state/game_over from within
+    # a coroutine tick, which breaks coroutine list consistency in the engine.
+    _deferred_action: str | None = None
+    _deferred_timer: float = 0.0
+
     def __init__(self) -> None:
         super().__init__()
         self.ghosts = []
@@ -32,6 +39,14 @@ class GameManager(MonoBehaviour):
 
     def awake(self) -> None:
         GameManager.instance = self
+
+    def update(self) -> None:
+        if self._deferred_action is not None:
+            self._deferred_timer -= Time.delta_time
+            if self._deferred_timer <= 0:
+                action = self._deferred_action
+                self._deferred_action = None
+                getattr(self, action)()
 
     def start(self) -> None:
         self.new_game()
@@ -65,12 +80,13 @@ class GameManager(MonoBehaviour):
         self._set_score(self.score + pellet.points)
 
         if not self._has_remaining_pellets():
-            self.invoke("new_round", 3.0)
+            # Hide Pacman until new round starts (matches V1 behavior)
+            if self.pacman:
+                self.pacman.game_object.active = False
+            self._deferred_action = "new_round"
+            self._deferred_timer = 3.0
 
     def power_pellet_eaten(self, pellet: PowerPellet) -> None:
-        pellet.game_object.active = False
-        self._set_score(self.score + pellet.points)
-
         # Enable frightened mode on all ghosts
         for ghost in self.ghosts:
             if ghost.frightened:
@@ -78,6 +94,9 @@ class GameManager(MonoBehaviour):
 
         # Reset ghost multiplier
         self.ghost_multiplier = 1
+
+        # Handle pellet deactivation and remaining check (same as regular pellet)
+        self.pellet_eaten(pellet)
 
     def ghost_eaten(self, ghost: Ghost) -> None:
         self._set_score(self.score + ghost.points * self.ghost_multiplier)
@@ -94,9 +113,11 @@ class GameManager(MonoBehaviour):
 
         self.lives -= 1
         if self.lives > 0:
-            self.invoke("reset_state", 3.0)
+            self._deferred_action = "reset_state"
+            self._deferred_timer = 3.0
         else:
-            self.invoke("game_over", 3.0)
+            self._deferred_action = "game_over"
+            self._deferred_timer = 3.0
 
     def _has_remaining_pellets(self) -> bool:
         for pellet in self._all_pellets:

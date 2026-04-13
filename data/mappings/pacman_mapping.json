@@ -1,305 +1,122 @@
 {
   "sprites": {
     "wall": {
-      "unity_path": "Assets/Sprites/Wall_00.png",
+      "unity_path": "Assets/Art/Sprites/Walls/Wall_00.png",
       "sprite_name": "Wall_00",
       "ppu": 16,
       "material": "Sprite-Unlit-Default",
       "sorting_layer": "Default",
-      "notes": "Default wall sprite. Tilemap uses Wall_00 through Wall_37 for different corners/edges."
+      "notes": "Default wall sprite. Wall_00 through Wall_37 available for different corners/edges."
     },
     "pellet_small": {
-      "unity_path": "Assets/Sprites/Pellet_Small.png",
+      "unity_path": "Assets/Art/Sprites/Pellets/Pellet_Small.png",
       "sprite_name": "Pellet_Small",
       "ppu": 16,
       "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default",
-      "notes": "color_hint=[255, 255, 200], size=[0.15, 0.15]"
+      "sorting_layer": "Default"
     },
     "pellet_large": {
-      "unity_path": "Assets/Sprites/Pellet_Large.png",
+      "unity_path": "Assets/Art/Sprites/Pellets/Pellet_Large.png",
       "sprite_name": "Pellet_Large",
       "ppu": 16,
       "material": "Sprite-Unlit-Default",
       "sorting_layer": "Default",
-      "notes": "Power pellet. color_hint=[255, 255, 200], size=[0.5, 0.5]"
+      "notes": "Power pellet"
     },
     "pacman_01": {
-      "unity_path": "Assets/Sprites/Pacman_01.png",
+      "unity_path": "Assets/Art/Sprites/Pacman/Pacman_01.png",
       "sprite_name": "Pacman_01",
       "ppu": 16,
       "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default",
-      "notes": "Pacman mouth open frame 1"
+      "sorting_layer": "Default"
     },
     "pacman_02": {
-      "unity_path": "Assets/Sprites/Pacman_02.png",
+      "unity_path": "Assets/Art/Sprites/Pacman/Pacman_02.png",
       "sprite_name": "Pacman_02",
       "ppu": 16,
       "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default",
-      "notes": "Pacman mouth mid frame 2"
+      "sorting_layer": "Default"
     },
     "pacman_03": {
-      "unity_path": "Assets/Sprites/Pacman_03.png",
+      "unity_path": "Assets/Art/Sprites/Pacman/Pacman_03.png",
       "sprite_name": "Pacman_03",
       "ppu": 16,
       "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default",
-      "notes": "Pacman mouth closed frame 3"
-    },
-    "pacman_death_01": {
-      "unity_path": "Assets/Sprites/Pacman_Death_01.png",
-      "sprite_name": "Pacman_Death_01",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default",
-      "notes": "Death animation frame 1 of 11"
-    },
-    "pacman_death_02": {
-      "unity_path": "Assets/Sprites/Pacman_Death_02.png",
-      "sprite_name": "Pacman_Death_02",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
       "sorting_layer": "Default"
     },
-    "pacman_death_03": {
-      "unity_path": "Assets/Sprites/Pacman_Death_03.png",
-      "sprite_name": "Pacman_Death_03",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "pacman_death_04": {
-      "unity_path": "Assets/Sprites/Pacman_Death_04.png",
-      "sprite_name": "Pacman_Death_04",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "pacman_death_05": {
-      "unity_path": "Assets/Sprites/Pacman_Death_05.png",
-      "sprite_name": "Pacman_Death_05",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "pacman_death_06": {
-      "unity_path": "Assets/Sprites/Pacman_Death_06.png",
-      "sprite_name": "Pacman_Death_06",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "pacman_death_07": {
-      "unity_path": "Assets/Sprites/Pacman_Death_07.png",
-      "sprite_name": "Pacman_Death_07",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "pacman_death_08": {
-      "unity_path": "Assets/Sprites/Pacman_Death_08.png",
-      "sprite_name": "Pacman_Death_08",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "pacman_death_09": {
-      "unity_path": "Assets/Sprites/Pacman_Death_09.png",
-      "sprite_name": "Pacman_Death_09",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "pacman_death_10": {
-      "unity_path": "Assets/Sprites/Pacman_Death_10.png",
-      "sprite_name": "Pacman_Death_10",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "pacman_death_11": {
-      "unity_path": "Assets/Sprites/Pacman_Death_11.png",
-      "sprite_name": "Pacman_Death_11",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
+    "pacman_death_01": { "unity_path": "Assets/Art/Sprites/Pacman/Pacman_Death_01.png", "sprite_name": "Pacman_Death_01", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "pacman_death_02": { "unity_path": "Assets/Art/Sprites/Pacman/Pacman_Death_02.png", "sprite_name": "Pacman_Death_02", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "pacman_death_03": { "unity_path": "Assets/Art/Sprites/Pacman/Pacman_Death_03.png", "sprite_name": "Pacman_Death_03", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "pacman_death_04": { "unity_path": "Assets/Art/Sprites/Pacman/Pacman_Death_04.png", "sprite_name": "Pacman_Death_04", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "pacman_death_05": { "unity_path": "Assets/Art/Sprites/Pacman/Pacman_Death_05.png", "sprite_name": "Pacman_Death_05", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "pacman_death_06": { "unity_path": "Assets/Art/Sprites/Pacman/Pacman_Death_06.png", "sprite_name": "Pacman_Death_06", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "pacman_death_07": { "unity_path": "Assets/Art/Sprites/Pacman/Pacman_Death_07.png", "sprite_name": "Pacman_Death_07", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "pacman_death_08": { "unity_path": "Assets/Art/Sprites/Pacman/Pacman_Death_08.png", "sprite_name": "Pacman_Death_08", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "pacman_death_09": { "unity_path": "Assets/Art/Sprites/Pacman/Pacman_Death_09.png", "sprite_name": "Pacman_Death_09", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "pacman_death_10": { "unity_path": "Assets/Art/Sprites/Pacman/Pacman_Death_10.png", "sprite_name": "Pacman_Death_10", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "pacman_death_11": { "unity_path": "Assets/Art/Sprites/Pacman/Pacman_Death_11.png", "sprite_name": "Pacman_Death_11", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
     "ghost_blinky": {
-      "unity_path": "Assets/Sprites/Ghost_Body_01.png",
+      "unity_path": "Assets/Art/Sprites/Ghosts/Ghost_Body_01.png",
       "sprite_name": "Ghost_Body_01",
       "ppu": 16,
       "material": "Sprite-Unlit-Default",
       "sorting_layer": "Default",
-      "notes": "Blinky (red ghost) — tinted red via SpriteRenderer.color"
+      "notes": "Blinky — tinted red via SpriteRenderer.color"
     },
     "ghost_pinky": {
-      "unity_path": "Assets/Sprites/Ghost_Body_01.png",
+      "unity_path": "Assets/Art/Sprites/Ghosts/Ghost_Body_01.png",
       "sprite_name": "Ghost_Body_01",
       "ppu": 16,
       "material": "Sprite-Unlit-Default",
       "sorting_layer": "Default",
-      "notes": "Pinky (pink ghost) — tinted pink via SpriteRenderer.color"
+      "notes": "Pinky — tinted pink via SpriteRenderer.color"
     },
     "ghost_inky": {
-      "unity_path": "Assets/Sprites/Ghost_Body_01.png",
+      "unity_path": "Assets/Art/Sprites/Ghosts/Ghost_Body_01.png",
       "sprite_name": "Ghost_Body_01",
       "ppu": 16,
       "material": "Sprite-Unlit-Default",
       "sorting_layer": "Default",
-      "notes": "Inky (cyan ghost) — tinted cyan via SpriteRenderer.color"
+      "notes": "Inky — tinted cyan via SpriteRenderer.color"
     },
     "ghost_clyde": {
-      "unity_path": "Assets/Sprites/Ghost_Body_01.png",
+      "unity_path": "Assets/Art/Sprites/Ghosts/Ghost_Body_01.png",
       "sprite_name": "Ghost_Body_01",
       "ppu": 16,
       "material": "Sprite-Unlit-Default",
       "sorting_layer": "Default",
-      "notes": "Clyde (orange ghost) — tinted orange via SpriteRenderer.color"
+      "notes": "Clyde — tinted orange via SpriteRenderer.color"
     },
-    "ghost_eyes_up": {
-      "unity_path": "Assets/Sprites/Ghost_Eyes_Up.png",
-      "sprite_name": "Ghost_Eyes_Up",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "ghost_eyes_down": {
-      "unity_path": "Assets/Sprites/Ghost_Eyes_Down.png",
-      "sprite_name": "Ghost_Eyes_Down",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "ghost_eyes_left": {
-      "unity_path": "Assets/Sprites/Ghost_Eyes_Left.png",
-      "sprite_name": "Ghost_Eyes_Left",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "ghost_eyes_right": {
-      "unity_path": "Assets/Sprites/Ghost_Eyes_Right.png",
-      "sprite_name": "Ghost_Eyes_Right",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "ghost_vulnerable_blue_01": {
-      "unity_path": "Assets/Sprites/Ghost_Vulnerable_Blue_01.png",
-      "sprite_name": "Ghost_Vulnerable_Blue_01",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default",
-      "notes": "Frightened mode frame 1"
-    },
-    "ghost_vulnerable_blue_02": {
-      "unity_path": "Assets/Sprites/Ghost_Vulnerable_Blue_02.png",
-      "sprite_name": "Ghost_Vulnerable_Blue_02",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default",
-      "notes": "Frightened mode frame 2"
-    },
-    "ghost_vulnerable_white_01": {
-      "unity_path": "Assets/Sprites/Ghost_Vulnerable_White_01.png",
-      "sprite_name": "Ghost_Vulnerable_White_01",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default",
-      "notes": "Frightened flash frame 1"
-    },
-    "ghost_vulnerable_white_02": {
-      "unity_path": "Assets/Sprites/Ghost_Vulnerable_White_02.png",
-      "sprite_name": "Ghost_Vulnerable_White_02",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default",
-      "notes": "Frightened flash frame 2"
-    },
-    "ghost_body_01": {
-      "unity_path": "Assets/Sprites/Ghost_Body_01.png",
-      "sprite_name": "Ghost_Body_01",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default",
-      "notes": "Ghost body animation frame 1"
-    },
-    "ghost_body_02": {
-      "unity_path": "Assets/Sprites/Ghost_Body_02.png",
-      "sprite_name": "Ghost_Body_02",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default",
-      "notes": "Ghost body animation frame 2"
-    },
-    "node": {
-      "unity_path": "Assets/Sprites/Node.png",
-      "sprite_name": "Node",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default",
-      "notes": "Intersection node marker (debug only)"
-    }
+    "ghost_eyes_up": { "unity_path": "Assets/Art/Sprites/Ghosts/Ghost_Eyes_Up.png", "sprite_name": "Ghost_Eyes_Up", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "ghost_eyes_down": { "unity_path": "Assets/Art/Sprites/Ghosts/Ghost_Eyes_Down.png", "sprite_name": "Ghost_Eyes_Down", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "ghost_eyes_left": { "unity_path": "Assets/Art/Sprites/Ghosts/Ghost_Eyes_Left.png", "sprite_name": "Ghost_Eyes_Left", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "ghost_eyes_right": { "unity_path": "Assets/Art/Sprites/Ghosts/Ghost_Eyes_Right.png", "sprite_name": "Ghost_Eyes_Right", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "ghost_vulnerable_blue_01": { "unity_path": "Assets/Art/Sprites/Ghosts/Ghost_Vulnerable_Blue_01.png", "sprite_name": "Ghost_Vulnerable_Blue_01", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "ghost_vulnerable_blue_02": { "unity_path": "Assets/Art/Sprites/Ghosts/Ghost_Vulnerable_Blue_02.png", "sprite_name": "Ghost_Vulnerable_Blue_02", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "ghost_vulnerable_white_01": { "unity_path": "Assets/Art/Sprites/Ghosts/Ghost_Vulnerable_White_01.png", "sprite_name": "Ghost_Vulnerable_White_01", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "ghost_vulnerable_white_02": { "unity_path": "Assets/Art/Sprites/Ghosts/Ghost_Vulnerable_White_02.png", "sprite_name": "Ghost_Vulnerable_White_02", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "ghost_body_01": { "unity_path": "Assets/Art/Sprites/Ghosts/Ghost_Body_01.png", "sprite_name": "Ghost_Body_01", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "ghost_body_02": { "unity_path": "Assets/Art/Sprites/Ghosts/Ghost_Body_02.png", "sprite_name": "Ghost_Body_02", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "node": { "unity_path": "Assets/Art/Sprites/Walls/Node.png", "sprite_name": "Node", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" }
   },
   "audio": {},
   "fruits": {
-    "fruit_cherry": {
-      "unity_path": "Assets/Sprites/Fruit_Cherry.png",
-      "sprite_name": "Fruit_Cherry",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "fruit_strawberry": {
-      "unity_path": "Assets/Sprites/Fruit_Strawberry.png",
-      "sprite_name": "Fruit_Strawberry",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "fruit_orange": {
-      "unity_path": "Assets/Sprites/Fruit_Orange.png",
-      "sprite_name": "Fruit_Orange",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "fruit_apple": {
-      "unity_path": "Assets/Sprites/Fruit_Apple.png",
-      "sprite_name": "Fruit_Apple",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "fruit_melon": {
-      "unity_path": "Assets/Sprites/Fruit_Melon.png",
-      "sprite_name": "Fruit_Melon",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "fruit_bell": {
-      "unity_path": "Assets/Sprites/Fruit_Bell.png",
-      "sprite_name": "Fruit_Bell",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "fruit_key": {
-      "unity_path": "Assets/Sprites/Fruit_Key.png",
-      "sprite_name": "Fruit_Key",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    },
-    "fruit_galaxian": {
-      "unity_path": "Assets/Sprites/Fruit_GalaxianStarship.png",
-      "sprite_name": "Fruit_GalaxianStarship",
-      "ppu": 16,
-      "material": "Sprite-Unlit-Default",
-      "sorting_layer": "Default"
-    }
+    "fruit_cherry": { "unity_path": "Assets/Art/Sprites/Fruits/Fruit_Cherry.png", "sprite_name": "Fruit_Cherry", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "fruit_strawberry": { "unity_path": "Assets/Art/Sprites/Fruits/Fruit_Strawberry.png", "sprite_name": "Fruit_Strawberry", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "fruit_orange": { "unity_path": "Assets/Art/Sprites/Fruits/Fruit_Orange.png", "sprite_name": "Fruit_Orange", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "fruit_apple": { "unity_path": "Assets/Art/Sprites/Fruits/Fruit_Apple.png", "sprite_name": "Fruit_Apple", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "fruit_melon": { "unity_path": "Assets/Art/Sprites/Fruits/Fruit_Melon.png", "sprite_name": "Fruit_Melon", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "fruit_bell": { "unity_path": "Assets/Art/Sprites/Fruits/Fruit_Bell.png", "sprite_name": "Fruit_Bell", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "fruit_key": { "unity_path": "Assets/Art/Sprites/Fruits/Fruit_Key.png", "sprite_name": "Fruit_Key", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" },
+    "fruit_galaxian": { "unity_path": "Assets/Art/Sprites/Fruits/Fruit_GalaxianStarship.png", "sprite_name": "Fruit_GalaxianStarship", "ppu": 16, "material": "Sprite-Unlit-Default", "sorting_layer": "Default" }
+  },
+  "project_structure": {
+    "scripts_dir": "Assets/_Project/Scripts",
+    "prefabs_dir": "Assets/_Project/Prefabs",
+    "scenes_dir": "Assets/_Project/Scenes",
+    "sprites_dir": "Assets/Art/Sprites",
+    "input_dir": "Assets/Input",
+    "editor_dir": "Assets/Editor",
+    "physics_dir": "Assets/Physics"
   }
 }

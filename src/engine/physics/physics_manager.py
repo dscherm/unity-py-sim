@@ -135,6 +135,9 @@ class PhysicsManager:
             rb_b = self._body_map.get(id_b)
             if rb_a is None or rb_b is None:
                 continue
+            # Unity skips callbacks for inactive GameObjects
+            if not rb_a.game_object.active or not rb_b.game_object.active:
+                continue
             if is_trigger:
                 for comp in rb_a.game_object.get_components(MonoBehaviour):
                     comp.on_trigger_stay_2d(rb_b.game_object)
@@ -159,6 +162,11 @@ class PhysicsManager:
         is_trigger = self.is_trigger(shape_a) or self.is_trigger(shape_b)
 
         if rb_a and rb_b:
+            # Unity skips collision callbacks for inactive GameObjects
+            if not rb_a.game_object.active or not rb_b.game_object.active:
+                if is_trigger:
+                    arbiter.process_collision = False
+                return
             key = self._contact_key(rb_a, rb_b)
             if is_trigger:
                 self._active_contacts[key] = True
@@ -191,6 +199,9 @@ class PhysicsManager:
     def _dispatch_collision_enter(self, rb_a: 'Rigidbody2D', rb_b: 'Rigidbody2D',
                                    arbiter: pymunk.Arbiter) -> None:
         from src.engine.core import MonoBehaviour
+        # Unity skips callbacks for inactive GameObjects
+        if not rb_a.game_object.active or not rb_b.game_object.active:
+            return
 
         contacts = []
         for cp in arbiter.contact_point_set.points:
@@ -223,6 +234,8 @@ class PhysicsManager:
 
     def _dispatch_collision_exit(self, rb_a: 'Rigidbody2D', rb_b: 'Rigidbody2D') -> None:
         from src.engine.core import MonoBehaviour
+        if not rb_a.game_object.active or not rb_b.game_object.active:
+            return
 
         collision_for_a = Collision2D(game_object=rb_b.game_object)
         collision_for_b = Collision2D(game_object=rb_a.game_object)
@@ -234,6 +247,8 @@ class PhysicsManager:
 
     def _dispatch_trigger_enter(self, rb_a: 'Rigidbody2D', rb_b: 'Rigidbody2D') -> None:
         from src.engine.core import MonoBehaviour
+        if not rb_a.game_object.active or not rb_b.game_object.active:
+            return
         for comp in rb_a.game_object.get_components(MonoBehaviour):
             comp.on_trigger_enter_2d(rb_b.game_object)
         for comp in rb_b.game_object.get_components(MonoBehaviour):
@@ -241,6 +256,8 @@ class PhysicsManager:
 
     def _dispatch_trigger_exit(self, rb_a: 'Rigidbody2D', rb_b: 'Rigidbody2D') -> None:
         from src.engine.core import MonoBehaviour
+        if not rb_a.game_object.active or not rb_b.game_object.active:
+            return
         for comp in rb_a.game_object.get_components(MonoBehaviour):
             comp.on_trigger_exit_2d(rb_b.game_object)
         for comp in rb_b.game_object.get_components(MonoBehaviour):

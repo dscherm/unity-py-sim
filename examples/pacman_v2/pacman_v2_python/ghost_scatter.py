@@ -15,7 +15,7 @@ class GhostScatter(GhostBehavior):
 
     def on_disable(self) -> None:
         if self.ghost and self.ghost.chase:
-            self.ghost.chase.enable(self.ghost.chase.duration)
+            self.ghost.chase.enable()  # Uses chase.duration by default
 
     def on_trigger_enter_2d(self, other) -> None:
         other_go = getattr(other, "game_object", other)
@@ -43,4 +43,4 @@ class GhostScatter(GhostBehavior):
             idx = available.index(direction)
             direction = available[(idx + 1) % len(available)]
 
-        movement.set_direction(direction, forced=True)
+        movement.set_direction(direction)

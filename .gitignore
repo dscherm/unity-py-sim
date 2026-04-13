@@ -43,3 +43,9 @@ Thumbs.db
 *.key
 credentials.*
 .claude/worktrees/
+
+# Unity generated directories
+**/Library/
+**/Temp/
+**/Logs/
+**/UserSettings/
