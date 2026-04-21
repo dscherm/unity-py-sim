@@ -17,7 +17,11 @@ Usage:
 
 from __future__ import annotations
 
+import hashlib
 import json
+import math
+import struct
+import zlib
 from pathlib import Path
 
 
@@ -125,7 +129,239 @@ def scaffold_project(
     if prefab_data:
         _write_prefabs(output_dir, prefab_data)
 
+    _copy_project_sprites(game_name, output_dir)
+
+    # 9. Generate default sprite assets (S7-1) — required so SpriteRenderers
+    # actually render in the generated scene
+    _write_default_sprites(output_dir)
+
+    # 10. Generate BouncyBall physics material (S7-3) — used by ball-like
+    # objects so they bounce indefinitely off walls/bricks
+    _write_bouncy_ball_material(output_dir)
+
     return output_dir
+
+
+# ── Default sprite asset generation (S7-1) ───────────────────
+
+# Map of sprite_name -> (width, height, generator_callable)
+# Each generator returns a list of RGBA bytes.
+def _gen_white_square(w: int, h: int) -> bytes:
+    """Solid opaque white 32-bit RGBA texture."""
+    pixel = b"\xff\xff\xff\xff"
+    return pixel * (w * h)
+
+
+def _gen_circle(size: int) -> bytes:
+    """Anti-aliased white circle on transparent 32-bit RGBA texture."""
+    cx = cy = (size - 1) / 2.0
+    radius = (size / 2.0) - 1.0
+    pixels = bytearray(size * size * 4)
+    for y in range(size):
+        for x in range(size):
+            dist = math.hypot(x - cx, y - cy)
+            # Antialias edge over 1 pixel band
+            if dist <= radius - 1.0:
+                a = 255
+            elif dist >= radius + 1.0:
+                a = 0
+            else:
+                # Smooth ramp from radius-1 to radius+1
+                t = (radius + 1.0 - dist) / 2.0
+                a = max(0, min(255, int(t * 255)))
+            offset = (y * size + x) * 4
+            pixels[offset] = 255
+            pixels[offset + 1] = 255
+            pixels[offset + 2] = 255
+            pixels[offset + 3] = a
+    return bytes(pixels)
+
+
+def _encode_png(width: int, height: int, rgba: bytes) -> bytes:
+    """Encode raw RGBA pixel data as a PNG byte stream (stdlib only).
+
+    Uses 8-bit RGBA color type (6) with no filtering for each row.
+    """
+    def chunk(tag: bytes, data: bytes) -> bytes:
+        return (
+            struct.pack(">I", len(data))
+            + tag
+            + data
+            + struct.pack(">I", zlib.crc32(tag + data) & 0xFFFFFFFF)
+        )
+
+    sig = b"\x89PNG\r\n\x1a\n"
+    ihdr = struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)
+
+    # Each row is prefixed with filter byte 0 (None), then RGBA bytes
+    stride = width * 4
+    raw = bytearray()
+    for y in range(height):
+        raw.append(0)  # no filter
+        raw.extend(rgba[y * stride:(y + 1) * stride])
+    idat = zlib.compress(bytes(raw), level=9)
+
+    return sig + chunk(b"IHDR", ihdr) + chunk(b"IDAT", idat) + chunk(b"IEND", b"")
+
+
+def _stable_guid(seed: str) -> str:
+    """32-char hex GUID derived deterministically from a string seed."""
+    return hashlib.sha256(seed.encode("utf-8")).hexdigest()[:32]
+
+
+def _sprite_meta_yaml(asset_path: str) -> str:
+    """Generate a Unity .meta file for a sprite PNG.
+
+    Critical settings (learned from breakout debug session 2026-04-13):
+      - textureType: 8 (Sprite)
+      - spriteMode: 1 (Single — NOT 2/Multiple, which requires sprite sheet defs)
+      - filterMode: 0 (Point — pixel-art crisp)
+      - spritePixelsToUnits: 32
+    """
+    guid = _stable_guid(asset_path)
+    return (
+        "fileFormatVersion: 2\n"
+        f"guid: {guid}\n"
+        "TextureImporter:\n"
+        "  internalIDToNameTable: []\n"
+        "  externalObjects: {}\n"
+        "  serializedVersion: 13\n"
+        "  mipmaps:\n"
+        "    mipMapMode: 0\n"
+        "    enableMipMap: 0\n"
+        "    sRGBTexture: 1\n"
+        "  isReadable: 0\n"
+        "  textureFormat: 1\n"
+        "  maxTextureSize: 2048\n"
+        "  textureSettings:\n"
+        "    serializedVersion: 2\n"
+        "    filterMode: 0\n"
+        "    aniso: 1\n"
+        "    mipBias: 0\n"
+        "    wrapU: 1\n"
+        "    wrapV: 1\n"
+        "    wrapW: 1\n"
+        "  nPOTScale: 0\n"
+        "  lightmap: 0\n"
+        "  compressionQuality: 50\n"
+        "  spriteMode: 1\n"
+        "  spriteExtrude: 1\n"
+        "  spriteMeshType: 1\n"
+        "  alignment: 0\n"
+        "  spritePivot: {x: 0.5, y: 0.5}\n"
+        "  spritePixelsToUnits: 32\n"
+        "  spriteBorder: {x: 0, y: 0, z: 0, w: 0}\n"
+        "  spriteGenerateFallbackPhysicsShape: 1\n"
+        "  alphaUsage: 1\n"
+        "  alphaIsTransparency: 1\n"
+        "  spriteTessellationDetail: -1\n"
+        "  textureType: 8\n"
+        "  textureShape: 1\n"
+        "  userData: \n"
+        "  assetBundleName: \n"
+        "  assetBundleVariant: \n"
+    )
+
+
+def _write_bouncy_ball_material(output_dir: Path) -> None:
+    """Write Assets/Art/BouncyBall.physicsMaterial2D (S7-3).
+
+    A shared PhysicsMaterial2D with bounciness=1 and friction=0, used by
+    ball-like objects so they bounce indefinitely off walls/bricks.
+    """
+    art_dir = output_dir / "Assets" / "Art"
+    art_dir.mkdir(parents=True, exist_ok=True)
+    mat_path = art_dir / "BouncyBall.physicsMaterial2D"
+    meta_path = art_dir / "BouncyBall.physicsMaterial2D.meta"
+    if mat_path.exists() and meta_path.exists():
+        return
+    mat_path.write_text(
+        "%YAML 1.1\n"
+        "%TAG !u! tag:unity3d.com,2011:\n"
+        "--- !u!62 &6200000\n"
+        "PhysicsMaterial2D:\n"
+        "  serializedVersion: 2\n"
+        "  m_ObjectHideFlags: 0\n"
+        "  m_Name: BouncyBall\n"
+        "  friction: 0\n"
+        "  bounciness: 1\n",
+        encoding="utf-8",
+    )
+    meta_path.write_text(
+        "fileFormatVersion: 2\n"
+        f"guid: {_stable_guid('Assets/Art/BouncyBall.physicsMaterial2D')}\n"
+        "NativeFormatImporter:\n"
+        "  externalObjects: {}\n"
+        "  mainObjectFileID: 6200000\n"
+        "  userData: \n"
+        "  assetBundleName: \n"
+        "  assetBundleVariant: \n",
+        encoding="utf-8",
+    )
+
+
+_ASSETS_ROOT = Path(__file__).resolve().parent.parent.parent / "data" / "assets"
+
+
+def _copy_project_sprites(game_name: str, output_dir: Path) -> int:
+    """Mirror ``data/assets/<game_name>/Sprites/**`` into the Unity project.
+
+    Each PNG gets a sibling ``.meta`` with deterministic GUID + pixel-art
+    defaults (Point filter, PPU=32). Replaces the prior manual-drop step that
+    produced dangling sprite references in generated projects. No-op when the
+    source directory doesn't exist.
+
+    Returns the number of PNGs copied.
+    """
+    source_dir = _ASSETS_ROOT / game_name / "Sprites"
+    if not source_dir.is_dir():
+        return 0
+
+    sprites_out = output_dir / "Assets" / "Art" / "Sprites"
+    sprites_out.mkdir(parents=True, exist_ok=True)
+
+    import shutil
+    count = 0
+    for png in sorted(source_dir.rglob("*.png")):
+        rel = png.relative_to(source_dir)
+        dest = sprites_out / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(png, dest)
+        meta_path = dest.parent / (rel.name + ".meta")
+        # Preserve existing .meta so Unity-assigned GUIDs + PPU stay stable
+        # across re-scaffolds. Prior runs that clobbered GUIDs broke prefab
+        # references on the home machine.
+        if not meta_path.exists():
+            unity_rel = f"Assets/Art/Sprites/{rel.as_posix()}"
+            meta_path.write_text(_sprite_meta_yaml(unity_rel), encoding="utf-8")
+        count += 1
+    return count
+
+
+def _write_default_sprites(output_dir: Path) -> None:
+    """Write WhiteSquare.png and Circle.png (with .meta) to Assets/Art/Sprites.
+
+    Required so SpriteRenderers in the generated scene actually render — Unity
+    SpriteRenderers with sprite=None render nothing regardless of color (S7-1,
+    discovered in 2026-04-13 breakout debug session).
+    """
+    sprites_dir = output_dir / "Assets" / "Art" / "Sprites"
+    sprites_dir.mkdir(parents=True, exist_ok=True)
+
+    sprites: list[tuple[str, bytes]] = [
+        ("WhiteSquare.png", _encode_png(32, 32, _gen_white_square(32, 32))),
+        ("Circle.png", _encode_png(32, 32, _gen_circle(32))),
+    ]
+
+    for filename, png_bytes in sprites:
+        png_path = sprites_dir / filename
+        meta_path = sprites_dir / (filename + ".meta")
+        # Idempotent: skip if both exist with same content (preserves manual edits)
+        if png_path.exists() and meta_path.exists():
+            continue
+        png_path.write_bytes(png_bytes)
+        asset_rel = f"Assets/Art/Sprites/{filename}"
+        meta_path.write_text(_sprite_meta_yaml(asset_rel), encoding="utf-8")
 
 
 def _write_manifest(
