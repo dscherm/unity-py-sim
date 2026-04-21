@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
 public enum PowerupType
@@ -8,8 +9,6 @@ public enum PowerupType
 }
 public class PowerupConfig
 {
-    // TODO: populate POWERUP_CONFIGS with game data
-    private static readonly object[] POWERUP_CONFIGS = new object[0];
     public PowerupType powerupType = PowerupType.WidePaddle;
     public Color32 color = new Color32(255, 255, 255, 255);
     public float weight = 0.0f;
@@ -17,8 +16,8 @@ public class PowerupConfig
 public class Powerup : MonoBehaviour
 {
     public float fallSpeed = 3.0f;
-    [SerializeField] private PowerupType powerupType = PowerupType.WidePaddle;
-    public static PowerupConfig[] POWERUP_CONFIGS = new PowerupConfig[] { new PowerupConfig { color = new Color32(100, 200, 255, 255), weight = 0.4f }, new PowerupConfig { color = new Color32(255, 100, 200, 255), weight = 0.2f }, new PowerupConfig { color = new Color32(255, 200, 50, 255), weight = 0.4f } };
+    public PowerupType powerupType;
+    public static PowerupConfig[] POWERUP_CONFIGS = new PowerupConfig[] { new PowerupConfig { powerupType = PowerupType.WidePaddle, color = new Color32(100, 200, 255, 255), weight = 0.4f }, new PowerupConfig { powerupType = PowerupType.ExtraLife, color = new Color32(255, 100, 200, 255), weight = 0.2f }, new PowerupConfig { powerupType = PowerupType.SpeedBall, color = new Color32(255, 200, 50, 255), weight = 0.4f } };
      void Update()
     {
         Vector2 pos = transform.position;

@@ -10,11 +10,11 @@ public class Brick : MonoBehaviour
             health -= 1;
             if (health <= 0)
             {
-                Destroy();
+                DestroyInstance();
             }
         }
     }
-    public void Destroy()
+    public void DestroyInstance()
     {
         GameManager.AddScore(points);
         Powerup.MaybeSpawnPowerup(transform.position);

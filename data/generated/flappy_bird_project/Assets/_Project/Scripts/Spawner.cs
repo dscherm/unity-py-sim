@@ -5,7 +5,7 @@ public class Spawner : MonoBehaviour
     public float minHeight = -1.0f;
     public float maxHeight = 2.0f;
     public float verticalGap = 3.0f;
-    [SerializeField] private GameObject prefab;
+    public GameObject prefab;
      void OnEnable()
     {
         InvokeRepeating("Spawn", spawnRate, spawnRate);
@@ -27,7 +27,7 @@ public class Spawner : MonoBehaviour
         {
             pipesComp.gap = verticalGap;
             // Find Top and Bottom children by name
-            foreach (var child in pipesGo.transform.children)
+            foreach (Transform child in pipesGo.transform)
             {
                 if (child.gameObject.name == "Top")
                 {

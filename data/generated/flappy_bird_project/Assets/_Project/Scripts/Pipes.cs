@@ -3,20 +3,20 @@ public class Pipes : MonoBehaviour
 {
     public float speed = 5.0f;
     public float gap = 3.0f;
-    public float LeftEdge = 0.0f;
-    [SerializeField] private Transform top;
-    [SerializeField] private Transform bottom;
+    public float leftEdge = 0.0f;
+    public Transform top;
+    public Transform bottom;
      void Start()
     {
         if (Camera.main != null)
         {
             // Camera.main.ScreenToWorldPoint(Vector3.zero).x - 1f
             var worldPoint = Camera.main.ScreenToWorldPoint(Vector3.zero);
-            LeftEdge = worldPoint.x - 1.0f;
+            leftEdge = worldPoint.x - 1.0f;
         }
         else
         {
-            LeftEdge = -10.0f;
+            leftEdge = -10.0f;
         }
         if (top != null)
         {
@@ -30,7 +30,7 @@ public class Pipes : MonoBehaviour
      void Update()
     {
         transform.position = transform.position + Vector3.left * (speed * Time.deltaTime);
-        if (transform.position.x < LeftEdge)
+        if (transform.position.x < leftEdge)
         {
             Destroy(gameObject);
         }

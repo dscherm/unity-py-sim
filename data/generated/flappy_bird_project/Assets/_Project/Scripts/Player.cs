@@ -1,18 +1,18 @@
-using System.Collections.Generic;
 using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class Player : MonoBehaviour
 {
+    [SerializeField] private GameManager gameManager;
     public float strength = 5.0f;
     public float gravity = -9.81f;
     public float tilt = 5.0f;
-    public Vector3 Direction = new Vector3(0, 0, 0);
-    public int SpriteIndex = 0;
-    [SerializeField] private List<object> sprites;
-    [SerializeField] private SpriteRenderer SpriteRenderer;
+    public Vector3 direction = new Vector3(0, 0, 0);
+    public int spriteIndex = 0;
+    public List<object> sprites;
+    [SerializeField] private SpriteRenderer spriteRenderer;
      void Awake()
     {
-        SpriteRenderer = GetComponent<SpriteRenderer>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
      void Start()
     {
@@ -23,32 +23,32 @@ public class Player : MonoBehaviour
         var position = transform.position;
         position = new Vector3(position.x, 0.0f, position.z);
         transform.position = position;
-        Direction = Vector3.zero;
+        direction = Vector3.zero;
     }
      void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
         {
-            Direction = Vector3.up * strength;
+            direction = Vector3.up * strength;
         }
-        Direction = new Vector3( Direction.x, Direction.y + gravity * Time.deltaTime, Direction.z);
-        transform.position = transform.position + Direction * Time.deltaTime;
+        direction = new Vector3( direction.x, direction.y + gravity * Time.deltaTime, direction.z);
+        transform.position = transform.position + direction * Time.deltaTime;
         var rotation = transform.eulerAngles;
-        rotation = new Vector3(rotation.x, rotation.y, Direction.y * tilt);
+        rotation = new Vector3(rotation.x, rotation.y, direction.y * tilt);
         transform.eulerAngles = rotation;
     }
     public void AnimateSprite()
     {
-        SpriteIndex += 1;
-        if (SpriteIndex >= sprites.Count)
+        spriteIndex += 1;
+        if (spriteIndex >= sprites.Count)
         {
-            SpriteIndex = 0;
+            spriteIndex = 0;
         }
-        if (SpriteIndex < sprites.Count && SpriteIndex >= 0)
+        if (spriteIndex < sprites.Count && spriteIndex >= 0)
         {
-            if (SpriteRenderer != null)
+            if (spriteRenderer != null)
             {
-                SpriteRenderer.sprite = sprites[SpriteIndex];
+                spriteRenderer.sprite = sprites[spriteIndex];
             }
         }
     }
@@ -56,11 +56,11 @@ public class Player : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Obstacle"))
         {
-            GameManager.Instance.GameOver();
+            gameManager.GameOver();
         }
         else if (other.gameObject.CompareTag("Scoring"))
         {
-            GameManager.Instance.IncreaseScore();
+            gameManager.IncreaseScore();
         }
     }
 }

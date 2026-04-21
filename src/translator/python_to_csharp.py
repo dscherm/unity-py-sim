@@ -137,6 +137,18 @@ def translate(
                     pascal = _upper_snake_to_pascal(f.name)
                     _enum_values[f"{cls.name}.{f.name}"] = f"{cls.name}.{pascal}"
 
+    # S7-7: class name → ordered instance field names for positional-arg mapping
+    # in constructor calls. Used by _py_value_to_csharp to emit object-initializer
+    # syntax with positional args as named initializers.
+    global _class_field_order
+    _class_field_order = {}
+    for cls in parsed.classes:
+        if cls.is_enum:
+            continue
+        ordered = [f.name for f in cls.fields if not f.is_class_level]
+        if ordered:
+            _class_field_order[cls.name] = ordered
+
     # Pre-pass: collect bool, array, and dict fields from ALL classes for truthiness/length/membership checks
     global _bool_fields, _array_fields, _dict_fields
     _bool_fields = set()
@@ -247,6 +259,8 @@ def _translate_class(cls: PyClass, parsed: PyFile) -> str:
         return _translate_enum(cls)
     if cls.is_monobehaviour:
         return _translate_monobehaviour(cls, parsed)
+    if cls.is_scriptable_object:
+        return _translate_scriptable_object(cls, parsed)
     return _translate_plain_class(cls, parsed)
 
 
@@ -483,12 +497,15 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     _array_fields = set()
     _dict_fields = set()
     _prefab_fields = set()
-    extra_using = _infer_using_directives(cls, parsed)
     attributes = _infer_attributes(cls)
 
-    # Discover dynamic fields (self.X = Y in methods, not in __init__)
+    # Discover dynamic fields (self.X = Y in methods, not in __init__) first,
+    # so _infer_using_directives sees their types (e.g., Dictionary<>, List<>) and
+    # emits the right `using` statements — S10-1.
     dynamic_fields = _discover_dynamic_fields(cls)
     cls.fields.extend(dynamic_fields)
+
+    extra_using = _infer_using_directives(cls, parsed)
 
     # Build symbol table for consistent naming in method bodies
     _current_symbols = _build_symbol_table(cls)
@@ -521,9 +538,20 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
         if not mc_type:
             mc_type = "object"
         mc_default = _py_value_to_csharp(mc.default_value, mc_type) if mc.default_value else None
+        # S12-3: Convert snake_case names to camelCase at the declaration site
+        # so references translated by the expression pass line up. UPPER_SNAKE
+        # constants stay as-is. Leading underscores are stripped first to match
+        # how the expression translator rewrites `_recent_teleports` →
+        # `recentTeleports` (not `RecentTeleports` as snake_to_camel would do).
+        if mc.name.isupper():
+            mc_decl_name = mc.name
+        else:
+            stripped = mc.name.lstrip("_")
+            parts = stripped.split("_")
+            mc_decl_name = parts[0] + "".join(p.capitalize() for p in parts[1:])
         static_fields.append({
             "csharp_type": mc_type,
-            "csharp_name": mc.name,
+            "csharp_name": mc_decl_name,
             "default": mc_default,
         })
         # Track dict-typed module constants for 'in' -> ContainsKey translation
@@ -542,8 +570,16 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
             csharp_type = _py_type_to_csharp(inferred_types[field.name], is_field=True)
         else:
             csharp_type = _py_type_to_csharp(field.type_annotation, is_field=True, default_value=field.default_value or "")
-        # Preserve UPPER_CASE constants, camelCase others
-        csharp_name = field.name if field.name.isupper() else snake_to_camel(field.name)
+        # Preserve UPPER_CASE constants; strip leading `_` and camelCase others.
+        # snake_to_camel("_body_sr") → "BodySr" (PascalCase) which doesn't match
+        # the expression translator's lower-first-letter form. Matching both
+        # requires stripping the leading underscore first.
+        if field.name.isupper():
+            csharp_name = field.name
+        else:
+            stripped = field.name.lstrip("_")
+            parts = stripped.split("_")
+            csharp_name = parts[0] + "".join(p.capitalize() for p in parts[1:])
         default = _py_value_to_csharp(field.default_value, csharp_type) if field.default_value else None
 
         # Track bool fields so condition translator can avoid != null
@@ -566,11 +602,16 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
         if is_ref and csharp_type.endswith("?"):
             csharp_type = csharp_type[:-1]
 
+        # Public-by-default when the Python name doesn't start with `_` (Python
+        # convention). Subclass-visible reference fields like `ghost: Ghost`
+        # on GhostBehavior must NOT be [SerializeField] private or subclasses
+        # can't touch them. `_` prefix keeps [SerializeField] private semantics.
+        is_public_python = not field.name.startswith("_")
         entry = {
             "csharp_type": csharp_type,
             "csharp_name": csharp_name,
             "default": default,
-            "serialize": is_ref,
+            "serialize": is_ref and not is_public_python,
         }
 
         if field.is_class_level and field.name.isupper():
@@ -580,7 +621,7 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
             # Fields accessed via ClassName.field in method bodies (e.g. GameManager.score)
             static_fields.append(entry)
         elif is_ref:
-            # Reference types -> [SerializeField] private T field;
+            # Reference types -> public T field  OR  [SerializeField] private T field
             private_fields.append(entry)
         elif default is not None and default != "null":
             serialized_fields.append(entry)
@@ -622,10 +663,119 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     )
 
 
+def _translate_scriptable_object(cls: PyClass, parsed: PyFile) -> str:
+    """Translate a ScriptableObject subclass using the SO template.
+
+    ScriptableObjects share most field/method translation with MonoBehaviours
+    but emit ``public class X : ScriptableObject`` and an optional
+    ``[CreateAssetMenu(...)]`` attribute derived from the ``@create_asset_menu``
+    decorator on the Python source.
+    """
+    global _current_symbols, _bool_fields, _array_fields, _dict_fields, _prefab_fields
+    _bool_fields = set()
+    _array_fields = set()
+    _dict_fields = set()
+    _prefab_fields = set()
+    attributes = _infer_attributes(cls)
+
+    extra_using = _infer_using_directives(cls, parsed)
+    _current_symbols = _build_symbol_table(cls)
+    for mc in parsed.module_constants:
+        _current_symbols[mc.name] = mc.name
+
+    inferred_types = _infer_field_types(cls)
+    classname_accessed_fields: set[str] = set()
+    for method in cls.methods:
+        for m in re.finditer(rf"{re.escape(cls.name)}\.(\w+)", method.body_source):
+            classname_accessed_fields.add(m.group(1))
+
+    serialized_fields: list[dict] = []
+    private_fields: list[dict] = []
+    static_fields: list[dict] = []
+
+    for field in cls.fields:
+        if field.name in inferred_types:
+            csharp_type = _py_type_to_csharp(inferred_types[field.name], is_field=True)
+        else:
+            csharp_type = _py_type_to_csharp(
+                field.type_annotation, is_field=True,
+                default_value=field.default_value or "",
+            )
+        csharp_name = field.name if field.name.isupper() else snake_to_camel(field.name)
+        default = _py_value_to_csharp(field.default_value, csharp_type) if field.default_value else None
+
+        if csharp_type == "bool":
+            _bool_fields.add(csharp_name)
+        if csharp_type.endswith("[]"):
+            _array_fields.add(csharp_name)
+        if csharp_type.startswith("Dictionary<"):
+            _dict_fields.add(csharp_name)
+
+        is_ref = _is_reference_type(csharp_type, parsed)
+        if is_ref and csharp_type.endswith("?"):
+            csharp_type = csharp_type[:-1]
+
+        entry = {
+            "csharp_type": csharp_type,
+            "csharp_name": csharp_name,
+            "default": default,
+            "serialize": is_ref,
+        }
+
+        if field.is_class_level and field.name.isupper():
+            static_fields.append(entry)
+        elif field.is_class_level and field.name in classname_accessed_fields:
+            static_fields.append(entry)
+        elif is_ref:
+            private_fields.append(entry)
+        elif default is not None and default != "null":
+            serialized_fields.append(entry)
+        else:
+            private_fields.append(entry)
+
+    methods = [_translate_method(m) for m in cls.methods]
+
+    # Build [CreateAssetMenu(...)] argument string from decorator metadata.
+    # Only include keys the user actually supplied (skip empty strings / 0 order).
+    create_asset_menu_str: str | None = None
+    meta = cls.create_asset_menu
+    if meta:
+        parts: list[str] = []
+        fn = meta.get("file_name")
+        mn = meta.get("menu_name")
+        order = meta.get("order")
+        if fn:
+            parts.append(f'fileName = "{fn}"')
+        if mn:
+            parts.append(f'menuName = "{mn}"')
+        if order:
+            parts.append(f"order = {order}")
+        create_asset_menu_str = ", ".join(parts) if parts else ""
+
+    template = _jinja_env.get_template("scriptable_object.cs.j2")
+    return template.render(
+        class_name=cls.name,
+        extra_using=extra_using,
+        attributes=attributes,
+        create_asset_menu=create_asset_menu_str,
+        serialized_fields=serialized_fields,
+        private_fields=private_fields,
+        static_fields=static_fields,
+        methods=methods,
+    )
+
+
 def _translate_plain_class(cls: PyClass, parsed: PyFile) -> str:
-    """Translate a non-MonoBehaviour class to C#."""
-    # using directives are hoisted by translate() — just emit the class body
+    """Translate a non-MonoBehaviour class to C#.
+
+    Non-MonoBehaviour covers user base classes that indirectly inherit from
+    MonoBehaviour (e.g. GhostBehavior in pacman_v2). Those classes can still
+    have coroutines and generic collections, so emit the same
+    using-directive set we compute for MonoBehaviours.
+    """
     lines = ["using UnityEngine;"]
+    for ns in _infer_using_directives(cls, parsed):
+        lines.append(f"using {ns};")
     base = cls.base_classes[0] if cls.base_classes else ""
     base_str = f" : {base}" if base else ""
     lines.append(f"public class {cls.name}{base_str}")
@@ -633,8 +783,14 @@ def _translate_plain_class(cls: PyClass, parsed: PyFile) -> str:
 
     for field in cls.fields:
         csharp_type = _py_type_to_csharp(field.type_annotation, is_field=True, default_value=field.default_value or "")
-        # Preserve UPPER_CASE constants, camelCase others
-        csharp_name = field.name if field.name.isupper() else snake_to_camel(field.name)
+        # Preserve UPPER_CASE constants; strip leading `_` + camelCase others
+        # to match the expression-translator's naming (e.g. `_body_sr` → `bodySr`).
+        if field.name.isupper():
+            csharp_name = field.name
+        else:
+            stripped = field.name.lstrip("_")
+            parts = stripped.split("_")
+            csharp_name = parts[0] + "".join(p.capitalize() for p in parts[1:])
         mod = "public static" if (field.is_class_level and field.name.isupper()) else "public"
         default = _py_value_to_csharp(field.default_value, csharp_type) if field.default_value else None
         init = f" = {default}" if default else ""
@@ -697,7 +853,14 @@ def _translate_method(method: PyMethod) -> dict:
         else:
             csharp_type = _infer_param_type(p.name, method)
         csharp_param_name = snake_to_camel(p.name)
-        params.append(f"{csharp_type} {csharp_param_name}")
+        # S10-3: emit default-value when the Python parameter has one, so
+        # callers passing fewer args still compile (e.g. `SetDirection(dir)`
+        # when signature is `SetDirection(Vector2, bool forced = false)`).
+        if p.default_value is not None:
+            cs_default = _py_value_to_csharp(p.default_value, csharp_type) or p.default_value
+            params.append(f"{csharp_type} {csharp_param_name} = {cs_default}")
+        else:
+            params.append(f"{csharp_type} {csharp_param_name}")
         # Add param to symbol table
         _current_symbols[p.name] = csharp_param_name
     params_str = ", ".join(params)
@@ -718,6 +881,19 @@ def _translate_method(method: PyMethod) -> dict:
 
     # Body
     body = _translate_body(method.body_source)
+
+    array_locals = {m.group(1) for m in re.finditer(
+        r"\bvar\s+(\w+)\s*=\s*[^;]*FindObjectsOfType<", body
+    )}
+    for name in array_locals:
+        body = re.sub(rf"\b{re.escape(name)}\.Count\b", f"{name}.Length", body)
+
+    body = re.sub(
+        r"foreach\s*\(\s*var\s+(\w+)\s+in\s+([\w.]*transform)\.children\s*\)",
+        r"foreach (Transform \1 in \2)",
+        body,
+    )
+    body = re.sub(r"\btransform\.children\b", "transform", body)
 
     # Restore symbol table (remove method-scoped names)
     _current_symbols = saved_symbols
@@ -1193,6 +1369,28 @@ def _translate_py_statement(line: str) -> str:
         cs_value = _translate_py_expression(value)
         if cs_value == "__STRIP__" or cs_target == "__STRIP__":
             return ""
+
+        # Immutable-struct-write fixups: Unity's Transform.position and
+        # Transform.eulerAngles are value types, so
+        # `transform.position.x = foo` / `transform.eulerAngles.z = bar`
+        # don't compile. Splat through a fresh struct literal.
+        pos_axis = re.match(r"^((?:[\w.]+\.)?transform)\.position\.([xyz])$", cs_target)
+        if pos_axis:
+            prefix, axis = pos_axis.group(1), pos_axis.group(2)
+            pos = f"{prefix}.position"
+            if axis == "x":
+                return f"{pos} = new Vector3({cs_value}, {pos}.y, {pos}.z);"
+            if axis == "y":
+                return f"{pos} = new Vector3({pos}.x, {cs_value}, {pos}.z);"
+            return f"{pos} = new Vector3({pos}.x, {pos}.y, {cs_value});"
+        euler_axis = re.match(r"^((?:[\w.]+\.)?transform)\.eulerAngles\.z$", cs_target)
+        if euler_axis:
+            prefix = euler_axis.group(1)
+            return f"{prefix}.rotation = Quaternion.Euler(0f, 0f, {cs_value});"
+        rot_z = re.match(r"^((?:[\w.]+\.)?transform)\.rotation_?[Zz]$", cs_target)
+        if rot_z:
+            prefix = rot_z.group(1)
+            return f"{prefix}.rotation = Quaternion.Euler(0f, 0f, {cs_value});"
         # Strip simulator-only property assignments
         if re.search(r"\.(clipRef|assetRef)\s*$", cs_target):
             return ""
@@ -1267,7 +1465,23 @@ def _translate_for_loop(line: str) -> str:
         cs_collection = _translate_py_expression(collection)
         return f"foreach (var {cs_var} in {cs_collection})"
 
-    # Tuple unpacking: var1, var2 in collection — emit TODO
+    # S9-2: Tuple unpacking — `for a, b [, c...] in coll:` → C# deconstruction
+    # Emit `foreach (var (a, b) in coll)` (C# 7.0+ tuple deconstruction syntax).
+    # Parenthesized form `for (a, b) in coll:` is also accepted.
+    tuple_match = re.match(
+        r"\(?\s*(\w+(?:\s*,\s*\w+)+)\s*\)?\s+in\s+(.+)$",
+        body,
+    )
+    if tuple_match:
+        names = [n.strip() for n in tuple_match.group(1).split(",")]
+        cs_names = [snake_to_camel(n) for n in names]
+        collection = tuple_match.group(2).strip()
+        cs_collection = _translate_py_expression(collection)
+        for n in cs_names:
+            _declared_vars.add(n)
+        return f"foreach (var ({', '.join(cs_names)}) in {cs_collection})"
+
+    # Fallback — unrecognized for-loop shape
     return f"// TODO: translate for loop: {line}"
 
 
@@ -1495,6 +1709,14 @@ def _translate_py_expression(expr: str) -> str:
     """Translate a Python expression to C#."""
     expr = expr.strip()
 
+    # S8-1: Translate `x in collection` / `x not in collection` membership tests
+    # before other transforms mangle the `not` / `in` keywords. This works in
+    # ANY expression context (return, assignment, condition, arg, etc.) —
+    # previously the rewrite only fired inside `_translate_py_condition`,
+    # leaving `return x in self.items` to leak Python syntax into C#.
+    if " in " in expr or " not in " in expr:
+        expr = _translate_in_membership(expr)
+
     # self.start_coroutine(method(args)) -> StartCoroutine(method(args))
     expr = re.sub(r"self\.start_coroutine\(", "StartCoroutine(", expr)
 
@@ -1554,6 +1776,56 @@ def _translate_py_expression(expr: str) -> str:
     expr = re.sub(r"\bmath\.ceil\(", "Mathf.Ceil(", expr)
     expr = re.sub(r"\bmath\.log\(", "Mathf.Log(", expr)
     expr = re.sub(r"\bmath\.pow\(", "Mathf.Pow(", expr)
+    expr = re.sub(r"\bmath\.degrees\(", "Mathf.Rad2Deg * (", expr)
+    expr = re.sub(r"\bmath\.radians\(", "Mathf.Deg2Rad * (", expr)
+
+    # List / string conversion
+    expr = re.sub(r"\.index\(", ".IndexOf(", expr)   # Python .index(x) → C# .IndexOf(x)
+
+    # Collision2D.layer → Collision2D.gameObject.layer (`layer` lives on GO).
+    # Applies only to identifiers whose name hints at being a collision event
+    # param (collision / other) to avoid clobbering legitimate `.layer` uses.
+    expr = re.sub(r"\b(collision|other|col|coll)\.layer\b", r"\1.gameObject.layer", expr)
+
+    # Transform.rotation_z/rotationZ — Unity has no such property. When the
+    # expression is `<prefix>transform.rotation_z = X`, rewrite to
+    # `<prefix>transform.rotation = Quaternion.Euler(0, 0, X)`; otherwise
+    # treat as read-only and map to `transform.eulerAngles.z` — and then
+    # fix the `transform.eulerAngles.z = X` immutable-struct-write case by
+    # splatting through a new Quaternion.Euler.
+    def _rotation_z_assign(m):
+        prefix = m.group(1)
+        value = m.group(2).strip()
+        return f"{prefix}.rotation = Quaternion.Euler(0f, 0f, {value})"
+    expr = re.sub(
+        r"((?:[\w.]+\.)?transform)\.rotation_?[Zz]\s*=\s*(.+)",
+        _rotation_z_assign, expr,
+    )
+    # After the read-only rewrite, catch the `eulerAngles.z = X` immutable
+    # struct write case which is also invalid C#. Same Quaternion.Euler fix.
+    expr = re.sub(
+        r"((?:[\w.]+\.)?transform)\.eulerAngles\.z\s*=\s*(.+)",
+        _rotation_z_assign, expr,
+    )
+    expr = re.sub(r"\btransform\.rotation_?[Zz]\b", "transform.eulerAngles.z", expr)
+
+    # Transform.position.x = Y → Transform.position = new Vector3(Y, ...y, ...z)
+    # Same for .y and .z. Unity's Transform.position is a Vector3 return-value,
+    # so component assignment needs a fresh struct.
+    def _position_axis_assign(m):
+        prefix = m.group(1)
+        axis = m.group(2)
+        value = m.group(3).strip().rstrip(";").strip()
+        pos = f"{prefix}.position"
+        if axis == "x":
+            return f"{pos} = new Vector3({value}, {pos}.y, {pos}.z)"
+        if axis == "y":
+            return f"{pos} = new Vector3({pos}.x, {value}, {pos}.z)"
+        return f"{pos} = new Vector3({pos}.x, {pos}.y, {value})"
+    expr = re.sub(
+        r"((?:[\w.]+\.)?transform)\.position\.([xyz])\s*=\s*(.+)",
+        _position_axis_assign, expr,
+    )
 
     # random -> Random
     expr = re.sub(r"random\.random\(\)", "Random.value", expr)
@@ -1570,13 +1842,46 @@ def _translate_py_expression(expr: str) -> str:
 
     # self.transform -> transform
     expr = expr.replace("self.transform", "transform")
-    # self.X -> this.X when X shadows a method parameter, else just X
+
+    # super().method(args) -> base.Method(args) — bare super() gets swallowed
+    def _super_call_replace(m):
+        name = m.group(1)
+        if name in _reserved_method_renames:
+            return f"base.{_reserved_method_renames[name]}("
+        return "base." + snake_to_pascal(name) + "("
+    expr = re.sub(r"super\(\)\.(\w+)\(", _super_call_replace, expr)
+
+    # self.method(...) call: strip `self.` AND convert method name to PascalCase,
+    # since the post-pass snake_to_pascal regexes only catch names containing
+    # underscores. Lifecycle/reserved renames win.
+    def _self_method_call(m):
+        name = m.group(1)
+        if name in _reserved_method_renames:
+            return _reserved_method_renames[name] + "("
+        if name in _lifecycle_map_reverse:
+            return _lifecycle_map_reverse[name] + "("
+        return snake_to_pascal(name) + "("
+    expr = re.sub(r"\bself\.(\w+)\(", _self_method_call, expr)
+
+    # self.X -> this.X when X shadows a method parameter, else just X.
+    # If X is a user method renamed to avoid Unity clash (reserved_method_renames),
+    # emit the renamed form so call sites line up with the method definition.
     def _self_dot_replace(m):
         attr = m.group(1)
-        camel_attr = snake_to_camel(attr)
-        if camel_attr in _current_method_params:
-            return f"this.{attr}"
-        return attr
+        if attr in _reserved_method_renames:
+            return _reserved_method_renames[attr]
+        # Match the field-declaration name-mangling: strip leading `_`, then
+        # camelCase (e.g. `_body_sr` → `bodySr`, `blue_sprite` → `blueSprite`).
+        # UPPER_SNAKE constants stay verbatim.
+        if attr.isupper():
+            cs_attr = attr
+        else:
+            stripped = attr.lstrip("_")
+            parts = stripped.split("_")
+            cs_attr = parts[0] + "".join(p.capitalize() for p in parts[1:])
+        if cs_attr in _current_method_params:
+            return f"this.{cs_attr}"
+        return cs_attr
     expr = re.sub(r"\bself\.(\w+)", _self_dot_replace, expr)
     # Standalone 'self' -> 'this'
     expr = re.sub(r"\bself\b", "this", expr)
@@ -1809,6 +2114,40 @@ def _translate_py_expression(expr: str) -> str:
     # hasattr() — Python-only runtime check, no C# equivalent
     if "hasattr(" in expr:
         return "__STRIP__"
+
+    # S11-3 / S12-2: getattr(obj, "name", default)
+    # - default==obj (idiomatic "use obj if no attr"): rewrite to just `obj`
+    # - default==obj.name (same attr as fallback): rewrite to `obj.name`
+    # - otherwise: rewrite to `obj.Name` (assume attr present — rare to rely on default)
+    def _getattr_replace(m: re.Match) -> str:
+        receiver = m.group(1).strip()
+        attr = m.group(2)
+        default = m.group(3).strip()
+        cs_attr = snake_to_camel(attr)
+        # Unity-core properties always exist on the types this idiom wraps
+        # (Component/Collision2D/GameObject), so prefer the qualified form
+        # over collapsing to bare `receiver`. S12-2 collapse still applies
+        # for obscure attrs.
+        if cs_attr in ("gameObject", "transform"):
+            return f"{receiver}.{cs_attr}"
+        if default == receiver:
+            return receiver  # S12-2: don't chain .gameObject.gameObject
+        return f"{receiver}.{cs_attr}"
+    expr = re.sub(
+        r'\bgetattr\(\s*([\w.]+)\s*,\s*["\']([\w_]+)["\']\s*,\s*([\w.]+)\s*\)',
+        _getattr_replace,
+        expr,
+    )
+    # 2-arg getattr used to look up a method by name and immediately invoke it:
+    # `getattr(self, method_name)()` → `this.SendMessage(method_name)` (Unity's
+    # dynamic dispatch for MonoBehaviours).
+    expr = re.sub(
+        r'\bgetattr\(\s*(\w[\w.]*)\s*,\s*(\w+)\s*\)\s*\(\s*\)',
+        r'\1.SendMessage(\2)',
+        expr,
+    )
+    # S11-3: id(x) → x.GetInstanceID()  (Unity's object-identity equivalent)
+    expr = re.sub(r'\bid\(\s*(\w+)\s*\)', r'\1.GetInstanceID()', expr)
     # pymunk internals: _space, _shape, _body (simulator physics implementation details)
     if "_space." in expr or "_shape" in expr:
         return "__STRIP__"
@@ -1851,8 +2190,10 @@ def _translate_py_expression(expr: str) -> str:
     # tag="X" → strip (handled at GameObject level)
     expr = re.sub(r",\s*tag=\"[^\"]+\"", "", expr)
     expr = re.sub(r",\s*tag='[^']+'", "", expr)
-    # Generic remaining kwargs: key=value → just value (fallback)
+    # Generic remaining kwargs: key=value → just value (fallback).
+    # S10-5: handle both mid-arg form ", key=v" AND first-arg form "(key=v".
     expr = re.sub(r",\s*\w+=([^,)]+)", r", \1", expr)
+    expr = re.sub(r"\(\s*\w+=([^,)]+)", r"(\1", expr)
 
     # Input.GetKey("a") -> Input.GetKey(KeyCode.A)
     def _key_string_to_keycode(m):
@@ -1885,11 +2226,21 @@ def _translate_py_expression(expr: str) -> str:
             if py_name.startswith("_"):
                 expr = re.sub(rf"(?<=\.){re.escape(py_name)}(?!\w)", cs_name, expr)
 
-    # Apply reserved method renames before generic snake_to_pascal conversion
+    # Apply reserved method renames before generic snake_to_pascal conversion.
+    # Names that CLASH with Unity static built-ins (e.g. UnityEngine.Object.Destroy(x))
+    # must only be renamed on self/this-qualified calls — never on bare or
+    # other-qualified calls, otherwise `Object.destroy(x)` / `destroy(x)` lose
+    # their Unity semantics.
+    _UNITY_STATIC_CLASH_RESERVED = {"destroy"}
     for py_name, cs_name in _reserved_method_renames.items():
-        # .reset( → .ResetState(  and standalone reset( → ResetState(
-        expr = re.sub(rf"(?<=\.){re.escape(py_name)}\(", f"{cs_name}(", expr)
-        expr = re.sub(rf"(?<![.\w]){re.escape(py_name)}\(", f"{cs_name}(", expr)
+        if py_name in _UNITY_STATIC_CLASH_RESERVED:
+            # Only rewrite self.X( or this.X( — leave Object.X( and standalone X( alone.
+            expr = re.sub(rf"\b(self|this)\.{re.escape(py_name)}\(",
+                          rf"\1.{cs_name}(", expr)
+        else:
+            # Safe to rewrite any qualified or standalone call (e.g. reset → ResetState)
+            expr = re.sub(rf"(?<=\.){re.escape(py_name)}\(", f"{cs_name}(", expr)
+            expr = re.sub(rf"(?<![.\w]){re.escape(py_name)}\(", f"{cs_name}(", expr)
 
     # Convert ALL remaining snake_case method calls to PascalCase (cross-class calls)
     def _snake_method_to_pascal(m):
@@ -1946,6 +2297,24 @@ def _translate_in_membership(cond: str) -> str:
     """
 
     def _replace_in(m):
+        # Guard: skip matches inside a `for ... in ...` comprehension/loop.
+        # Python's `re` doesn't support variable-length lookbehind, so we
+        # manually scan the preceding slice for an unmatched `for ` keyword
+        # within the same expression-term (stopping at `[`, `(`, or `,`).
+        start = m.start()
+        preceding = cond[:start]
+        # Walk back until we hit a boundary, watching for ` for ` or `\bfor\b`
+        # that belongs to a comprehension header.
+        boundary_idx = max(
+            preceding.rfind("["),
+            preceding.rfind("("),
+            preceding.rfind(","),
+        )
+        scan_from = boundary_idx + 1 if boundary_idx >= 0 else 0
+        segment = preceding[scan_from:]
+        if re.search(r"\bfor\b", segment):
+            return m.group(0)  # leave untouched — this is `for X in Y`
+
         needle = _translate_py_expression(m.group(1).strip())
         negated = m.group(2) is not None  # "not" captured
         collection_raw = m.group(3).strip()
@@ -2130,6 +2499,8 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
 
     # Dataclass/constructor calls with keyword args:
     # ClassName(field=value, ...) -> new ClassName { CamelField = value, ... }
+    # S7-7: positional args are mapped to field names in declaration order
+    # via _class_field_order registry, so enum-tagged entries keep their tags.
     ctor_call = re.match(r"^(\w+)\((.+)\)$", value, re.DOTALL)
     if ctor_call:
         cls_name = ctor_call.group(1)
@@ -2137,7 +2508,10 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
         args = _split_args(args_str)
         has_kwargs = any(re.match(r"\w+\s*=", a.strip()) for a in args)
         if args and has_kwargs:
+            # Look up ordered field names for positional-arg mapping (S7-7).
+            ordered_fields = _class_field_order.get(cls_name, []) if "_class_field_order" in globals() else []
             initializers = []
+            positional_index = 0
             for arg in args:
                 arg = arg.strip()
                 if "=" in arg and re.match(r"\w+\s*=", arg):
@@ -2150,8 +2524,16 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
                         cs_val = _translate_py_expression(val) if val else val
                     initializers.append(f"{cs_key} = {cs_val}")
                 else:
-                    # Positional arg — skip (C# object initializers use named fields only)
-                    pass
+                    # Positional arg — map to field[positional_index] if known (S7-7)
+                    if positional_index < len(ordered_fields):
+                        py_field_name = ordered_fields[positional_index]
+                        cs_key = py_field_name if py_field_name.isupper() else snake_to_camel(py_field_name)
+                        cs_val = _py_value_to_csharp(arg, "")
+                        if cs_val is None:
+                            cs_val = _translate_py_expression(arg) if arg else arg
+                        initializers.append(f"{cs_key} = {cs_val}")
+                    # else: unknown class, drop positional (existing fallback behavior)
+                    positional_index += 1
             # All go in object initializer (C# data classes don't have parameterized constructors)
             return f"new {cls_name} {{ {', '.join(initializers)} }}"
 
@@ -2220,6 +2602,13 @@ def _infer_using_directives(cls: PyClass, parsed: PyFile) -> list[str]:
     extra = set()
     all_text = " ".join(f.type_annotation for f in cls.fields) + " "
     all_text += " ".join(m.body_source for m in cls.methods)
+    # S10-1: also scan module-level constants — e.g. `_recent_teleports: dict[int, float]`
+    # is declared at module scope in passage.py but gets hoisted into the class as a
+    # static field. Without this, the inference misses the dict/list types.
+    all_text += " " + " ".join(
+        f"{mc.type_annotation} {mc.default_value or ''}"
+        for mc in parsed.module_constants
+    )
 
     if "System.Collections" in all_text or "IEnumerator" in all_text:
         extra.add("System.Collections")
@@ -2261,9 +2650,12 @@ def _infer_using_directives(cls: PyClass, parsed: PyFile) -> list[str]:
     if "except" in all_text or "Exception" in all_text:
         extra.add("System")
 
-    # Add System.Collections.Generic if List<> is used
-    field_types = " ".join(f.type_annotation for f in cls.fields)
-    if "list" in field_types or "dict" in field_types or "List<" in all_text or "List<" in field_types:
+    # Add System.Collections.Generic if List<> or Dictionary<> is used (S10-1)
+    # Check `all_text` so module-level `_x: dict[K,V]` constants (which get
+    # hoisted into the class as static fields) are caught too.
+    if ("list[" in all_text or "dict[" in all_text
+            or "List<" in all_text
+            or "Dictionary<" in all_text):
         extra.add("System.Collections.Generic")
 
     # Add UnityEngine.InputSystem when new input system is active and Input is used

@@ -2,18 +2,14 @@ using UnityEngine.UI;
 using UnityEngine;
 public class GameManager : MonoBehaviour
 {
-    public int Score = 0;
-    [SerializeField] private MonoBehaviour player;
-    [SerializeField] private MonoBehaviour spawner;
-    [SerializeField] private Text scoreText;
-    [SerializeField] private GameObject playButton;
-    [SerializeField] private GameObject gameOverDisplay;
+    public int score = 0;
+    public MonoBehaviour player;
+    public MonoBehaviour spawner;
+    public Text scoreText;
+    public GameObject playButton;
+    public GameObject gameOverDisplay;
     // Singleton — wire via Inspector [SerializeField] on dependents
     public static GameManager Instance = null;
-    public int Score()
-    {
-        return Score;
-    }
      void Awake()
     {
         if (GameManager.Instance != null)
@@ -46,10 +42,10 @@ public class GameManager : MonoBehaviour
     }
     public void Play()
     {
-        Score = 0;
+        score = 0;
         if (scoreText != null)
         {
-            scoreText.text = Score.ToString();
+            scoreText.text = score.ToString();
         }
         if (playButton != null)
         {
@@ -65,7 +61,7 @@ public class GameManager : MonoBehaviour
             player.enabled = true;
         }
         var pipes = FindObjectsOfType<Pipes>();
-        for (int i = 0; i < pipes.Count; i++)
+        for (int i = 0; i < pipes.Length; i++)
         {
             Destroy(pipes[i].gameObject);
         }
@@ -84,10 +80,10 @@ public class GameManager : MonoBehaviour
     }
     public void IncreaseScore()
     {
-        Score += 1;
+        score += 1;
         if (scoreText != null)
         {
-            scoreText.text = Score.ToString();
+            scoreText.text = score.ToString();
         }
     }
 }

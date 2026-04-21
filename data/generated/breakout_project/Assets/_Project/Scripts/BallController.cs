@@ -1,4 +1,3 @@
-using UnityEngine.InputSystem;
 using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class BallController : MonoBehaviour
@@ -8,8 +7,8 @@ public class BallController : MonoBehaviour
     public bool attached = true;
     public Vector2 paddleOffset = new Vector2(0, 0.6f);
     public bool showTrajectory = true;
-    [SerializeField] private Rigidbody2D rb;
-    [SerializeField] private GameObject paddle;
+    public Rigidbody2D rb;
+    public GameObject paddle;
      void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -27,27 +26,27 @@ public class BallController : MonoBehaviour
                 rb.MovePosition(transform.position);
             }
             // Launch on space
-            if (Keyboard.current.spaceKey.wasPressedThisFrame)
+            if (Input.GetKeyDown(KeyCode.Space))
             {
                 Launch();
             }
             return;
         }
         Vector2 pos = transform.position;
-        Vector2 vel = rb.linearVelocity;
+        Vector2 vel = rb.velocity;
         if (pos.x < -7.5f && vel.x < 0)
         {
-            rb.linearVelocity = new Vector2(-vel.x, vel.y);
+            rb.velocity = new Vector2(-vel.x, vel.y);
             transform.position = new Vector2(-7.5f, pos.y);
         }
         else if (pos.x > 7.5f && vel.x > 0)
         {
-            rb.linearVelocity = new Vector2(-vel.x, vel.y);
+            rb.velocity = new Vector2(-vel.x, vel.y);
             transform.position = new Vector2(7.5f, pos.y);
         }
         if (pos.y > 5.5f && vel.y > 0)
         {
-            rb.linearVelocity = new Vector2(vel.x, -vel.y);
+            rb.velocity = new Vector2(vel.x, -vel.y);
             transform.position = new Vector2(pos.x, 5.5f);
         }
         if (pos.y < -6.0f)
@@ -58,7 +57,7 @@ public class BallController : MonoBehaviour
         }
         if (showTrajectory && !attached)
         {
-            vel = rb.linearVelocity;
+            vel = rb.velocity;
             if (vel.sqrMagnitude > 0.01f)
             {
                 Vector2 Start = transform.position;
@@ -80,14 +79,14 @@ public class BallController : MonoBehaviour
             // Angle between 30 and 150 degrees (always upward)
             float angle = Mathf.PI * (0.25f + 0.5f * (1.0f - (normalized + 1.0f) / 2.0f));
             Vector2 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)).normalized;
-            rb.linearVelocity = direction * speed;
+            rb.velocity = direction * speed;
         }
         else if (collision.gameObject.tag == "Brick")
         {
             // Reflect off brick
-            Vector2 vel = rb.linearVelocity;
+            Vector2 vel = rb.velocity;
             // Simple: reflect Y
-            rb.linearVelocity = new Vector2(vel.x, -vel.y);
+            rb.velocity = new Vector2(vel.x, -vel.y);
         }
     }
     public void Launch()
@@ -95,12 +94,12 @@ public class BallController : MonoBehaviour
         attached = false;
         float angle = Mathf.PI / 2 + Random.Range(-0.3f, 0.3f);
         Vector2 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)).normalized;
-        rb.linearVelocity = direction * speed;
+        rb.velocity = direction * speed;
     }
     public void ResetState()
     {
         attached = true;
-        rb.linearVelocity = Vector2.zero;
+        rb.velocity = Vector2.zero;
         if (paddle != null)
         {
             Vector2 paddlePos = paddle.transform.position;
