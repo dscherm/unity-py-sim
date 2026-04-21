@@ -56,10 +56,12 @@ class AssetMapping:
     def from_json(cls, text: str) -> AssetMapping:
         data = json.loads(text)
         mapping = cls()
+        sprite_fields = {f.name for f in SpriteMapping.__dataclass_fields__.values()}
+        audio_fields = {f.name for f in AudioMapping.__dataclass_fields__.values()}
         for k, v in data.get("sprites", {}).items():
-            mapping.sprites[k] = SpriteMapping(**v)
+            mapping.sprites[k] = SpriteMapping(**{fk: fv for fk, fv in v.items() if fk in sprite_fields})
         for k, v in data.get("audio", {}).items():
-            mapping.audio[k] = AudioMapping(**v)
+            mapping.audio[k] = AudioMapping(**{fk: fv for fk, fv in v.items() if fk in audio_fields})
         return mapping
 
     @classmethod

@@ -30,14 +30,22 @@ class SpriteRenderer(Component):
         sx, sy = camera.world_to_screen(pos, screen_width, screen_height)
         ppu = screen_height / (2.0 * camera.orthographic_size)
 
+        if self.sprite is None and self.asset_ref is not None:
+            from src.assets.resolver import load_sprite_surface
+            self.sprite = load_sprite_surface(self.asset_ref)
+
+        import pygame
         if self.sprite is not None:
-            # Blit the sprite centered at screen position
-            import pygame
-            rect = self.sprite.get_rect(center=(sx, sy))
-            surface.blit(self.sprite, rect)
+            w = max(1, int(self.size.x * ppu))
+            h = max(1, int(self.size.y * ppu))
+            scaled = pygame.transform.scale(self.sprite, (w, h))
+            if self.color != (255, 255, 255):
+                tinted = scaled.copy()
+                tinted.fill((*self.color, 255), special_flags=pygame.BLEND_RGBA_MULT)
+                scaled = tinted
+            rect = scaled.get_rect(center=(sx, sy))
+            surface.blit(scaled, rect)
         else:
-            # Fallback: draw a colored rectangle
-            import pygame
             w = int(self.size.x * ppu)
             h = int(self.size.y * ppu)
             rect = pygame.Rect(sx - w // 2, sy - h // 2, w, h)

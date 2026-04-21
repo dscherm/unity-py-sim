@@ -22,6 +22,7 @@ from src.engine.input_manager import Input
 from src.engine.audio import AudioSource
 from src.engine.debug import Debug
 from src.engine.app import run
+from src.assets.resolver import set_active_game
 
 from breakout_python.paddle_controller import PaddleController
 from breakout_python.ball_controller import BallController
@@ -61,6 +62,8 @@ class QuitHandler(MonoBehaviour):
 
 
 def setup_scene():
+    set_active_game("breakout")
+
     pm = PhysicsManager.instance()
     pm.gravity = Vector2(0, 0)  # No gravity — ball bounces, doesn't fall
 

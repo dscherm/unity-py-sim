@@ -22,6 +22,7 @@ from src.engine.math.vector import Vector2, Vector3
 from src.engine.input_manager import Input
 from src.engine.ui import Canvas, RectTransform, Text, Image, Button, TextAnchor
 from src.engine.app import run
+from src.assets.resolver import set_active_game
 
 from flappy_bird_python.player import Player
 from flappy_bird_python.game_manager import GameManager
@@ -99,6 +100,8 @@ def create_pipe_prefab() -> GameObject:
 
 
 def setup_scene():
+    set_active_game("flappy_bird")
+
     pm = PhysicsManager.instance()
     pm.gravity = Vector2(0, 0)  # Player handles its own gravity
 
