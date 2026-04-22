@@ -380,12 +380,29 @@ def generate_scene_script(
             for field_name, field_val in comp.get("fields", {}).items():
                 if isinstance(field_val, dict) and field_val.get("_type") == "GameObjectRef":
                     ref_name = field_val["name"]
-                    ref_var = _safe_var_name(ref_name)
                     cs_field = _to_camel_case(field_name)
+                    # Prefab-asset reference (gap from flappy_bird_deploy.md):
+                    # when the target matches a prefab class, load from the
+                    # on-disk prefab asset instead of the scene GameObject.
+                    # Scene GameObjects with prefab-class names get destroyed
+                    # by GameManager.Play() cleanup loops (e.g. all Pipes), so
+                    # a scene-object reference becomes null after one round.
+                    prefab_match = ref_name if ref_name in prefab_names else None
+                    if prefab_match is None:
+                        for pn in prefab_names:
+                            if ref_name.startswith(pn + "_") or ref_name.startswith(pn + " "):
+                                prefab_match = pn
+                                break
                     lines.append(f"        {{")
                     lines.append(f"            var so = new SerializedObject({var}.GetComponent<{ns_prefix}{ctype}>());")
                     lines.append(f"            var prop = so.FindProperty(\"{cs_field}\");")
-                    lines.append(f"            if (prop != null) {{ prop.objectReferenceValue = {ref_var}; so.ApplyModifiedProperties(); }}")
+                    if prefab_match:
+                        prefab_path = f"Assets/_Project/Prefabs/{_escape_cs_string(prefab_match)}.prefab"
+                        lines.append(f"            var asset = AssetDatabase.LoadAssetAtPath<GameObject>(\"{prefab_path}\");")
+                        lines.append(f"            if (prop != null && asset != null) {{ prop.objectReferenceValue = asset; so.ApplyModifiedProperties(); }}")
+                    else:
+                        ref_var = _safe_var_name(ref_name)
+                        lines.append(f"            if (prop != null) {{ prop.objectReferenceValue = {ref_var}; so.ApplyModifiedProperties(); }}")
                     lines.append(f"        }}")
                 elif isinstance(field_val, dict) and field_val.get("_type") == "GameObjectRefArray":
                     refs = field_val.get("refs", [])

@@ -271,3 +271,78 @@ class TestCameraOrthographic:
         scene = _make_scene(camera_go)
         result = generate_scene_script(scene)
         assert "cam.orthographic = true;" not in result
+
+
+# --------------- Prefab-asset SerializeField refs (Flappy Bird deploy lesson) ---------------
+
+class TestPrefabAssetSerializeFieldRef:
+    """When a MonoBehaviour field's GameObjectRef target matches a prefab class,
+    the generator must wire the field to the prefab *asset* on disk, not to the
+    scene GameObject of the same name.
+
+    Motivation: GameManager.Play() destroys all Pipes instances at round-start
+    for cleanup.  If Spawner.prefab points to the scene-object "Pipes", that
+    destroy loop nukes the template and Instantiate(null) stops spawning.
+    A prefab-asset reference survives because the asset is an on-disk resource.
+    """
+
+    def test_ref_to_prefab_class_loads_prefab_asset(self):
+        spawner = _go("Spawner", components=[
+            {"type": "Transform", "position": [8, 0, 0],
+             "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1]},
+            {"type": "Spawner", "is_monobehaviour": True,
+             "fields": {"prefab": {"_type": "GameObjectRef", "name": "Pipes"}}},
+        ])
+        pipes = _go("Pipes")  # Scene object with the same name
+        scene = _make_scene(spawner, pipes)
+        manifest = _prefab_manifest("Pipes")
+        result = generate_scene_script(scene, prefab_manifest=manifest)
+        # Must load the asset, not reference the scene object
+        assert 'AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Pipes.prefab")' in result
+        # Must NOT wire the scene-object reference for this field
+        assert "prop.objectReferenceValue = go_Pipes;" not in result
+
+    def test_ref_to_prefab_dynamic_instance_name_still_resolves(self):
+        """`Pipes(Clone)` / `Pipes_0` style names are prefab instances;
+        prefix match should still wire the prefab asset."""
+        spawner = _go("Spawner", components=[
+            {"type": "Transform", "position": [0, 0, 0],
+             "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1]},
+            {"type": "Spawner", "is_monobehaviour": True,
+             "fields": {"prefab": {"_type": "GameObjectRef", "name": "Pipes_0"}}},
+        ])
+        scene = _make_scene(spawner)
+        manifest = _prefab_manifest("Pipes")
+        result = generate_scene_script(scene, prefab_manifest=manifest)
+        assert 'AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Pipes.prefab")' in result
+
+    def test_ref_to_non_prefab_still_uses_scene_object(self):
+        """Cross-GameObject SerializeField for non-prefab classes (e.g. the
+        GameManager singleton) must still wire the scene reference."""
+        player = _go("Player", components=[
+            {"type": "Transform", "position": [-2, 0, 0],
+             "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1]},
+            {"type": "Player", "is_monobehaviour": True,
+             "fields": {"gameManager": {"_type": "GameObjectRef", "name": "GameManager"}}},
+        ])
+        gm = _go("GameManager")
+        scene = _make_scene(player, gm)
+        manifest = _prefab_manifest("Pipes")  # GameManager NOT in prefab list
+        result = generate_scene_script(scene, prefab_manifest=manifest)
+        assert "prop.objectReferenceValue = go_GameManager;" in result
+        # Must NOT load a GameManager prefab asset
+        assert "GameManager.prefab" not in result
+
+    def test_no_manifest_falls_back_to_scene_reference(self):
+        """Without a prefab manifest, all refs wire the scene object (back-compat)."""
+        spawner = _go("Spawner", components=[
+            {"type": "Transform", "position": [0, 0, 0],
+             "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1]},
+            {"type": "Spawner", "is_monobehaviour": True,
+             "fields": {"prefab": {"_type": "GameObjectRef", "name": "Pipes"}}},
+        ])
+        pipes = _go("Pipes")
+        scene = _make_scene(spawner, pipes)
+        result = generate_scene_script(scene)  # no manifest
+        assert "prop.objectReferenceValue = go_Pipes;" in result
+        assert "LoadAssetAtPath<GameObject>" not in result
