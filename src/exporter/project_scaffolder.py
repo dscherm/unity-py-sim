@@ -488,13 +488,16 @@ def _write_tag_manager(
     for tag in all_tags:
         lines.append(f"  - {tag}")
 
-    # Layers section (32 entries, empty ones as bare "  -")
+    # Layers section (32 entries).  Unity 6 rejects bare `  -` (null scalar)
+    # with 'Parser Failure ... Expect : between key and value within mapping'
+    # — empty slots must be the quoted empty-string scalar `  - ""`.
+    # See data/lessons/coplay_generator_gaps.md gap 8.
     lines.append("  layers:")
     for name in layer_array:
         if name:
             lines.append(f"  - {name}")
         else:
-            lines.append("  -")
+            lines.append('  - ""')
 
     # Sorting layers section (Unity requires m_ prefix)
     lines.append("  m_SortingLayers:")

@@ -133,11 +133,10 @@ class TestTagManagerLayers:
                 in_layers = True
                 continue
             if in_layers:
-                if stripped.startswith("- "):
-                    layer_entries.append(stripped[2:])
-                elif stripped == "-":
-                    # Empty layer entry (e.g. "  -" with no value)
+                if stripped == '- ""' or stripped == "-":
                     layer_entries.append("")
+                elif stripped.startswith("- "):
+                    layer_entries.append(stripped[2:])
                 else:
                     break
         # Indices 6, 7, 8 should map to our custom layers
@@ -171,10 +170,12 @@ class TestTagManagerLayers:
                 in_layers = True
                 continue
             if in_layers:
-                if stripped.startswith("- "):
-                    layer_entries.append(stripped[2:])
-                elif stripped == "-":
+                if stripped == '- ""' or stripped == "-":
+                    # Empty layer: `- ""` (Unity 6 canonical, empty-string scalar)
+                    # or bare `-` (legacy null scalar).  Both mean "empty slot".
                     layer_entries.append("")
+                elif stripped.startswith("- "):
+                    layer_entries.append(stripped[2:])
                 else:
                     break
         # Layer 3 is reserved in Unity — should be empty
@@ -232,3 +233,93 @@ class TestTagManagerDefaults:
         assert "Wall" in content
         for tag in DEFAULT_UNITY_TAGS:
             assert tag in content
+
+
+# ---------------------------------------------------------------------------
+# Unity 6 canonical format (coplay_generator_gaps.md gap 8)
+# ---------------------------------------------------------------------------
+
+
+def _yaml_body(content: str) -> str:
+    """Strip the %YAML / %TAG / --- directives so yaml.safe_load can parse."""
+    return "\n".join(
+        line for line in content.split("\n")
+        if not line.startswith("%") and not line.startswith("---")
+    )
+
+
+class TestTagManagerUnity6Format:
+    """Gap 8: TagManager.asset must be parseable and use Unity 6 canonical scalars.
+
+    The original bug (data/lessons/coplay_generator_gaps.md gap 8): Unity 6
+    rejected the file with `Parser Failure at line N: Expect ':' between key
+    and value within mapping` because empty layer slots were emitted as bare
+    `-` (null scalar) instead of `- ""` (empty-string scalar).
+    """
+
+    def test_tagmanager_parses_as_yaml(self, tmp_path, minimal_cs):
+        import yaml
+        scaffold_project("test", tmp_path, cs_files=minimal_cs,
+                         tags=["Wall"], layers={"Wall": 6})
+        content = (tmp_path / "ProjectSettings" / "TagManager.asset").read_text(encoding="utf-8")
+        data = yaml.safe_load(_yaml_body(content))
+        assert isinstance(data, dict) and "TagManager" in data
+        tm = data["TagManager"]
+        assert tm.get("serializedVersion") == 2
+        assert isinstance(tm.get("tags"), list)
+        assert isinstance(tm.get("layers"), list)
+        # Sorting layers key must be the Unity 6 m_ prefix
+        assert "m_SortingLayers" in tm
+
+    def test_layers_array_has_32_entries(self, tmp_path, minimal_cs):
+        import yaml
+        scaffold_project("test", tmp_path, cs_files=minimal_cs,
+                         tags=[], layers={"Wall": 6})
+        content = (tmp_path / "ProjectSettings" / "TagManager.asset").read_text(encoding="utf-8")
+        data = yaml.safe_load(_yaml_body(content))
+        layers_arr = data["TagManager"]["layers"]
+        assert len(layers_arr) == 32, f"Unity expects 32 layer slots, got {len(layers_arr)}"
+
+    def test_empty_layer_slots_are_empty_string_not_null(self, tmp_path, minimal_cs):
+        """Empty layer slots must serialize as `- ""` (empty-string scalar),
+        never as bare `-` (null scalar).  The bare form triggers a Unity 6
+        parser failure: `Expect ':' between key and value within mapping`."""
+        scaffold_project("test", tmp_path, cs_files=minimal_cs,
+                         tags=[], layers={"Custom": 10})
+        content = (tmp_path / "ProjectSettings" / "TagManager.asset").read_text(encoding="utf-8")
+        # Scan the raw text of the layers: section.  No standalone `  -` line
+        # (trailing whitespace stripped) may appear between `layers:` and the
+        # next top-level key.
+        in_layers = False
+        bare_dash_count = 0
+        for line in content.split("\n"):
+            stripped_right = line.rstrip()
+            inner = stripped_right.strip()
+            if inner == "layers:":
+                in_layers = True
+                continue
+            if in_layers:
+                # Exit on next section header (indent-0 token ending in `:`)
+                if inner.endswith(":") and not inner.startswith("-"):
+                    break
+                if inner == "-":
+                    bare_dash_count += 1
+        assert bare_dash_count == 0, (
+            f"Found {bare_dash_count} bare `-` null-scalar entries in layers: section. "
+            "Unity 6 parser rejects these; emit `- \"\"` (empty-string scalar) instead."
+        )
+
+    def test_empty_layer_slots_parse_as_empty_string(self, tmp_path, minimal_cs):
+        """Under yaml.safe_load, the empty layer slots at reserved indices
+        (3, 6, 7 when no custom layer assigned) must produce empty-string
+        values, not None (Unity 6 canonical)."""
+        import yaml
+        scaffold_project("test", tmp_path, cs_files=minimal_cs,
+                         tags=[], layers={})
+        content = (tmp_path / "ProjectSettings" / "TagManager.asset").read_text(encoding="utf-8")
+        data = yaml.safe_load(_yaml_body(content))
+        layers_arr = data["TagManager"]["layers"]
+        # Reserved index 3 must be empty string, not None
+        assert layers_arr[3] == "", (
+            f"Layer 3 should be empty-string scalar, got {layers_arr[3]!r}"
+        )
