@@ -165,3 +165,109 @@ class TestArrayFieldWiring:
         assert "arraySize" in result
         assert "GetArrayElementAtIndex" in result
         assert "ghosts" in result
+
+
+# --------------- Parent/child wiring (gap 6 regression) ---------------
+
+class TestParentChildWiring:
+    """Transform.parent round-tripped from scene serializer must emit SetParent calls.
+
+    Regression for data/lessons/coplay_generator_gaps.md gap 6 (fixed in 2a72917,
+    no test previously).  If this test disappears, the Pipes prefab's Top/Bottom/
+    Scoring children will silently stop scrolling with the Pipes parent.
+    """
+
+    def test_child_emits_setparent_when_transform_has_parent(self):
+        parent_go = _go("pipes")
+        child_go = _go("Top", components=[
+            {"type": "Transform", "position": [0, 2, 0],
+             "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1],
+             "parent": "pipes"},
+        ])
+        scene = _make_scene(parent_go, child_go)
+        result = generate_scene_script(scene)
+        assert "go_Top.transform.SetParent(go_pipes.transform, false);" in result
+
+    def test_multiple_children_each_setparent(self):
+        parent_go = _go("pipes")
+        children = [
+            _go(name, components=[
+                {"type": "Transform", "position": [0, 0, 0],
+                 "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1],
+                 "parent": "pipes"},
+            ])
+            for name in ("Top", "Bottom", "Scoring")
+        ]
+        scene = _make_scene(parent_go, *children)
+        result = generate_scene_script(scene)
+        assert "go_Top.transform.SetParent(go_pipes.transform, false);" in result
+        assert "go_Bottom.transform.SetParent(go_pipes.transform, false);" in result
+        assert "go_Scoring.transform.SetParent(go_pipes.transform, false);" in result
+
+    def test_no_parent_no_setparent(self):
+        lone = _go("Orphan", components=[
+            {"type": "Transform", "position": [0, 0, 0],
+             "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1]},
+        ])
+        scene = _make_scene(lone)
+        result = generate_scene_script(scene)
+        assert "SetParent" not in result
+
+
+# --------------- Camera orthographic flag + z=-10 (gap 7 regression) ---------------
+
+class TestCameraOrthographic:
+    """Camera with orthographic_size must emit orthographic=true + z<=-10.
+
+    Regression for data/lessons/coplay_generator_gaps.md gap 7 (fixed in 2a72917).
+    Without orthographic=true, Unity uses a perspective camera and 2D sprites at
+    z=0 render as background color only.  Without z=-10, sprites at z=0 aren't in
+    front of the camera.
+    """
+
+    def test_orthographic_flag_emitted_when_orthographic_size_set(self):
+        camera_go = _go("Main Camera", components=[
+            {"type": "Transform", "position": [0, 0, 0],
+             "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1]},
+            {"type": "Camera", "orthographic_size": 5,
+             "background_color": [0, 0, 0]},
+        ])
+        scene = _make_scene(camera_go)
+        result = generate_scene_script(scene)
+        assert "cam.orthographic = true;" in result
+        assert "cam.orthographicSize = 5f;" in result
+
+    def test_camera_z_bumped_to_minus_10_when_source_z_zero(self):
+        camera_go = _go("Main Camera", components=[
+            {"type": "Transform", "position": [0, 0, 0],
+             "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1]},
+            {"type": "Camera", "orthographic_size": 5,
+             "background_color": [0, 0, 0]},
+        ])
+        scene = _make_scene(camera_go)
+        result = generate_scene_script(scene)
+        assert "new Vector3(0f, 0f, -10f);" in result
+
+    def test_camera_z_preserved_when_source_z_nonzero(self):
+        camera_go = _go("Main Camera", components=[
+            {"type": "Transform", "position": [0, 0, -5],
+             "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1]},
+            {"type": "Camera", "orthographic_size": 5,
+             "background_color": [0, 0, 0]},
+        ])
+        scene = _make_scene(camera_go)
+        result = generate_scene_script(scene)
+        assert "new Vector3(0f, 0f, -5f);" in result
+        # No auto-bump override
+        assert "new Vector3(0f, 0f, -10f);" not in result
+
+    def test_no_orthographic_flag_when_orthographic_size_absent(self):
+        """Regression: don't emit orthographic=true for plain (non-ortho) cameras."""
+        camera_go = _go("Main Camera", components=[
+            {"type": "Transform", "position": [0, 0, -10],
+             "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1]},
+            {"type": "Camera", "background_color": [0, 0, 0]},
+        ])
+        scene = _make_scene(camera_go)
+        result = generate_scene_script(scene)
+        assert "cam.orthographic = true;" not in result
