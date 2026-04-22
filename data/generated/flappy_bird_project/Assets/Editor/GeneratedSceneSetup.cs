@@ -246,8 +246,6 @@ public class GeneratedSceneSetup
 
         // --- PlayButtonHandler ---
         var go_PlayButtonHandler = new GameObject("PlayButtonHandler");
-        go_PlayButtonHandler.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
-        go_PlayButtonHandler.AddComponent<PlayButtonHandler>();
         EditorUtility.SetDirty(go_PlayButtonHandler);
 
         // === WIRE CROSS-REFERENCES ===
@@ -295,11 +293,6 @@ public class GeneratedSceneSetup
             var so = new SerializedObject(go_GameManager.GetComponent<GameManager>());
             var prop = so.FindProperty("playButton");
             if (prop != null) { prop.objectReferenceValue = go_PlayButton; so.ApplyModifiedProperties(); }
-        }
-        {
-            var so = new SerializedObject(go_PlayButtonHandler.GetComponent<PlayButtonHandler>());
-            var prop = so.FindProperty("gameObject");
-            if (prop != null) { prop.objectReferenceValue = go_PlayButtonHandler; so.ApplyModifiedProperties(); }
         }
 
         // === SAVE ===

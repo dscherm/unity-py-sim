@@ -48,6 +48,26 @@ def _load_mapping() -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _translated_class_names(package_dir: Path) -> set[str]:
+    """Return the set of MonoBehaviour class names the translator will emit
+    .cs files for when run on ``package_dir``.  Used to filter the scene
+    serializer output so that inline MonoBehaviours defined in
+    ``run_*.py`` (which aren't translated) don't leak into the Unity
+    scene.  See coplay_generator_gaps.md gap 4.
+    """
+    from src.translator.python_parser import parse_python_file
+
+    names: set[str] = set()
+    for py in sorted(package_dir.glob("*.py")):
+        if py.name == "__init__.py":
+            continue
+        parsed = parse_python_file(py)
+        for cls in parsed.classes:
+            if cls.is_monobehaviour:
+                names.add(cls.name)
+    return names
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -78,7 +98,12 @@ def main() -> int:
         generate_validation_script,
     )
 
-    scene_data = serialize_scene()
+    # Build the translated-class registry from the Flappy Bird package so
+    # the serializer drops inline MonoBehaviours from run_flappy_bird.py
+    # (PlayButtonHandler, QuitHandler) that have no .cs counterpart.
+    # See coplay_generator_gaps.md gap 4.
+    translated_classes = _translated_class_names(FLAPPY_DIR / "flappy_bird_python")
+    scene_data = serialize_scene(translated_classes=translated_classes)
     mapping_data = _load_mapping()
 
     if args.scene_json:
@@ -104,7 +129,9 @@ def main() -> int:
 
     go_count = len(scene_data.get("game_objects", []))
     print(f"[info] {go_count} GameObjects serialized, "
-          f"{len(mapping_data.get('sprites', {}))} sprite mappings")
+          f"{len(mapping_data.get('sprites', {}))} sprite mappings, "
+          f"{len(translated_classes)} translated classes in registry: "
+          f"{sorted(translated_classes)}")
     return 0
 
 
