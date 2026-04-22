@@ -52,9 +52,11 @@ public class GeneratedSceneSetup
         }
         {
             var cam = go_MainCamera.GetComponent<Camera>();
+            cam.orthographic = true;
             cam.orthographicSize = 5.0f;
             cam.backgroundColor = new Color(0.443f, 0.773f, 0.812f, 1f);
             cam.clearFlags = CameraClearFlags.SolidColor;
+            go_MainCamera.transform.position = new Vector3(0f, 0f, -10f);
             EditorUtility.SetDirty(go_MainCamera);
         }
 
@@ -124,6 +126,7 @@ public class GeneratedSceneSetup
         // --- Top ---
         var go_Top = new GameObject("Top");
         go_Top.tag = "Obstacle";
+        go_Top.transform.SetParent(go_Pipes.transform, false);
         go_Top.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
         var go_Top_sr = go_Top.AddComponent<SpriteRenderer>();
         if (sprite_pipe != null) go_Top_sr.sprite = sprite_pipe;
@@ -138,6 +141,7 @@ public class GeneratedSceneSetup
         // --- Bottom ---
         var go_Bottom = new GameObject("Bottom");
         go_Bottom.tag = "Obstacle";
+        go_Bottom.transform.SetParent(go_Pipes.transform, false);
         go_Bottom.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
         var go_Bottom_sr = go_Bottom.AddComponent<SpriteRenderer>();
         if (sprite_pipe != null) go_Bottom_sr.sprite = sprite_pipe;
@@ -152,6 +156,7 @@ public class GeneratedSceneSetup
         // --- Scoring ---
         var go_Scoring = new GameObject("Scoring");
         go_Scoring.tag = "Scoring";
+        go_Scoring.transform.SetParent(go_Pipes.transform, false);
         go_Scoring.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
         var go_Scoring_bc = go_Scoring.AddComponent<BoxCollider2D>();
         go_Scoring_bc.size = new Vector2(1.0f, 6.0f);
@@ -221,6 +226,7 @@ public class GeneratedSceneSetup
 
         // --- ScoreText ---
         var go_ScoreText = new GameObject("ScoreText");
+        go_ScoreText.transform.SetParent(go_Canvas.transform, false);
         go_ScoreText.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
         EditorUtility.SetDirty(go_ScoreText);
 

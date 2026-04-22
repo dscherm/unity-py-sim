@@ -31,14 +31,6 @@ public class GeneratedSceneValidation
             if (go == null) failures.Add("Missing GameObject: Player");
             else
             {
-                {
-                    var _comp = go.GetComponent<Player>();
-                    if (_comp == null) failures.Add("Player missing component Player");
-                    else {
-                        var so = new SerializedObject(_comp);
-                        { var _p = so.FindProperty("gameObject"); if (_p == null || _p.objectReferenceValue == null) failures.Add("Player.gameObject null (expected Player)"); else if (_p.objectReferenceValue.name != "Player") failures.Add("Player.gameObject " + _p.objectReferenceValue.name + " != Player"); }
-                    }
-                }
             }
         }
 
@@ -68,14 +60,6 @@ public class GeneratedSceneValidation
             if (go == null) failures.Add("Missing GameObject: Pipes");
             else
             {
-                {
-                    var _comp = go.GetComponent<Pipes>();
-                    if (_comp == null) failures.Add("Pipes missing component Pipes");
-                    else {
-                        var so = new SerializedObject(_comp);
-                        { var _p = so.FindProperty("gameObject"); if (_p == null || _p.objectReferenceValue == null) failures.Add("Pipes.gameObject null (expected Pipes)"); else if (_p.objectReferenceValue.name != "Pipes") failures.Add("Pipes.gameObject " + _p.objectReferenceValue.name + " != Pipes"); }
-                    }
-                }
             }
         }
 
@@ -120,7 +104,6 @@ public class GeneratedSceneValidation
                     if (_comp == null) failures.Add("Spawner missing component Spawner");
                     else {
                         var so = new SerializedObject(_comp);
-                        { var _p = so.FindProperty("gameObject"); if (_p == null || _p.objectReferenceValue == null) failures.Add("Spawner.gameObject null (expected Spawner)"); else if (_p.objectReferenceValue.name != "Spawner") failures.Add("Spawner.gameObject " + _p.objectReferenceValue.name + " != Spawner"); }
                         { var _p = so.FindProperty("prefab"); if (_p == null || _p.objectReferenceValue == null) failures.Add("Spawner.prefab null (expected Pipes)"); else if (_p.objectReferenceValue.name != "Pipes") failures.Add("Spawner.prefab " + _p.objectReferenceValue.name + " != Pipes"); }
                     }
                 }
@@ -133,14 +116,6 @@ public class GeneratedSceneValidation
             if (go == null) failures.Add("Missing GameObject: Background");
             else
             {
-                {
-                    var _comp = go.GetComponent<Parallax>();
-                    if (_comp == null) failures.Add("Background missing component Parallax");
-                    else {
-                        var so = new SerializedObject(_comp);
-                        { var _p = so.FindProperty("gameObject"); if (_p == null || _p.objectReferenceValue == null) failures.Add("Background.gameObject null (expected Background)"); else if (_p.objectReferenceValue.name != "Background") failures.Add("Background.gameObject " + _p.objectReferenceValue.name + " != Background"); }
-                    }
-                }
             }
         }
 
@@ -150,14 +125,6 @@ public class GeneratedSceneValidation
             if (go == null) failures.Add("Missing GameObject: GroundParallax");
             else
             {
-                {
-                    var _comp = go.GetComponent<Parallax>();
-                    if (_comp == null) failures.Add("GroundParallax missing component Parallax");
-                    else {
-                        var so = new SerializedObject(_comp);
-                        { var _p = so.FindProperty("gameObject"); if (_p == null || _p.objectReferenceValue == null) failures.Add("GroundParallax.gameObject null (expected GroundParallax)"); else if (_p.objectReferenceValue.name != "GroundParallax") failures.Add("GroundParallax.gameObject " + _p.objectReferenceValue.name + " != GroundParallax"); }
-                    }
-                }
             }
         }
 
@@ -208,7 +175,6 @@ public class GeneratedSceneValidation
                     if (_comp == null) failures.Add("GameManager missing component GameManager");
                     else {
                         var so = new SerializedObject(_comp);
-                        { var _p = so.FindProperty("gameObject"); if (_p == null || _p.objectReferenceValue == null) failures.Add("GameManager.gameObject null (expected GameManager)"); else if (_p.objectReferenceValue.name != "GameManager") failures.Add("GameManager.gameObject " + _p.objectReferenceValue.name + " != GameManager"); }
                         { var _p = so.FindProperty("gameOverDisplay"); if (_p == null || _p.objectReferenceValue == null) failures.Add("GameManager.gameOverDisplay null (expected GameOver)"); else if (_p.objectReferenceValue.name != "GameOver") failures.Add("GameManager.gameOverDisplay " + _p.objectReferenceValue.name + " != GameOver"); }
                         { var _p = so.FindProperty("playButton"); if (_p == null || _p.objectReferenceValue == null) failures.Add("GameManager.playButton null (expected PlayButton)"); else if (_p.objectReferenceValue.name != "PlayButton") failures.Add("GameManager.playButton " + _p.objectReferenceValue.name + " != PlayButton"); }
                     }
@@ -222,14 +188,6 @@ public class GeneratedSceneValidation
             if (go == null) failures.Add("Missing GameObject: PlayButtonHandler");
             else
             {
-                {
-                    var _comp = go.GetComponent<PlayButtonHandler>();
-                    if (_comp == null) failures.Add("PlayButtonHandler missing component PlayButtonHandler");
-                    else {
-                        var so = new SerializedObject(_comp);
-                        { var _p = so.FindProperty("gameObject"); if (_p == null || _p.objectReferenceValue == null) failures.Add("PlayButtonHandler.gameObject null (expected PlayButtonHandler)"); else if (_p.objectReferenceValue.name != "PlayButtonHandler") failures.Add("PlayButtonHandler.gameObject " + _p.objectReferenceValue.name + " != PlayButtonHandler"); }
-                    }
-                }
             }
         }
 

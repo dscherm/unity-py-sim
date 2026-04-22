@@ -33,6 +33,56 @@ def _escape_cs_string(s: str) -> str:
     return s.replace("\\", "\\\\").replace('"', '\\"')
 
 
+def _apply_ball_physics_defaults(scene_data: dict[str, Any]) -> None:
+    """Apply arcade ball physics defaults to ball-like GameObjects (S7-3).
+
+    A GameObject is treated as ball-like when ALL of:
+      - Name or any MonoBehaviour component type contains "Ball" (case-insensitive)
+      - Has a Dynamic (or unspecified) Rigidbody2D
+      - Has a CircleCollider2D
+
+    For such objects, sets on the Rigidbody2D (if not already specified by scene):
+      - ``gravity_scale = 0``
+      - ``collision_detection = "Continuous"`` (anti-tunneling)
+      - ``material = "Assets/Art/BouncyBall.physicsMaterial2D"``
+
+    And on the CircleCollider2D:
+      - ``material = "Assets/Art/BouncyBall.physicsMaterial2D"``
+
+    The user can still override any of these by setting them explicitly in
+    scene_data. This pass only fills in missing defaults.
+    """
+    bouncy_mat = "Assets/Art/BouncyBall.physicsMaterial2D"
+    for go in scene_data.get("game_objects", []):
+        name = go.get("name", "")
+        comps = go.get("components", [])
+        # Check name or MonoBehaviour types for "Ball" substring
+        name_hint = "ball" in name.lower()
+        mb_hint = any(
+            "ball" in c.get("type", "").lower()
+            for c in comps
+            if c.get("is_monobehaviour")
+        )
+        if not (name_hint or mb_hint):
+            continue
+
+        rb = next((c for c in comps if c.get("type") == "Rigidbody2D"), None)
+        circle = next((c for c in comps if c.get("type") == "CircleCollider2D"), None)
+        if rb is None or circle is None:
+            continue
+
+        # Only apply to Dynamic bodies
+        body_type = rb.get("body_type", "Dynamic")
+        if body_type != "Dynamic":
+            continue
+
+        # Fill in missing defaults — respect any explicit override already present
+        rb.setdefault("gravity_scale", 0)
+        rb.setdefault("collision_detection", "Continuous")
+        rb.setdefault("material", bouncy_mat)
+        circle.setdefault("material", bouncy_mat)
+
+
 def generate_scene_script(
     scene_data: dict[str, Any],
     mapping_data: dict[str, Any] | None = None,
@@ -55,6 +105,12 @@ def generate_scene_script(
     """
     sprite_mappings = mapping_data.get("sprites", {}) if mapping_data else {}
     audio_mappings = mapping_data.get("audio", {}) if mapping_data else {}
+
+    # Apply arcade ball physics defaults (S7-3, breakout debug 2026-04-13).
+    # A ball-like GameObject has a Dynamic Rigidbody2D + CircleCollider2D and
+    # a name/controller matching *Ball*. Such objects need gravityScale=0,
+    # collisionDetection=Continuous (anti-tunneling), and a bouncy material.
+    _apply_ball_physics_defaults(scene_data)
 
     # Build set of prefab class names for quick lookup
     prefab_names: set[str] = set()
@@ -117,10 +173,24 @@ def generate_scene_script(
             lines.append(f"        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer(\"{_escape_cs_string(a)}\"), LayerMask.NameToLayer(\"{_escape_cs_string(b)}\"), true);")
         lines.append("")
 
-    # Load unlit material for URP
+    # Load sprite material — pipeline-aware (S7-2, breakout debug 2026-04-13).
+    # GraphicsSettings.currentRenderPipeline is null when the project doesn't have
+    # a URP asset wired up (default for newly-scaffolded projects). In that case,
+    # the URP Sprite-Unlit-Default shader renders nothing. Fall back to the
+    # built-in `Sprites/Default` material which works on both pipelines.
     lines.append("        // === LOAD MATERIALS ===")
-    lines.append("        var unlitMat = AssetDatabase.LoadAssetAtPath<Material>(")
-    lines.append("            \"Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Unlit-Default.mat\");")
+    lines.append("        Material unlitMat = null;")
+    lines.append("        if (UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline != null)")
+    lines.append("        {")
+    lines.append("            unlitMat = AssetDatabase.LoadAssetAtPath<Material>(")
+    lines.append("                \"Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Unlit-Default.mat\");")
+    lines.append("        }")
+    lines.append("        if (unlitMat == null)")
+    lines.append("        {")
+    lines.append("            // Built-in pipeline fallback — Sprites/Default works on both")
+    lines.append("            var shader = Shader.Find(\"Sprites/Default\");")
+    lines.append("            if (shader != null) unlitMat = new Material(shader);")
+    lines.append("        }")
     lines.append("")
 
     # Configure sprite import settings
@@ -212,15 +282,29 @@ def generate_scene_script(
             lines.append(f"            var cam = {var}.GetComponent<Camera>();")
             for comp in go.get("components", []):
                 if comp["type"] == "Camera":
-                    lines.append(f"            cam.orthographicSize = {comp.get('orthographic_size', 5)}f;")
+                    ortho_size = comp.get("orthographic_size")
+                    if ortho_size is not None:
+                        # Python simulator is 2D-only; any orthographic_size means the
+                        # camera must render orthographically or 2D sprites at z=0 with
+                        # a camera at origin render as solid background color.
+                        lines.append(f"            cam.orthographic = true;")
+                        lines.append(f"            cam.orthographicSize = {ortho_size}f;")
                     bg = comp.get("background_color")
                     if bg:
                         r, g, b = bg[0] / 255.0, bg[1] / 255.0, bg[2] / 255.0
                         lines.append(f"            cam.backgroundColor = new Color({r:.3f}f, {g:.3f}f, {b:.3f}f, 1f);")
                         lines.append(f"            cam.clearFlags = CameraClearFlags.SolidColor;")
+            # Unity 2D convention: camera sits at z=-10 so sprites at z=0 are in
+            # front. Python sim leaves camera at z=0 (or the Transform isn't
+            # serialized at all for the camera GO — depends on engine internals),
+            # so auto-bump to keep sprites visible either way.
             if transform:
                 px, py, pz = transform["position"]
-                lines.append(f"            {var}.transform.position = new Vector3({px}f, {py}f, {pz}f);")
+            else:
+                px, py, pz = 0, 0, 0
+            if pz == 0:
+                pz = -10
+            lines.append(f"            {var}.transform.position = new Vector3({px}f, {py}f, {pz}f);")
             lines.append(f"            EditorUtility.SetDirty({var});")
             lines.append("        }")
             lines.append("")
@@ -260,6 +344,14 @@ def generate_scene_script(
 
         # Set transform
         if transform:
+            # Parent first so position below is treated as local under the parent.
+            # Serializer records parent name on the Transform component; generator
+            # previously ignored it, so every child landed at scene root (Pipes'
+            # Top/Bottom/Scoring in Flappy Bird was the motivating bug).
+            parent_name = transform.get("parent")
+            if parent_name:
+                parent_var = _safe_var_name(parent_name)
+                lines.append(f"        {var}.transform.SetParent({parent_var}.transform, false);")
             px, py, pz = transform["position"]
             lines.append(f"        {var}.transform.position = new Vector3({px}f, {py}f, {pz}f);")
             sx, sy, sz = transform.get("local_scale", [1, 1, 1])
@@ -400,6 +492,15 @@ def _generate_component(
         gs = comp.get("gravity_scale", 1)
         if gs != 1:
             lines.append(f"        {go_var}_rb.gravityScale = {gs}f;")
+        # S7-3: collision detection + physics material for ball-like objects
+        if comp.get("collision_detection") == "Continuous":
+            lines.append(f"        {go_var}_rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;")
+        if comp.get("material"):
+            mat_path = comp["material"]
+            lines.append(f"        {{")
+            lines.append(f"            var _mat = AssetDatabase.LoadAssetAtPath<PhysicsMaterial2D>(\"{_escape_cs_string(mat_path)}\");")
+            lines.append(f"            if (_mat != null) {go_var}_rb.sharedMaterial = _mat;")
+            lines.append(f"        }}")
 
     elif ctype == "BoxCollider2D":
         lines.append(f"        var {go_var}_bc = {go_var}.AddComponent<BoxCollider2D>();")
@@ -407,6 +508,12 @@ def _generate_component(
         lines.append(f"        {go_var}_bc.size = new Vector2({size[0]}f, {size[1]}f);")
         if comp.get("is_trigger"):
             lines.append(f"        {go_var}_bc.isTrigger = true;")
+        if comp.get("material"):
+            mat_path = comp["material"]
+            lines.append(f"        {{")
+            lines.append(f"            var _mat = AssetDatabase.LoadAssetAtPath<PhysicsMaterial2D>(\"{_escape_cs_string(mat_path)}\");")
+            lines.append(f"            if (_mat != null) {go_var}_bc.sharedMaterial = _mat;")
+            lines.append(f"        }}")
 
     elif ctype == "CircleCollider2D":
         lines.append(f"        var {go_var}_cc = {go_var}.AddComponent<CircleCollider2D>();")
@@ -414,6 +521,12 @@ def _generate_component(
         lines.append(f"        {go_var}_cc.radius = {radius}f;")
         if comp.get("is_trigger"):
             lines.append(f"        {go_var}_cc.isTrigger = true;")
+        if comp.get("material"):
+            mat_path = comp["material"]
+            lines.append(f"        {{")
+            lines.append(f"            var _mat = AssetDatabase.LoadAssetAtPath<PhysicsMaterial2D>(\"{_escape_cs_string(mat_path)}\");")
+            lines.append(f"            if (_mat != null) {go_var}_cc.sharedMaterial = _mat;")
+            lines.append(f"        }}")
 
     elif comp.get("is_monobehaviour"):
         ns_prefix = f"{namespace}." if namespace else ""
@@ -450,6 +563,170 @@ def _to_camel_case(snake_str: str) -> str:
     return parts[0] + "".join(p.capitalize() for p in parts[1:])
 
 
+def generate_validation_script(
+    scene_data: dict[str, Any],
+    namespace: str = "",
+) -> str:
+    """Generate a C# editor script that VALIDATES the scene after setup (S5-3).
+
+    Run this via CoPlay MCP after ``generate_scene_script``'s Execute() to
+    catch wiring regressions:
+
+      - every MonoBehaviour SerializeField ref/array is non-null and points at
+        the GameObject the scene JSON said it should
+      - every non-Untagged GameObject carries its expected tag
+      - every non-zero layer assignment matches
+      - the expected GameObject count is present in the active scene
+
+    Returns a C# source string declaring ``GeneratedSceneValidation.Execute()``
+    which returns a multi-line report prefixed ``PASS`` or ``FAIL``.
+    """
+    ns_prefix = f"{namespace}." if namespace else ""
+    game_objects = scene_data.get("game_objects", [])
+    physics = scene_data.get("physics", {})
+    layers = dict(physics.get("layers", {}))
+
+    # Index layer index → name for assertions below
+    layer_name_by_index: dict[int, str] = {}
+    for name, idx in layers.items():
+        layer_name_by_index[int(idx)] = name
+
+    lines: list[str] = []
+    lines.append("using UnityEngine;")
+    lines.append("using UnityEditor;")
+    lines.append("using System.Collections.Generic;")
+    lines.append("using System.Linq;")
+    lines.append("using System.Text;")
+    lines.append("")
+    lines.append("public class GeneratedSceneValidation")
+    lines.append("{")
+    lines.append("    public static string Execute()")
+    lines.append("    {")
+    lines.append("        var failures = new List<string>();")
+    lines.append(f"        int expectedCount = {len(game_objects)};")
+    lines.append("")
+    lines.append("        // === GAMEOBJECT COUNT ===")
+    lines.append("        var allGOs = Object.FindObjectsOfType<GameObject>();")
+    lines.append("        if (allGOs.Length < expectedCount)")
+    lines.append("            failures.Add($\"GameObject count {allGOs.Length} < expected {expectedCount}\");")
+    lines.append("")
+
+    # Per-GameObject checks
+    for go in game_objects:
+        go_name = go["name"]
+        tag = go.get("tag", "Untagged")
+        layer_idx = go.get("layer", 0)
+        escaped_name = _escape_cs_string(go_name)
+
+        lines.append(f"        // --- {go_name} ---")
+        lines.append(f"        {{")
+        lines.append(f"            var go = GameObject.Find(\"{escaped_name}\");")
+        lines.append(f"            if (go == null) failures.Add(\"Missing GameObject: {escaped_name}\");")
+        lines.append(f"            else")
+        lines.append(f"            {{")
+
+        if tag and tag != "Untagged":
+            esc_tag = _escape_cs_string(tag)
+            lines.append(
+                f"                if (go.tag != \"{esc_tag}\") "
+                f"failures.Add(\"{escaped_name} tag \" + go.tag + \" != {esc_tag}\");"
+            )
+
+        if layer_idx and layer_idx > 0:
+            layer_name = layer_name_by_index.get(int(layer_idx))
+            if layer_name:
+                esc_layer = _escape_cs_string(layer_name)
+                lines.append(
+                    f"                {{ int _expLayer = LayerMask.NameToLayer(\"{esc_layer}\"); "
+                    f"if (_expLayer >= 0 && go.layer != _expLayer) "
+                    f"failures.Add(\"{escaped_name} layer \" + go.layer + \" != {esc_layer}(\" + _expLayer + \")\"); }}"
+                )
+            else:
+                lines.append(
+                    f"                if (go.layer != {int(layer_idx)}) "
+                    f"failures.Add(\"{escaped_name} layer \" + go.layer + \" != {int(layer_idx)}\");"
+                )
+
+        # SerializeField ref checks
+        for comp in go.get("components", []):
+            if not comp.get("is_monobehaviour"):
+                continue
+            ctype = comp["type"]
+            fields = comp.get("fields", {}) or {}
+            ref_fields: list[tuple[str, Any]] = []
+            for fname, fval in fields.items():
+                # Skip Unity built-in properties — they aren't SerializeFields,
+                # so FindProperty returns null and reports false positives.
+                if fname in ("game_object", "gameObject", "transform"):
+                    continue
+                if isinstance(fval, dict) and fval.get("_type") in ("GameObjectRef", "GameObjectRefArray"):
+                    ref_fields.append((fname, fval))
+            if not ref_fields:
+                continue
+            lines.append(f"                {{")
+            lines.append(
+                f"                    var _comp = go.GetComponent<{ns_prefix}{ctype}>();"
+            )
+            lines.append(
+                f"                    if (_comp == null) failures.Add(\"{escaped_name} missing component {ctype}\");"
+            )
+            lines.append(f"                    else {{")
+            lines.append(f"                        var so = new SerializedObject(_comp);")
+            for fname, fval in ref_fields:
+                cs_field = _to_camel_case(fname)
+                if fval.get("_type") == "GameObjectRef":
+                    ref_name = fval.get("name", "")
+                    esc_ref = _escape_cs_string(ref_name)
+                    lines.append(
+                        f"                        {{ var _p = so.FindProperty(\"{cs_field}\"); "
+                        f"if (_p == null || _p.objectReferenceValue == null) "
+                        f"failures.Add(\"{escaped_name}.{cs_field} null (expected {esc_ref})\"); "
+                        f"else if (_p.objectReferenceValue.name != \"{esc_ref}\") "
+                        f"failures.Add(\"{escaped_name}.{cs_field} \" + _p.objectReferenceValue.name + \" != {esc_ref}\"); }}"
+                    )
+                else:  # GameObjectRefArray
+                    refs = fval.get("refs", []) or []
+                    expected_names = [r.get("name", "") for r in refs]
+                    expected_count = len(expected_names)
+                    lines.append(
+                        f"                        {{ var _p = so.FindProperty(\"{cs_field}\"); "
+                        f"if (_p == null || !_p.isArray) "
+                        f"failures.Add(\"{escaped_name}.{cs_field} not an array\"); "
+                        f"else if (_p.arraySize != {expected_count}) "
+                        f"failures.Add(\"{escaped_name}.{cs_field} size \" + _p.arraySize + \" != {expected_count}\"); "
+                        f"else {{"
+                    )
+                    for i, rname in enumerate(expected_names):
+                        esc_r = _escape_cs_string(rname)
+                        lines.append(
+                            f"                            {{ var _el = _p.GetArrayElementAtIndex({i}).objectReferenceValue; "
+                            f"if (_el == null) failures.Add(\"{escaped_name}.{cs_field}[{i}] null (expected {esc_r})\"); "
+                            f"else if (_el.name != \"{esc_r}\") "
+                            f"failures.Add(\"{escaped_name}.{cs_field}[{i}] \" + _el.name + \" != {esc_r}\"); }}"
+                        )
+                    lines.append(f"                        }} }}")
+            lines.append(f"                    }}")
+            lines.append(f"                }}")
+
+        lines.append(f"            }}")
+        lines.append(f"        }}")
+        lines.append("")
+
+    lines.append("        var sb = new StringBuilder();")
+    lines.append("        if (failures.Count == 0)")
+    lines.append(f"            sb.AppendLine(\"PASS: validated \" + expectedCount + \" GameObjects\");")
+    lines.append("        else")
+    lines.append("        {")
+    lines.append("            sb.AppendLine(\"FAIL: \" + failures.Count + \" issues\");")
+    lines.append("            foreach (var f in failures) sb.AppendLine(\"  - \" + f);")
+    lines.append("        }")
+    lines.append("        return sb.ToString();")
+    lines.append("    }")
+    lines.append("}")
+    lines.append("")
+    return "\n".join(lines)
+
+
 def generate_from_files(
     scene_path: str | Path,
     mapping_path: str | Path | None = None,
@@ -483,7 +760,12 @@ def main():
         idx = args.index("--namespace")
         namespace = args[idx + 1]
 
-    cs_code = generate_from_files(scene_path, mapping_path, namespace)
+    validate = "--validate" in args
+    if validate:
+        scene_data = json.loads(Path(scene_path).read_text(encoding="utf-8"))
+        cs_code = generate_validation_script(scene_data, namespace=namespace)
+    else:
+        cs_code = generate_from_files(scene_path, mapping_path, namespace)
 
     if output_path:
         output_path.parent.mkdir(parents=True, exist_ok=True)
