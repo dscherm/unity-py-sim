@@ -48,10 +48,10 @@ class TestSerializeComponentMutation:
         the SpriteRenderer must be absent from the serialized output."""
         original = serializer_module._serialize_component
 
-        def patched(comp):
+        def patched(comp, **kwargs):
             if isinstance(comp, SpriteRenderer):
                 return None
-            return original(comp)
+            return original(comp, **kwargs)
 
         monkeypatch.setattr(serializer_module, "_serialize_component", patched)
 
@@ -70,10 +70,10 @@ class TestSerializeComponentMutation:
         """Other components must still serialize when SpriteRenderer is patched out."""
         original = serializer_module._serialize_component
 
-        def patched(comp):
+        def patched(comp, **kwargs):
             if isinstance(comp, SpriteRenderer):
                 return None
-            return original(comp)
+            return original(comp, **kwargs)
 
         monkeypatch.setattr(serializer_module, "_serialize_component", patched)
 
