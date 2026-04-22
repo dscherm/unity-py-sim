@@ -358,12 +358,21 @@ def generate_scene_script(
             if sx != 1 or sy != 1 or sz != 1:
                 lines.append(f"        {var}.transform.localScale = new Vector3({sx}f, {sy}f, {sz}f);")
 
-        # Add components
-        for comp in go.get("components", []):
+        # Add components.  Parallax-scrolled SpriteRenderers tile to cover
+        # the viewport — see flappy_bird_deploy.md gap 4.  A background
+        # sprite whose intrinsic size (6×10.67u) is narrower than the
+        # orthographic viewport leaves blue strips on the sides and "pops"
+        # in/out as Parallax scrolls it.  Presence of a Parallax component
+        # on the same GameObject is the reliable signal that the sprite is
+        # background-like and should tile.
+        components = go.get("components", [])
+        has_parallax = any(c.get("type") == "Parallax" for c in components)
+        for comp in components:
             ctype = comp["type"]
             if ctype in SKIP_COMPONENTS:
                 continue
-            _generate_component(lines, var, comp, sprite_mappings, audio_mappings, namespace)
+            _generate_component(lines, var, comp, sprite_mappings, audio_mappings,
+                                namespace, tile_sprite=has_parallax)
 
         lines.append(f"        EditorUtility.SetDirty({var});")
         lines.append("")
@@ -487,8 +496,16 @@ def _generate_component(
     sprite_mappings: dict,
     audio_mappings: dict,
     namespace: str,
+    tile_sprite: bool = False,
 ) -> None:
-    """Generate C# lines to add and configure a component."""
+    """Generate C# lines to add and configure a component.
+
+    Args:
+        tile_sprite: When True, a SpriteRenderer component is emitted with
+            drawMode=Tiled and a wide size to cover any reasonable orthographic
+            viewport.  Caller decides when to tile (e.g., GameObject also has a
+            Parallax component).  See flappy_bird_deploy.md gap 4.
+    """
     ctype = comp["type"]
 
     if ctype == "SpriteRenderer":
@@ -505,6 +522,16 @@ def _generate_component(
             color = comp.get("color", [255, 255, 255])
             r, g, b = color[0] / 255.0, color[1] / 255.0, color[2] / 255.0
             lines.append(f"        {go_var}_sr.color = new Color({r:.3f}f, {g:.3f}f, {b:.3f}f, 1f);")
+        # Tiled drawMode for parallax-scrolled backgrounds (gap 4).  The
+        # width (40 units) covers any reasonable orthographic viewport;
+        # Unity culls the off-screen tiles.  Height preserved from the
+        # scene-serialized size so the sprite's native vertical extent
+        # doesn't get stretched.
+        if tile_sprite:
+            size = comp.get("size") or [1.0, 1.0]
+            sprite_h = size[1] if len(size) > 1 else 1.0
+            lines.append(f"        {go_var}_sr.drawMode = SpriteDrawMode.Tiled;")
+            lines.append(f"        {go_var}_sr.size = new Vector2(40f, {sprite_h}f);")
 
     elif ctype == "AudioSource":
         lines.append(f"        {go_var}.AddComponent<AudioSource>();")

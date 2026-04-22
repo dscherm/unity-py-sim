@@ -383,3 +383,63 @@ class TestAutoStartFixture:
         scene = _make_scene(_go("Player"))
         result = generate_scene_script(scene)
         assert 'GameObject.Find("AutoStart")' in result
+
+
+# --------------- Tiled sprite drawMode (Flappy Bird deploy lesson gap 4) ---------------
+
+class TestParallaxSpriteTiling:
+    """SpriteRenderers on GameObjects that also have a Parallax MonoBehaviour
+    must emit `drawMode = SpriteDrawMode.Tiled` + a wide `size` so the
+    scrolling background covers any reasonable orthographic viewport.
+
+    Without this, a 6u-wide sprite scrolling through an ~18u-wide viewport
+    leaves blue camera-background strips on the sides and disappears
+    mid-cycle (the symptom in flappy_bird_deploy.md gap 4).
+    """
+
+    def test_parallax_sprite_emits_tiled_drawmode(self):
+        background = _go("Background", components=[
+            {"type": "Transform", "position": [0, 0, 0],
+             "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1]},
+            {"type": "SpriteRenderer", "color": [255, 255, 255],
+             "size": [6.0, 10.67], "asset_ref": "background"},
+            {"type": "Parallax", "is_monobehaviour": True,
+             "fields": {"animationSpeed": 0.5, "wrapWidth": 20.0}},
+        ])
+        scene = _make_scene(background)
+        result = generate_scene_script(scene)
+        assert "drawMode = SpriteDrawMode.Tiled" in result
+        # Width must be wide (we use 40 as a generous default)
+        assert "new Vector2(40f, 10.67f)" in result
+
+    def test_non_parallax_sprite_stays_simple(self):
+        """A SpriteRenderer without a Parallax sibling component must NOT
+        be tiled — player sprites, pipe sprites, etc. should render at
+        their natural size."""
+        player = _go("Player", components=[
+            {"type": "Transform", "position": [-2, 0, 0],
+             "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1]},
+            {"type": "SpriteRenderer", "color": [255, 255, 255],
+             "size": [0.7, 0.5], "asset_ref": "bird_01"},
+        ])
+        scene = _make_scene(player)
+        result = generate_scene_script(scene)
+        assert "SpriteDrawMode.Tiled" not in result
+
+    def test_parallax_preserves_sprite_vertical_extent(self):
+        """The tiled size keeps the sprite's native height so the vertical
+        visual doesn't get stretched — only the width expands to tile."""
+        ground = _go("Ground", components=[
+            {"type": "Transform", "position": [0, -5.5, 0],
+             "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1]},
+            {"type": "SpriteRenderer", "color": [255, 255, 255],
+             "size": [7.0, 2.33], "asset_ref": "ground"},
+            {"type": "Parallax", "is_monobehaviour": True,
+             "fields": {"animationSpeed": 2.0}},
+        ])
+        scene = _make_scene(ground)
+        result = generate_scene_script(scene)
+        # Height 2.33 preserved
+        assert "2.33f)" in result
+        # Stretched width
+        assert "new Vector2(40f, 2.33f)" in result
