@@ -219,3 +219,49 @@ class TestCLIEntryPoint:
             f"CLI scaffold failed: stderr={result.stderr[:500]}"
         )
         assert (tmp_path / "unity_out" / "Assets").is_dir()
+
+
+class TestAutoStartFixture:
+    """AutoStart.cs is a generic runtime un-pauser written by the scaffolder.
+
+    Covers data/lessons/flappy_bird_deploy.md gap 1: games whose
+    GameManager.Start() calls Pause() (expecting a UI Play button to
+    un-pause on click) are stuck because the PlayButtonHandler MonoBehaviour
+    that wires the click lives inline in run_*.py and is filtered by the
+    scene serializer's translated-class registry (coplay gap 4).  AutoStart
+    is a runtime MonoBehaviour that reflectively finds GameManager.instance
+    (or Instance) and invokes Play() on it.  Harmless for games without a
+    GameManager.
+    """
+
+    def test_autostart_cs_written(self, tmp_path, sample_cs_files):
+        scaffold_project("test", tmp_path, cs_files=sample_cs_files)
+        autostart = tmp_path / "Assets" / "_Project" / "Scripts" / "AutoStart.cs"
+        assert autostart.is_file(), "AutoStart.cs must be written to Scripts/"
+
+    def test_autostart_is_monobehaviour(self, tmp_path, sample_cs_files):
+        scaffold_project("test", tmp_path, cs_files=sample_cs_files)
+        content = (tmp_path / "Assets" / "_Project" / "Scripts" / "AutoStart.cs").read_text(encoding="utf-8")
+        assert "public class AutoStart : MonoBehaviour" in content
+        assert "void Start()" in content
+
+    def test_autostart_uses_reflection_for_gamemanager_singleton(self, tmp_path, sample_cs_files):
+        """AutoStart must not hard-reference GameManager — must look it up
+        reflectively so it compiles even for games without a GameManager."""
+        scaffold_project("test", tmp_path, cs_files=sample_cs_files)
+        content = (tmp_path / "Assets" / "_Project" / "Scripts" / "AutoStart.cs").read_text(encoding="utf-8")
+        assert "System.Type.GetType" in content
+        assert '"GameManager"' in content
+        # Must probe both common singleton naming conventions
+        assert '"instance"' in content
+        assert '"Instance"' in content
+        # Must invoke Play() via reflection, not a direct call
+        assert '"Play"' in content
+
+    def test_autostart_also_written_for_games_without_gamemanager(self, tmp_path):
+        """Even without a GameManager.cs in the translated output, AutoStart
+        still lands — it's a no-op at runtime because reflection returns early."""
+        minimal = {"X.cs": "public class X {}\n"}
+        scaffold_project("test", tmp_path, cs_files=minimal)
+        autostart = tmp_path / "Assets" / "_Project" / "Scripts" / "AutoStart.cs"
+        assert autostart.is_file()

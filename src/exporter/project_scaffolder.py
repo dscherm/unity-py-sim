@@ -139,7 +139,52 @@ def scaffold_project(
     # objects so they bounce indefinitely off walls/bricks
     _write_bouncy_ball_material(output_dir)
 
+    # 11. Write AutoStart.cs fixture (flappy_bird_deploy.md gap 1).
+    # When the translated scene has a GameManager that pauses at Start() and
+    # expects a UI Play button's onClick to un-pause, no click handler is
+    # emitted (PlayButtonHandler lives in run_*.py and is filtered by
+    # coplay_generator_gaps.md gap 4).  AutoStart bridges that gap: a
+    # reflection-based MonoBehaviour that invokes any singleton-style
+    # GameManager.Play() it finds at runtime. Harmless for games without a
+    # GameManager.
+    _write_autostart(output_dir)
+
     return output_dir
+
+
+def _write_autostart(output_dir: Path) -> None:
+    """Write Assets/_Project/Scripts/AutoStart.cs — a reflection-based un-pauser.
+
+    Generic across games: finds a `GameManager` type via reflection, reads its
+    `instance` (or `Instance`) static field, and invokes its `Play()` method if
+    present.  If any of those pieces don't exist, Start() returns silently.
+    """
+    autostart = (
+        "using System.Reflection;\n"
+        "using UnityEngine;\n"
+        "\n"
+        "// Scaffolder fixture (data/lessons/flappy_bird_deploy.md gap 1).\n"
+        "// Un-pauses the game at runtime when GameManager.Start() calls\n"
+        "// Pause() expecting a UI Play button that the generator can't wire.\n"
+        "public class AutoStart : MonoBehaviour\n"
+        "{\n"
+        "    void Start()\n"
+        "    {\n"
+        "        var type = System.Type.GetType(\"GameManager\");\n"
+        "        if (type == null) return;\n"
+        "        var flags = BindingFlags.Public | BindingFlags.Static;\n"
+        "        var field = type.GetField(\"instance\", flags) ?? type.GetField(\"Instance\", flags);\n"
+        "        if (field == null) return;\n"
+        "        var gm = field.GetValue(null);\n"
+        "        if (gm == null) return;\n"
+        "        var play = type.GetMethod(\"Play\");\n"
+        "        if (play != null) play.Invoke(gm, null);\n"
+        "    }\n"
+        "}\n"
+    )
+    (output_dir / "Assets" / "_Project" / "Scripts" / "AutoStart.cs").write_text(
+        autostart, encoding="utf-8"
+    )
 
 
 # ── Default sprite asset generation (S7-1) ───────────────────

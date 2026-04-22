@@ -420,6 +420,22 @@ def generate_scene_script(
                     lines.append(f"            }}")
                     lines.append(f"        }}")
 
+    # Always attach the AutoStart fixture (flappy_bird_deploy.md gap 1) so
+    # any GameManager that starts paused gets un-paused at runtime without a
+    # UI Play button click.  Idempotent — if the scene already contains a
+    # GameObject named "AutoStart", the create-if-missing pattern below
+    # avoids duplicates on re-run.
+    existing_names = {go.get("name") for go in scene_data.get("game_objects", [])}
+    if "AutoStart" not in existing_names:
+        lines.append("")
+        lines.append("        // --- AutoStart (scaffolder fixture, un-pauses on Play) ---")
+        lines.append("        if (GameObject.Find(\"AutoStart\") == null)")
+        lines.append("        {")
+        lines.append("            var go_AutoStart = new GameObject(\"AutoStart\");")
+        lines.append("            go_AutoStart.AddComponent<AutoStart>();")
+        lines.append("            EditorUtility.SetDirty(go_AutoStart);")
+        lines.append("        }")
+
     lines.append("")
     lines.append("        // === SAVE ===")
     lines.append("        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(")

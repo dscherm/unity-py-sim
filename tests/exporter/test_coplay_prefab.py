@@ -346,3 +346,40 @@ class TestPrefabAssetSerializeFieldRef:
         result = generate_scene_script(scene)  # no manifest
         assert "prop.objectReferenceValue = go_Pipes;" in result
         assert "LoadAssetAtPath<GameObject>" not in result
+
+
+# --------------- AutoStart fixture (Flappy Bird deploy lesson gap 1) ---------------
+
+class TestAutoStartFixture:
+    """The generator always emits an AutoStart GameObject so scaffolder-
+    supplied AutoStart.cs runs at Play time and un-pauses any paused
+    GameManager.  Without this, games where run_*.py wires the UI Play
+    button (and thus has no .cs click-handler after the gap 4 filter)
+    start paused and never recover.  See data/lessons/flappy_bird_deploy.md.
+    """
+
+    def test_autostart_gameobject_created(self):
+        scene = _make_scene(_go("Player"))
+        result = generate_scene_script(scene)
+        assert 'new GameObject("AutoStart")' in result
+        assert "AddComponent<AutoStart>()" in result
+
+    def test_autostart_idempotent_when_scene_already_has_one(self):
+        """If the Python scene already exports an AutoStart GameObject,
+        the generator must not emit a second one."""
+        scene = _make_scene(_go("Player"), _go("AutoStart"))
+        result = generate_scene_script(scene)
+        # The runtime find-or-create guard may appear, but no second
+        # explicit `new GameObject("AutoStart")` outside that guard.
+        # Count occurrences of the literal creation line.
+        occurrences = result.count('new GameObject("AutoStart")')
+        assert occurrences <= 1, (
+            f"AutoStart emitted {occurrences} times — must be 0 or 1."
+        )
+
+    def test_autostart_uses_find_guard_for_reruns(self):
+        """The emitted code must check `GameObject.Find(\"AutoStart\")` so
+        re-running Setup doesn't duplicate the fixture."""
+        scene = _make_scene(_go("Player"))
+        result = generate_scene_script(scene)
+        assert 'GameObject.Find("AutoStart")' in result
