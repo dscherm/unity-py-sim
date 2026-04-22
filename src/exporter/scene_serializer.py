@@ -30,8 +30,20 @@ def _vec3_to_list(v: Vector3) -> list[float]:
     return [v.x, v.y, v.z]
 
 
-def _serialize_component(comp: Component) -> dict[str, Any] | None:
-    """Serialize a single component to a dict. Returns None for internal-only components."""
+def _serialize_component(
+    comp: Component,
+    translated_classes: set[str] | None = None,
+) -> dict[str, Any] | None:
+    """Serialize a single component to a dict. Returns None for internal-only components.
+
+    If ``translated_classes`` is provided, any MonoBehaviour subclass whose
+    class name is not in the set is dropped (returns None).  This closes
+    coplay_generator_gaps.md gap 4 — inline MonoBehaviours defined in
+    ``run_*.py`` files have no ``.cs`` counterpart, so they must not be
+    emitted into the Unity scene.  Engine primitives (Transform, Camera,
+    SpriteRenderer, Rigidbody2D, colliders, AudioSource, AudioListener)
+    are always kept regardless of the registry.
+    """
     if isinstance(comp, Transform):
         return {
             "type": "Transform",
@@ -110,8 +122,14 @@ def _serialize_component(comp: Component) -> dict[str, Any] | None:
 
     # MonoBehaviour subclasses — serialize type name and public fields
     if isinstance(comp, MonoBehaviour):
+        class_name = type(comp).__name__
+        # Gap 4: if a registry of translated class names is provided, drop
+        # any MonoBehaviour whose class has no .cs counterpart.  Keeps the
+        # Unity scene from referencing types that don't exist at build time.
+        if translated_classes is not None and class_name not in translated_classes:
+            return None
         data: dict[str, Any] = {
-            "type": type(comp).__name__,
+            "type": class_name,
             "is_monobehaviour": True,
             "fields": {},
         }
@@ -194,8 +212,18 @@ def _get_layer_name(layer_index: int) -> str | None:
 _SIMULATOR_ONLY_OBJECTS = {"QuitHandler"}
 
 
-def serialize_scene() -> dict[str, Any]:
-    """Serialize the current scene state to a dict."""
+def serialize_scene(
+    translated_classes: set[str] | None = None,
+) -> dict[str, Any]:
+    """Serialize the current scene state to a dict.
+
+    If ``translated_classes`` is provided, MonoBehaviour components whose
+    class name is not in the set are dropped.  GameObjects themselves are
+    always kept — only their user-authored components are filtered, so
+    downstream CoPlay script generation can still emit the scene shell
+    with engine primitives (Transform / SpriteRenderer / etc.) intact.
+    See coplay_generator_gaps.md gap 4.
+    """
     scene_data: dict[str, Any] = {
         "version": 2,
         "game_objects": [],
@@ -222,7 +250,7 @@ def serialize_scene() -> dict[str, Any]:
         }
 
         for comp in go._components:
-            comp_data = _serialize_component(comp)
+            comp_data = _serialize_component(comp, translated_classes=translated_classes)
             if comp_data is not None:
                 go_data["components"].append(comp_data)
 
