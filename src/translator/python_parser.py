@@ -18,6 +18,7 @@ class PyField:
     type_annotation: str = ""
     default_value: str | None = None
     is_class_level: bool = False
+    source_line: str = ""  # raw source line, so downstream can read trailing `# T[]` hints
 
 @dataclass
 class PyParameter:
@@ -42,6 +43,8 @@ class PyClass:
     base_classes: list[str] = field(default_factory=list)
     is_monobehaviour: bool = False
     is_enum: bool = False
+    is_scriptable_object: bool = False
+    create_asset_menu: dict | None = None
     fields: list[PyField] = field(default_factory=list)
     methods: list[PyMethod] = field(default_factory=list)
 
@@ -98,7 +101,15 @@ def _value_to_str(node: ast.expr | None) -> str | None:
     return ast.unparse(node)
 
 
-def _parse_init_fields(func: ast.FunctionDef) -> list[PyField]:
+def _source_line_for(stmt: ast.AST, source_lines: list[str]) -> str:
+    """Return the raw source line for a statement (1-indexed lineno -> 0-indexed list)."""
+    lineno = getattr(stmt, "lineno", None)
+    if lineno is None or lineno <= 0 or lineno > len(source_lines):
+        return ""
+    return source_lines[lineno - 1]
+
+
+def _parse_init_fields(func: ast.FunctionDef, source_lines: list[str]) -> list[PyField]:
     """Extract self.X = value assignments from __init__."""
     fields = []
     for stmt in ast.walk(func):
@@ -112,6 +123,7 @@ def _parse_init_fields(func: ast.FunctionDef) -> list[PyField]:
                     type_annotation=_annotation_to_str(stmt.annotation),
                     default_value=_value_to_str(stmt.value),
                     is_class_level=False,
+                    source_line=_source_line_for(stmt, source_lines),
                 ))
         elif isinstance(stmt, ast.Assign):
             # self.name = value (without annotation)
@@ -124,11 +136,12 @@ def _parse_init_fields(func: ast.FunctionDef) -> list[PyField]:
                         type_annotation="",
                         default_value=_value_to_str(stmt.value),
                         is_class_level=False,
+                        source_line=_source_line_for(stmt, source_lines),
                     ))
     return fields
 
 
-def _parse_class_fields(cls_node: ast.ClassDef) -> list[PyField]:
+def _parse_class_fields(cls_node: ast.ClassDef, source_lines: list[str]) -> list[PyField]:
     """Extract class-level field assignments (not in methods)."""
     fields = []
     for stmt in cls_node.body:
@@ -138,6 +151,7 @@ def _parse_class_fields(cls_node: ast.ClassDef) -> list[PyField]:
                 type_annotation=_annotation_to_str(stmt.annotation),
                 default_value=_value_to_str(stmt.value),
                 is_class_level=True,
+                source_line=_source_line_for(stmt, source_lines),
             ))
         elif isinstance(stmt, ast.Assign):
             for target in stmt.targets:
@@ -147,6 +161,7 @@ def _parse_class_fields(cls_node: ast.ClassDef) -> list[PyField]:
                         type_annotation="",
                         default_value=_value_to_str(stmt.value),
                         is_class_level=True,
+                        source_line=_source_line_for(stmt, source_lines),
                     ))
     return fields
 
@@ -157,20 +172,26 @@ def _parse_method(func: ast.FunctionDef, source_lines: list[str]) -> PyMethod:
     is_static = "staticmethod" in decorators
 
     params = []
+    had_self = False
     for arg in func.args.args:
         if arg.arg == "self":
+            had_self = True
             continue
         params.append(PyParameter(
             name=arg.arg,
             type_annotation=_annotation_to_str(arg.annotation),
         ))
 
-    # Handle defaults (aligned from the right)
+    # Handle defaults (aligned from the right).
+    # S11-1: only decrement for `self` if we actually skipped one — module-level
+    # functions have no `self` and were getting defaults assigned to the wrong
+    # param, producing `(string name = null, int? sizePx)` when the Python was
+    # `(name: str, size_px: int | None = None)`.
     defaults = func.args.defaults
     if defaults:
         offset = len(func.args.args) - len(defaults)
-        if not is_static:
-            offset -= 1  # Account for self
+        if had_self:
+            offset -= 1
         for i, default in enumerate(defaults):
             param_idx = offset + i
             if 0 <= param_idx < len(params):
@@ -258,10 +279,22 @@ def _parse_class_node(cls_node: ast.ClassDef, source_lines: list[str]) -> PyClas
 
     is_mono = "MonoBehaviour" in base_classes
     is_enum = "Enum" in base_classes or "IntEnum" in base_classes
+    is_scriptable = "ScriptableObject" in base_classes
     is_dataclass = any("dataclass" in ast.unparse(d) for d in cls_node.decorator_list)
 
+    # Capture @create_asset_menu(...) decorator args, if present. The
+    # translator emits a matching [CreateAssetMenu(...)] attribute.
+    create_asset_menu = None
+    for deco in cls_node.decorator_list:
+        if isinstance(deco, ast.Call) and isinstance(deco.func, ast.Name) and deco.func.id == "create_asset_menu":
+            meta: dict = {}
+            for kw in deco.keywords:
+                if kw.arg in ("file_name", "menu_name", "order") and isinstance(kw.value, ast.Constant):
+                    meta[kw.arg] = kw.value.value
+            create_asset_menu = meta
+
     # Class-level fields
-    class_fields = _parse_class_fields(cls_node)
+    class_fields = _parse_class_fields(cls_node, source_lines)
 
     # Dataclass fields are instance fields, not class-level
     if is_dataclass:
@@ -275,7 +308,7 @@ def _parse_class_node(cls_node: ast.ClassDef, source_lines: list[str]) -> PyClas
     for item in cls_node.body:
         if isinstance(item, ast.FunctionDef):
             if item.name == "__init__":
-                instance_fields = _parse_init_fields(item)
+                instance_fields = _parse_init_fields(item, source_lines)
             else:
                 methods.append(_parse_method(item, source_lines))
 
@@ -295,6 +328,8 @@ def _parse_class_node(cls_node: ast.ClassDef, source_lines: list[str]) -> PyClas
         base_classes=base_classes,
         is_monobehaviour=is_mono,
         is_enum=is_enum,
+        is_scriptable_object=is_scriptable,
+        create_asset_menu=create_asset_menu,
         fields=merged_fields,
         methods=methods,
     )

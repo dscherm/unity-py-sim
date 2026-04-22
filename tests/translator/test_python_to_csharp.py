@@ -267,6 +267,69 @@ class TestCollectionTranslation:
         assert "birds.Count - index" in result
 
 
+class TestListTypeInference:
+    """G1 + G2: List<T> element-type inference and auto-emit System.Collections.Generic.
+
+    Covers regressions for data/lessons/coplay_generator_gaps.md gaps 1 and 2.
+    """
+
+    def test_list_t_annotation_emits_typed_array(self):
+        """Baseline: list[T] subscript annotation emits T[] (array form)."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def __init__(self):\n"
+            "        super().__init__()\n"
+            "        self.items: list[Rigidbody2D] = []\n"
+        )
+        result = translate(parsed)
+        assert "Rigidbody2D[] items" in result
+        assert "List<object>" not in result
+
+    def test_bare_list_with_trailing_sprite_array_comment(self):
+        """G1: bare `list` annotation + `# Sprite[]` trailing comment -> Sprite[]."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def __init__(self):\n"
+            "        super().__init__()\n"
+            "        self.sprites: list = []  # Sprite[]\n"
+        )
+        result = translate(parsed)
+        assert "Sprite[] sprites" in result
+        assert "List<object>" not in result
+
+    def test_bare_list_with_trailing_list_bracket_comment(self):
+        """G1 alt form: `# list[AudioClip]` trailing comment -> AudioClip[]."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def __init__(self):\n"
+            "        super().__init__()\n"
+            "        self.clips: list = []  # list[AudioClip]\n"
+        )
+        result = translate(parsed)
+        assert "AudioClip[] clips" in result
+        assert "List<object>" not in result
+
+    def test_using_generic_emits_when_inferred_via_append(self):
+        """G2: when the annotation has no `list[`/`List<` but inference produces
+        List<T> via .append() -> get_component() chain, the using must still appear."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def __init__(self):\n"
+            "        super().__init__()\n"
+            "        self.items = []\n"
+            "    def start(self):\n"
+            "        rb = self.get_component(Rigidbody2D)\n"
+            "        self.items.append(rb)\n"
+        )
+        result = translate(parsed)
+        assert "List<Rigidbody2D>" in result
+        assert "using System.Collections.Generic;" in result
+
+
 class TestLinqTranslation:
     def test_all_generator(self):
         parsed = parse_python(

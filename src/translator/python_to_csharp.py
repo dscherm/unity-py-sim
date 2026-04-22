@@ -416,6 +416,24 @@ def _infer_field_types(cls: PyClass) -> dict[str, str]:
             if t and t not in ("", "list", "dict", "object"):
                 type_map[field.name] = t
 
+    # 1.5. For bare `list` annotations, pick up trailing `# T[]` or `# list[T]`
+    # comment hints from the original source line.  This handles the Flappy Bird
+    # Player.sprites pattern (`self.sprites: list = []  # Sprite[]`) where the
+    # author documents the element type out of band because the assignment
+    # target comes from scene serialization rather than code.  Without this,
+    # the translator emits `List<object>` and the generated C# won't compile.
+    _hint_re = re.compile(r"#\s*(?:list\[(\w+)\]|(\w+)\[\])")
+    for field in cls.fields:
+        t = (field.type_annotation or "").strip()
+        if t.endswith("| None"):
+            t = t[:-7].strip()
+        if t == "list" and field.name not in type_map and field.source_line:
+            m = _hint_re.search(field.source_line)
+            if m:
+                element = m.group(1) or m.group(2)
+                if element and element != "list":
+                    type_map[field.name] = f"list[{element}]"
+
     # 2. From get_component(T) calls in start/awake
     for method in cls.methods:
         if method.name in ("start", "awake"):
@@ -516,6 +534,17 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
 
     # Infer field types from annotations and get_component() calls
     inferred_types = _infer_field_types(cls)
+
+    # G2: if inference produced any List<>/Dictionary<>/HashSet<> types, ensure
+    # `using System.Collections.Generic;` is present.  _infer_using_directives
+    # only saw the raw annotation text; by the time inference fires (e.g., from
+    # .append() + get_component() chains), new generic usages appear that the
+    # earlier pass missed.  Without this, the generated C# fails to compile.
+    if any(
+        t.startswith(("List<", "Dictionary<", "HashSet<"))
+        for t in inferred_types.values()
+    ) and "System.Collections.Generic" not in extra_using:
+        extra_using = sorted(set(extra_using) | {"System.Collections.Generic"})
 
     # Detect fields accessed via ClassName.field (static access pattern)
     # e.g., GameManager.score, GameManager._instance — these must be `static`
