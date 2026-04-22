@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class Player : MonoBehaviour
@@ -8,7 +9,7 @@ public class Player : MonoBehaviour
     public float tilt = 5.0f;
     public Vector3 direction = new Vector3(0, 0, 0);
     public int spriteIndex = 0;
-    public List<object> sprites;
+    public List<Sprite> sprites;
     [SerializeField] private SpriteRenderer spriteRenderer;
      void Awake()
     {
