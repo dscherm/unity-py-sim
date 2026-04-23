@@ -85,7 +85,11 @@ def test_validation_script_checks_gameobjects(tmp_path):
     _, val_cs, scene = _run_generator(tmp_path)
     # Validation must know the expected count
     assert str(len(scene["game_objects"])) in val_cs
-    assert "FindObjectsOfType<GameObject>" in val_cs
+    # FU-4 FindObjectsByType migration: Unity 6 deprecated FindObjectsOfType
+    # (CS0618) in favour of FindObjectsByType which requires an explicit sort
+    # mode. The validation script must use the non-deprecated form.
+    assert "FindObjectsByType<GameObject>(FindObjectsSortMode.None)" in val_cs
+    assert "FindObjectsOfType<GameObject>" not in val_cs
     # PASS/FAIL marker from S5-3
     assert "PASS" in val_cs and "FAIL" in val_cs
 

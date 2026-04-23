@@ -994,8 +994,11 @@ def _translate_method(method: PyMethod) -> dict:
     # Body
     body = _translate_body(method.body_source)
 
+    # Match both the legacy FindObjectsOfType<T>() and the Unity 6
+    # FindObjectsByType<T>(FindObjectsSortMode.None) rewrites — both return
+    # T[] so .Count must be rewritten to .Length on the assigned local.
     array_locals = {m.group(1) for m in re.finditer(
-        r"\bvar\s+(\w+)\s*=\s*[^;]*FindObjectsOfType<", body
+        r"\bvar\s+(\w+)\s*=\s*[^;]*FindObjects(?:Of|By)Type<", body
     )}
     for name in array_locals:
         body = re.sub(rf"\b{re.escape(name)}\.Count\b", f"{name}.Length", body)
@@ -2046,9 +2049,16 @@ def _translate_py_expression(expr: str) -> str:
     expr = re.sub(r"Time\.set_time_scale\((.+?)\)", r"Time.timeScale = \1", expr)
     expr = re.sub(r"Time\.SetTimeScale\((.+?)\)", r"Time.timeScale = \1", expr)
 
-    # FindObjectsOfType — generic method
-    expr = re.sub(r"(?:GameObject\.)?find_objects_of_type\((\w+)\)", r"FindObjectsOfType<\1>()", expr)
-    expr = re.sub(r"(?:GameObject\.)?FindObjectsOfType\((\w+)\)", r"FindObjectsOfType<\1>()", expr)
+    # FindObjectsOfType → FindObjectsByType (Unity 6+; FindObjectsOfType is
+    # deprecated → CS0618 warning). Preserve the legacy form on Unity 5
+    # since FindObjectsByType + FindObjectsSortMode require 2022.2+/6.
+    # FU-4 P2 cleanup.
+    if _config.unity_version >= 6:
+        _fot_replacement = r"FindObjectsByType<\1>(FindObjectsSortMode.None)"
+    else:
+        _fot_replacement = r"FindObjectsOfType<\1>()"
+    expr = re.sub(r"(?:GameObject\.)?find_objects_of_type\((\w+)\)", _fot_replacement, expr)
+    expr = re.sub(r"(?:GameObject\.)?FindObjectsOfType\((\w+)\)", _fot_replacement, expr)
 
     # Random.range → Random.Range
     expr = re.sub(r"Random\.range\(", "Random.Range(", expr)
@@ -2295,6 +2305,9 @@ def _translate_py_expression(expr: str) -> str:
     # True/False/None -> true/false/null
     expr = expr.replace("True", "true").replace("False", "false")
     expr = re.sub(r"\bNone\b", "null", expr)
+    # `\bNone\b` eats the `None` in C# enum values like
+    # `FindObjectsSortMode.None` (Unity 6 FU-4 replacement) — reverse it.
+    expr = expr.replace("FindObjectsSortMode.null", "FindObjectsSortMode.None")
 
     # Vector2(0, 0) -> Vector2.zero
     expr = re.sub(r"Vector2\(0,\s*0\)", "Vector2.zero", expr)
