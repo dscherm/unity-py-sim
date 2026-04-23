@@ -407,6 +407,27 @@ class TestPrefabGuidHealing:
         # Unchanged.
         assert (prefabs / "PlayerController.prefab").read_text(encoding="utf-8") == content
 
+    def test_heal_rewrites_null_fileid_prefab(self, tmp_path, sample_cs_files):
+        """Prefabs from the pre-gap-7 generator have `m_Script: {fileID: 0}`
+        (null ref).  Heal must replace that with the deterministic GUID
+        — otherwise the script never binds at all.  Regression for the
+        Breakout Brick.prefab case."""
+        from src.exporter.prefab_generator import _deterministic_guid
+        prefabs = tmp_path / "Assets" / "_Project" / "Prefabs"
+        prefabs.mkdir(parents=True, exist_ok=True)
+        (prefabs / "PlayerController.prefab").write_text(
+            "%YAML 1.1\n"
+            "MonoBehaviour:\n"
+            "  m_Script: {fileID: 0}\n"
+            "  m_Name: \n",
+            encoding="utf-8",
+        )
+        scaffold_project("test", tmp_path, cs_files=sample_cs_files)
+        healed = (prefabs / "PlayerController.prefab").read_text(encoding="utf-8")
+        expected = _deterministic_guid("script:PlayerController")
+        assert "{fileID: 0}" not in healed
+        assert f"guid: {expected}" in healed
+
     def test_heal_skips_prefabs_with_multiple_scripts(self, tmp_path, sample_cs_files):
         """Multi-script prefabs can't be healed by filename alone — a
         PlayerController.prefab with scripts from other classes on its

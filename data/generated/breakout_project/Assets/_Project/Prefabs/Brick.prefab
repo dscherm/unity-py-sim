@@ -62,5 +62,5 @@ MonoBehaviour:
   m_GameObject: {fileID: 416140389}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 8ad6bec13f5d851ca2e5cbea3b3dabf6, type: 3}
   m_Name: Brick

@@ -210,10 +210,14 @@ def _heal_prefab_script_guids(
     # This catches the common single-script prefab case; multi-script
     # prefabs fall through unchanged (the GUIDs would need per-MonoBehaviour
     # class tagging by the upstream generator to heal automatically).
-    mb_pattern = re.compile(
-        r"(m_Script:\s*\{fileID:\s*11500000,\s*guid:\s*)([0-9a-f]{32})"
-        r"(,\s*type:\s*3\})",
+    # Two patterns to cover:
+    #   - `m_Script: {fileID: 11500000, guid: <xxxxx>, type: 3}` (drifted GUID)
+    #   - `m_Script: {fileID: 0}` (null ref, from pre-gap-7 generator output)
+    drifted_pattern = re.compile(
+        r"m_Script:\s*\{fileID:\s*11500000,\s*guid:\s*([0-9a-f]{32})"
+        r",\s*type:\s*3\}",
     )
+    null_pattern = re.compile(r"m_Script:\s*\{fileID:\s*0\}")
 
     for prefab_path in prefab_dir.glob("*.prefab"):
         cls_name = prefab_path.stem  # "Pipes.prefab" -> "Pipes"
@@ -221,19 +225,20 @@ def _heal_prefab_script_guids(
         if want is None:
             continue
         content = prefab_path.read_text(encoding="utf-8")
-        # Only heal if the prefab has exactly one m_Script entry (the
+        drifted = list(drifted_pattern.finditer(content))
+        nulls = list(null_pattern.finditer(content))
+        # Only heal if there's exactly one MonoBehaviour script slot (the
         # common root-class case).  Multi-script prefabs need richer
         # class→GUID mapping per MonoBehaviour; skip to avoid mis-wiring.
-        matches = list(mb_pattern.finditer(content))
-        if len(matches) != 1:
+        if len(drifted) + len(nulls) != 1:
             continue
-        old_guid = matches[0].group(2)
-        if old_guid == want:
-            continue
-        new_content = mb_pattern.sub(
-            lambda m: f"{m.group(1)}{want}{m.group(3)}",
-            content,
-        )
+        healed_ref = f"m_Script: {{fileID: 11500000, guid: {want}, type: 3}}"
+        if drifted:
+            if drifted[0].group(1) == want:
+                continue
+            new_content = drifted_pattern.sub(healed_ref, content)
+        else:
+            new_content = null_pattern.sub(healed_ref, content)
         prefab_path.write_text(new_content, encoding="utf-8")
 
 
