@@ -827,6 +827,37 @@ class TestGetattrDoubleGameObject:
         assert ".gameObject.gameObject" not in result
 
 
+class TestInheritedAttrNotShadowed:
+    """Python `self.enabled = True` assigns MonoBehaviour's inherited
+    Behaviour.enabled property.  The translator must NOT discover this
+    as a dynamic field — emitting `public bool enabled;` shadows the
+    base property (CS0108) and writes to the shadow instead of really
+    enabling/disabling the component."""
+
+    def test_enabled_not_emitted_as_dynamic_field(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def reset(self):\n"
+            "        self.enabled = True\n"
+        )
+        result = translate(parsed)
+        assert "public bool enabled" not in result
+        # But the assignment itself must still emit.
+        assert "enabled = true" in result
+
+    def test_tag_name_not_emitted_as_dynamic_field(self):
+        """Same guard for other inherited Component/GameObject attributes."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def awake(self):\n"
+            "        self.tag = 'Enemy'\n"
+        )
+        result = translate(parsed)
+        assert "public string tag" not in result
+
+
 class TestEmptyDictInitialization:
     """Module-level / static Dictionary fields declared as `{}` in Python
     must emit `new Dictionary<K,V>()` in C# — initialising to `null` and

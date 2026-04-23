@@ -338,6 +338,16 @@ def _build_symbol_table(cls: PyClass) -> dict[str, str]:
     return symbols
 
 
+_UNITY_INHERITED_ATTRS = {
+    # Attributes inherited from MonoBehaviour / Component / GameObject / Behaviour
+    # in C#.  Assigning `self.X = Y` in Python to any of these is manipulating
+    # the built-in — the translator must NOT emit a shadowing field, otherwise
+    # CS0108 fires and user code ends up writing to the shadow instead of the
+    # real property.
+    "enabled", "tag", "name", "hideFlags",
+}
+
+
 def _discover_dynamic_fields(cls: PyClass) -> list[PyField]:
     """Find self.X = Y assignments in ALL methods that aren't in __init__."""
     known_fields = {f.name for f in cls.fields}
@@ -352,6 +362,8 @@ def _discover_dynamic_fields(cls: PyClass) -> list[PyField]:
             field_name = m.group(1)
             type_annotation = (m.group(2) or "").strip()
             value = m.group(3).strip()
+            if field_name in _UNITY_INHERITED_ATTRS:
+                continue
             if field_name not in known_fields and field_name not in dynamic:
                 # Use explicit type annotation if present, otherwise infer from value
                 if type_annotation:
