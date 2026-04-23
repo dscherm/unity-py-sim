@@ -827,6 +827,33 @@ class TestGetattrDoubleGameObject:
         assert ".gameObject.gameObject" not in result
 
 
+class TestClassFieldInheritsInstanceDefault:
+    """A class-level typed field with no default (`x: list[T]`) plus an
+    `__init__` assignment (`self.x = []`) must emit a C# field WITH the
+    initializer.  Without it, the generated C# has no instance init and
+    the first `.Clear()`/`.Add()` NREs.  Regression for Node.available_directions."""
+
+    def test_list_annotation_picks_up_init_default(self):
+        """Python code calling `.clear()` + `.append()` on a list field
+        gets inferred as List<T>, and the init default `[]` should
+        produce `new List<T>()`."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "from src.engine.math.vector import Vector2\n"
+            "class Foo(MonoBehaviour):\n"
+            "    items: list[Vector2]\n"
+            "    def __init__(self):\n"
+            "        super().__init__()\n"
+            "        self.items = []\n"
+            "    def use(self, d):\n"
+            "        self.items.clear()\n"
+            "        self.items.append(d)\n"
+        )
+        result = translate(parsed)
+        # The field must be initialized at declaration so `.Clear()` doesn't NRE.
+        assert "items = new List<Vector2>()" in result
+
+
 class TestInheritedAttrNotShadowed:
     """Python `self.enabled = True` assigns MonoBehaviour's inherited
     Behaviour.enabled property.  The translator must NOT discover this

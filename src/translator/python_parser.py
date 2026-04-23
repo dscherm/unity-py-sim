@@ -312,11 +312,20 @@ def _parse_class_node(cls_node: ast.ClassDef, source_lines: list[str]) -> PyClas
             else:
                 methods.append(_parse_method(item, source_lines))
 
-    # Deduplicate fields: class-level annotations take priority over __init__ assignments
+    # Deduplicate fields: class-level annotations take priority for the type,
+    # but fall back to a matching __init__ default when the class field has
+    # no default.  Without this, `x: list[T]` at class level + `self.x = []`
+    # in __init__ produced a C# field with no initializer — callers got a
+    # NullReferenceException on the first `.Clear()` / `.Add()`.
+    instance_by_name = {f.name: f for f in instance_fields}
     seen_field_names: set[str] = set()
     merged_fields: list[PyField] = []
     for f in class_fields:
         seen_field_names.add(f.name)
+        if f.default_value is None and f.name in instance_by_name:
+            init_field = instance_by_name[f.name]
+            if init_field.default_value is not None:
+                f.default_value = init_field.default_value
         merged_fields.append(f)
     for f in instance_fields:
         if f.name not in seen_field_names:

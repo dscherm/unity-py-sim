@@ -11,7 +11,7 @@ using UnityEngine;
 {% if field.serialize %}
     [SerializeField] private {{ field.csharp_type }} {{ field.csharp_name }}{% if field.default and field.default != "null" %} = {{ field.default }}{% endif %};
 {% else %}
-    public {{ field.csharp_type }} {{ field.csharp_name }};
+    public {{ field.csharp_type }} {{ field.csharp_name }}{% if field.default and field.default != "null" %} = {{ field.default }}{% endif %};
 {% endif %}
 {% endfor %}
 {% for field in static_fields %}
