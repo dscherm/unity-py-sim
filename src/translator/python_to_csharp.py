@@ -2405,6 +2405,12 @@ def _translate_py_expression(expr: str) -> str:
         attr = m.group(2)
         default = m.group(3).strip()
         cs_attr = snake_to_camel(attr)
+        # If the trigger-callback pre-expansion already appended
+        # `.gameObject` to the receiver (line ~2371 above), emitting
+        # another `.gameObject` produces `other.gameObject.gameObject`
+        # which compiles but chains an unnecessary hop.  Collapse it.
+        if receiver.endswith("." + cs_attr):
+            return receiver
         # Unity-core properties always exist on the types this idiom wraps
         # (Component/Collision2D/GameObject), so prefer the qualified form
         # over collapsing to bare `receiver`. S12-2 collapse still applies

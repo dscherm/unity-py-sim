@@ -808,6 +808,25 @@ class TestSelfAttrLocalCollision:
         assert "this.speed = 5" not in result
 
 
+class TestGetattrDoubleGameObject:
+    """Trigger callbacks expand `other` → `other.gameObject` inside method
+    args to access properties like `.layer`, but when the original Python
+    used `getattr(other, "game_object", other)` to unwrap the simulator
+    shim, both passes fired and produced `other.gameObject.gameObject`.
+    Regression for the Pacman V2 trigger handlers."""
+
+    def test_getattr_game_object_in_trigger_not_double_expanded(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def on_trigger_enter_2d(self, other) -> None:\n"
+            "        other_go = getattr(other, 'game_object', other)\n"
+            "        self.use(other_go)\n"
+        )
+        result = translate(parsed)
+        assert ".gameObject.gameObject" not in result
+
+
 class TestLinqTranslation:
     def test_all_generator(self):
         parsed = parse_python(
