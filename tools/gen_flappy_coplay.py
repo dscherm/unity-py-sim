@@ -49,23 +49,10 @@ def _load_mapping() -> dict:
 
 
 def _translated_class_names(package_dir: Path) -> set[str]:
-    """Return the set of MonoBehaviour class names the translator will emit
-    .cs files for when run on ``package_dir``.  Used to filter the scene
-    serializer output so that inline MonoBehaviours defined in
-    ``run_*.py`` (which aren't translated) don't leak into the Unity
-    scene.  See coplay_generator_gaps.md gap 4.
-    """
-    from src.translator.python_parser import parse_python_file
-
-    names: set[str] = set()
-    for py in sorted(package_dir.glob("*.py")):
-        if py.name == "__init__.py":
-            continue
-        parsed = parse_python_file(py)
-        for cls in parsed.classes:
-            if cls.is_monobehaviour:
-                names.add(cls.name)
-    return names
+    """Thin wrapper around the shared helper for backwards-compat of any
+    existing callers / tests that may have reached into this script."""
+    from src.translator.project_translator import get_translated_class_names
+    return get_translated_class_names(package_dir)
 
 
 def main() -> int:

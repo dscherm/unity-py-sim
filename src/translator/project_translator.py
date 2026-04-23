@@ -423,3 +423,30 @@ def _py_filename_to_cs(py_name: str, parsed: PyFile) -> str:
     if parsed.classes:
         return f"{parsed.classes[0].name}.cs"
     return snake_to_pascal(py_name.replace(".py", "")) + ".cs"
+
+
+def get_translated_class_names(directory: str | Path) -> set[str]:
+    """Return the MonoBehaviour class names the translator would emit ``.cs``
+    files for when run on ``directory``.
+
+    Scene exporters pass this set to ``scene_serializer.serialize_scene`` so
+    that inline MonoBehaviours defined in runner scripts (``run_*.py``) —
+    which have no translated ``.cs`` counterpart — are dropped from the
+    exported scene instead of leaking into Unity as ``NullRef`` stubs.
+
+    See ``data/lessons/coplay_generator_gaps.md`` gap 4 for the motivation.
+    Only ``*.py`` files directly in ``directory`` are scanned; ``__init__.py``
+    is skipped.  Returns an empty set if ``directory`` has no ``.py`` files.
+    """
+    directory = Path(directory)
+    names: set[str] = set()
+    if not directory.is_dir():
+        return names
+    for py in sorted(directory.glob("*.py")):
+        if py.name == "__init__.py":
+            continue
+        parsed = parse_python_file(py)
+        for cls in parsed.classes:
+            if cls.is_monobehaviour:
+                names.add(cls.name)
+    return names
