@@ -330,6 +330,67 @@ class TestListTypeInference:
         assert "using System.Collections.Generic;" in result
 
 
+class TestSiblingBlockScoping:
+    """Python flat function scope vs C# block scope.  Sibling if-blocks
+    assigning the same name in Python must each get their own `var X`
+    in C# — without the scope-aware _declared_vars tracking, the second
+    block emits bare `X = ...` and fails to compile (CS0103).  Regression
+    for data/lessons/pacman_v2_deploy.md gap PV-1 (GhostHome.ExitTransition).
+    """
+
+    def test_sibling_if_blocks_each_declare_variable(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def test(self, a, b):\n"
+            "        if a > 0:\n"
+            "            target = 1\n"
+            "            self.do_thing(target)\n"
+            "        if b > 0:\n"
+            "            target = 2\n"
+            "            self.do_thing(target)\n"
+        )
+        result = translate(parsed)
+        # Each sibling block must declare its own `target` — not leave
+        # the second one as a bare reassignment.
+        assert result.count("var target = 1") + result.count("int target = 1") >= 1
+        assert result.count("var target = 2") + result.count("int target = 2") >= 1
+
+    def test_same_scope_reassignment_does_not_redeclare(self):
+        """Within the same block, a reassignment must NOT emit `var`
+        twice — that's a C# compile error."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def test(self):\n"
+            "        x = 1\n"
+            "        x = 2\n"
+        )
+        result = translate(parsed)
+        # First assignment declares; second is bare reassignment.
+        decl_count = result.count("var x = 1") + result.count("int x = 1")
+        assert decl_count >= 1
+        # Must not declare `x` again.
+        assert result.count("var x = 2") + result.count("int x = 2") == 0
+
+    def test_nested_block_sees_parent_scope(self):
+        """A variable declared in an outer block is visible to its
+        nested children — nested reassignment must NOT redeclare."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def test(self, a):\n"
+            "        target = 1\n"
+            "        if a > 0:\n"
+            "            target = 2\n"
+        )
+        result = translate(parsed)
+        # Outer scope declares; inner block does NOT redeclare.
+        assert "var target = 1" in result or "int target = 1" in result
+        assert "var target = 2" not in result and "int target = 2" not in result
+        assert "target = 2" in result  # bare reassignment in nested block
+
+
 class TestLinqTranslation:
     def test_all_generator(self):
         parsed = parse_python(

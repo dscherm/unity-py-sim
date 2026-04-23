@@ -139,3 +139,78 @@ Fix gap PV-1 at source (translator variable hoisting). That unblocks
 Pacman V2 compilation. Then re-run the pipeline, open the project,
 and proceed to the scene-setup + gameplay validation that would have
 surfaced Pacman-specific scene/wiring gaps on top.
+
+## Update: PV-1 SHIPPED — 5 more gaps surfaced
+
+**PV-1 status: ✅ shipped.**  Commit implemented scope-aware
+`_declared_vars` in `src/translator/python_to_csharp.py` (dict of
+`name -> first-declaration indent level`, pruned before each
+statement).  Verified: `GhostHome.cs` now emits `var target`,
+`var elapsed`, `var t`, `var x`, `var y` in BOTH sibling
+if-blocks — the 15 original CS0103 errors are gone.  Tests:
+`tests/translator/test_python_to_csharp.py::TestSiblingBlockScoping`
+(+3).
+
+With PV-1 unblocked, `check_compile_errors` on regenerated
+Pacman V2 surfaces 5 NEW gaps that PV-1 had been masking:
+
+### PV-3 — Python `return` inside a coroutine must yield break
+`GhostHome.cs:38` — `error CS1622: Cannot return a value from an
+iterator. Use the yield return statement to return a value, or
+yield break to end the iteration.`
+
+Python coroutine uses `return` early-exit; C# IEnumerator methods
+must use `yield break`.  Translator needs to detect early-exit
+`return` in a coroutine context and rewrite.
+
+### PV-4 — Parameter shadowing with enclosing-scope locals
+`GhostBehavior.cs:19` — `error CS0136: A local or parameter named
+'duration' cannot be declared in this scope because that name is
+used in an enclosing local scope to define a local or parameter`.
+
+Python's flat scope lets a method parameter name match a local
+name used elsewhere in the function.  C# forbids a parameter name
+from being reused as a local within the same method.  Translator
+needs to detect parameter-shadowing in method bodies and rename
+either the parameter or the conflicting local.
+
+### PV-5 — String→float conversion unhandled in expression translation
+`GhostChase.cs:38` — `error CS0030: Cannot convert type 'string'
+to 'float'`.  Python's duck-typing allows `"0.5" + 1.0`-ish
+patterns; C# is strict.  Translator needs to either infer type
+mismatches earlier or emit explicit `float.Parse(...)` calls.
+
+### PV-6 — Typed reference fields emitted as `object`
+`Ghost.cs:73` — `error CS1061: 'object' does not contain a
+definition for 'Enable'`.  A field that should be typed (e.g., a
+MonoBehaviour reference) is being emitted as `public object foo`.
+Similar symptom class to gap 1's List<object> inference; needs
+the same kind of class-aware inference for plain reference fields.
+
+### PV-7 — `snapped` local variable name stripped by symbol rewriting
+`Movement.cs:84-89` — `error CS0103: The name 'snapped' does not
+exist in the current context` at multiple sites.  Likely a
+name-mangling conflict in the symbol table (snake-to-camel
+collision, or reserved-name filtering).  Needs targeted
+investigation into how `snapped` gets dropped from
+`_current_symbols` or `_declared_vars`.
+
+### PV-2 (unchanged) — Hand-added helper namespace miss
+`RuntimeSpriteSetup.cs:80` still needs `using PacmanV2;` — this
+is user-side maintenance, not a translator concern.
+
+## Recommended next steps
+
+Pacman V2 still doesn't compile after PV-1's fix, but the work
+has narrowed from ~20 errors to 6 — each in a distinct translator
+pattern.  PV-3 (yield break for coroutine returns) is the
+highest-leverage next fix (affects anywhere a Python coroutine
+early-exits).  PV-4/5/6/7 are smaller targeted fixes.  Order of
+attack based on error-cascade impact:
+
+1. PV-3 (yield break)
+2. PV-4 (parameter shadowing)
+3. PV-7 (snapped symbol)
+4. PV-6 (object typing)
+5. PV-5 (string/float)
+6. PV-2 (user-side, trivial)

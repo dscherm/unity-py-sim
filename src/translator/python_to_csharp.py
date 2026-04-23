@@ -499,7 +499,8 @@ def _infer_field_types(cls: PyClass) -> dict[str, str]:
 _current_symbols: dict[str, str] = {}
 _current_method_params: set[str] = set()
 _in_trigger_callback: bool = False
-_declared_vars: set[str] = set()
+_declared_vars: dict[str, int] = {}  # local_name -> indent level of first declaration
+_current_indent: int = 0
 _enumerate_inject: str | None = None
 _bool_fields: set[str] = set()  # C# names of fields with bool type
 _array_fields: set[str] = set()  # C# names of fields with array types (use .Length not .Count)
@@ -1133,10 +1134,21 @@ def _translate_body(body: str) -> str:
     # First pass: join multi-line expressions into logical lines
     logical_lines = _join_multiline(raw_lines)
 
-    # Track declared local variables to avoid redeclaration
-    global _declared_vars, _enumerate_inject
-    _declared_vars = set()
+    # Track declared local variables to avoid redeclaration.  The dict maps
+    # name -> indent level where it was first declared; before each
+    # statement we prune entries whose stored indent is deeper than the
+    # current line, because those declarations lived in sibling blocks
+    # that have now ended.  Python's flat function scope lets
+    # `if A: x = 1` and `if B: x = 2` share a name across sibling blocks
+    # without C# block-scope conflict — the cleanest translation is to
+    # let each sibling block re-declare its own `var x`.  Without the
+    # prune, the second block emitted bare `x = 2` and Unity flagged
+    # CS0103 (see data/lessons/pacman_v2_deploy.md gap PV-1 /
+    # GhostHome.cs's ExitTransition coroutine).
+    global _declared_vars, _enumerate_inject, _current_indent
+    _declared_vars = {}
     _enumerate_inject = None
+    _current_indent = 0
 
     # Second pass: translate each logical line
     entries: list[tuple[int, str]] = []
@@ -1149,6 +1161,17 @@ def _translate_body(body: str) -> str:
                 continue  # Skip indented body of stripped block
             else:
                 strip_block_indent = None  # Block ended, resume
+
+        # Prune `_declared_vars` entries whose stored indent is deeper than
+        # the current line — they were declared inside a block we've now
+        # exited, so sibling blocks that reassign the same Python name
+        # get their own `var X = …` declaration in C#.  Fixes the
+        # GhostHome.cs coroutine pattern documented in
+        # data/lessons/pacman_v2_deploy.md gap PV-1.
+        _current_indent = indent_level
+        stale = [n for n, d in _declared_vars.items() if d > indent_level]
+        for n in stale:
+            del _declared_vars[n]
 
         # Track multi-line docstrings
         if in_docstring:
@@ -1338,8 +1361,8 @@ def _translate_py_statement(line: str) -> str:
         if len(parts) == 2:
             val_a = _translate_py_expression(parts[0].strip())
             val_b = _translate_py_expression(parts[1].strip())
-            _declared_vars.add(cs_a)
-            _declared_vars.add(cs_b)
+            _declared_vars[cs_a] = _current_indent
+            _declared_vars[cs_b] = _current_indent
             return f"var {cs_a} = {val_a}; var {cs_b} = {val_b};"
         else:
             # Single value — use C# tuple deconstruction
@@ -1347,8 +1370,8 @@ def _translate_py_statement(line: str) -> str:
             # If vars already declared, use assignment (no var)
             if cs_a in _declared_vars and cs_b in _declared_vars:
                 return f"({cs_a}, {cs_b}) = {val}.Value;"
-            _declared_vars.add(cs_a)
-            _declared_vars.add(cs_b)
+            _declared_vars[cs_a] = _current_indent
+            _declared_vars[cs_b] = _current_indent
             return f"var ({cs_a}, {cs_b}) = {val}.Value;"
 
     # Typed self.field assignment: self.field: Type = value (strip annotation, emit field = value)
@@ -1371,7 +1394,7 @@ def _translate_py_statement(line: str) -> str:
         cs_type = _translate_type_annotation(py_type)
         # Always emit full declaration — Python typed assignments create new scope variables
         # This handles re-declarations in sibling if/elif blocks correctly
-        _declared_vars.add(cs_target)
+        _declared_vars[cs_target] = _current_indent
         if cs_type.endswith("[]"):
             _array_fields.add(cs_target)
             # Fix .ToList() → .ToArray() when target is array type
@@ -1386,7 +1409,7 @@ def _translate_py_statement(line: str) -> str:
         cs_target = _translate_py_expression(var_name)
         cs_type = _translate_type_annotation(py_type)
         if cs_target not in _declared_vars:
-            _declared_vars.add(cs_target)
+            _declared_vars[cs_target] = _current_indent
             return f"{cs_type} {cs_target};"
         return ""  # Already declared, skip
 
@@ -1428,7 +1451,7 @@ def _translate_py_statement(line: str) -> str:
             if cs_target in _declared_vars:
                 # Already declared — just assign
                 return f"{cs_target} = {cs_value};"
-            _declared_vars.add(cs_target)
+            _declared_vars[cs_target] = _current_indent
             cs_type = _infer_expression_type(value)
             return f"{cs_type} {cs_target} = {cs_value};"
         return f"{cs_target} = {cs_value};"
@@ -1475,8 +1498,8 @@ def _translate_for_loop(line: str) -> str:
         idx_var = snake_to_camel(enum_match.group(1))
         val_var = snake_to_camel(enum_match.group(2))
         collection = _translate_py_expression(enum_match.group(3).strip())
-        _declared_vars.add(idx_var)
-        _declared_vars.add(val_var)
+        _declared_vars[idx_var] = _current_indent
+        _declared_vars[val_var] = _current_indent
         # The body translator will add the val_var declaration as first line in the block
         # We store it for injection
         global _enumerate_inject
@@ -1507,7 +1530,7 @@ def _translate_for_loop(line: str) -> str:
         collection = tuple_match.group(2).strip()
         cs_collection = _translate_py_expression(collection)
         for n in cs_names:
-            _declared_vars.add(n)
+            _declared_vars[n] = _current_indent
         return f"foreach (var ({', '.join(cs_names)}) in {cs_collection})"
 
     # Fallback — unrecognized for-loop shape
