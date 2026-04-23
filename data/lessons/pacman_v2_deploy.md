@@ -282,25 +282,28 @@ Order as shipped (c23320e, dabefd9, cfe9db9, 7a4d5b3, plus PV-5 commit):
 4. PV-6 — typed-field comment hints for bare `object` annotation ✅
 5. PV-5 — `float("inf")` / `float("nan")` literal rewrites ✅
 
-### Remaining (user-side or separate bugs)
+### Bonus translator bugs also shipped this session
+
+Observed while regenerating Pacman V2 after PV-1..PV-7.  All fixed at
+source with regression tests.
+
+| # | Symptom | Fix commit | Test class |
+|---|---|---|---|
+| B-1 | `if (bool_param != null)` / `if (bool_local != null)` (CS0019) — bool params/locals tripped the object-truthiness path | 0c6b551 | TestBoolConditionTruthiness |
+| B-2 | `self.X = X` collapsing to `X = X;` when a local shadows a class field (CS1717) — e.g. Ghost.eyes loop | b656554 | TestSelfAttrLocalCollision |
+| B-3 | PV-7 hoist false-positive: `position.x` matched bare `x`, emitting `var x = default;` (CS0818) | 77f449e | TestHoistedLocalAcrossBranches::test_single_letter_var_not_false_positived_by_member_access |
+| B-4 | Cross-file bool field: `not other.eaten` → `other.eaten == null` when `eaten: bool` lived in another file | bfa3813 | TestBoolConditionTruthiness::test_not_cross_class_bool_field_reference |
+| B-5 | Double `.gameObject.gameObject` from trigger-callback pre-expansion + getattr rewrite | ecaf6c9 | TestGetattrDoubleGameObject |
+| B-6 | Static `Dictionary<K,V>` field initialised to `null` → NRE on `.ContainsKey` | f727619 | TestEmptyDictInitialization |
+| B-7 | Shadow `public bool enabled;` on MonoBehaviour subclasses (CS0108) | a791ce6 | TestInheritedAttrNotShadowed |
+| B-8 | Class-field annotation + `__init__` default: `public List<T> items;` with no initializer → NRE on `.Clear()` | c37244e | TestClassFieldInheritsInstanceDefault |
+
+### Remaining (user-side)
 
 - **PV-2** (user-side): `RuntimeSpriteSetup.cs` needs `using PacmanV2;`.
-- **Bonus translator bugs observed while fixing PV-7** (not part of
-  original gap list):
-  - `if bool_var:` where `bool_var` is a typed bool emits
-    `if (bool_var != null)` instead of `if (bool_var)`.  Seen in
-    `Movement.cs:67` (`if (forced != null)`) and `Movement.cs:75`
-    (`if (changingAxis != null)`).  Not fixed in this session —
-    separate from PV-1..PV-7.
-  - `foreach (Transform child in transform)` + `var eyes = ...;
-    if (eyes != null) { eyes = eyes; break; }` in `Ghost.cs:34-42`
-    — the inner `eyes = eyes` is meaningless because the translator
-    didn't map the loop-body `self.eyes = eyes` to `this.eyes = eyes`.
-    Separate bug.
 
 ### Next action
 
-Re-run `check_compile_errors` on regenerated Pacman V2.  Any remaining
-errors should be the bonus translator bugs above or scene/wiring issues
-(SerializeField, CoPlay generator gaps) — not PV-1..PV-7 related.
-Scope a follow-up session for the bonus bugs if they block compile.
+Re-run `check_compile_errors` on regenerated Pacman V2 in Unity.  Any
+remaining errors should be scene/wiring issues (SerializeField
+binding, CoPlay generator gaps) — not translator-level.
