@@ -202,13 +202,33 @@ MonoBehaviour reference) is being emitted as `public object foo`.
 Similar symptom class to gap 1's List<object> inference; needs
 the same kind of class-aware inference for plain reference fields.
 
-### PV-7 — `snapped` local variable name stripped by symbol rewriting
+### PV-7 — Local assigned in if/else branches, read at outer scope ✅ SHIPPED
 `Movement.cs:84-89` — `error CS0103: The name 'snapped' does not
-exist in the current context` at multiple sites.  Likely a
-name-mangling conflict in the symbol table (snake-to-camel
-collision, or reserved-name filtering).  Needs targeted
-investigation into how `snapped` gets dropped from
-`_current_symbols` or `_declared_vars`.
+exist in the current context` at multiple sites.
+
+**Actual root cause (not symbol-table stripping as originally theorized):**
+Python hoists locals to function scope, so `snapped` assigned inside
+`if direction.x != 0:` AND `else:` branches is visible at the outer
+`check_pos = Vector2(snapped.x, ...)` line.  C# uses block scoping —
+each branch's `Vector2 snapped = ...` declaration dies when the brace
+closes, so the outer read sees no `snapped` symbol.
+
+**Status: ✅ shipped.** Added `_collect_hoist_candidates` in
+`src/translator/python_to_csharp.py`.  It scans the method body
+(logical lines) for each local's assignment indents vs non-assignment
+read indents; if any read is shallower than any assignment, the
+variable is a hoist candidate.  `_translate_body` pre-seeds
+`_declared_vars[name] = 0` (bare reassignments in-branch) and
+prepends a `Type name = default;` declaration at the method-body
+base — type inferred via `_infer_expression_type` on the first RHS.
+Verified: `Movement.cs:66` now emits `Vector2 snapped = default;`
+at method entry, in-branch assignments are bare, and `snapped` is
+in scope at the outer `checkPos`/`transform.position = snapped` sites.
+Tests: `tests/translator/test_python_to_csharp.py::TestHoistedLocalAcrossBranches` (+2).
+
+PV-1 behavior preserved: when a variable is assigned AND read only
+at the same-or-deeper indent (no escaping read), it stays per-branch
+declared — no over-eager hoist.
 
 ### PV-2 (unchanged) — Hand-added helper namespace miss
 `RuntimeSpriteSetup.cs:80` still needs `using PacmanV2;` — this

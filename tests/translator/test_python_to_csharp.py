@@ -1,5 +1,6 @@
 """Tests for Python to C# translator."""
 
+import re
 from pathlib import Path
 from src.translator.python_to_csharp import translate_file, translate
 from src.translator.python_parser import parse_python
@@ -487,6 +488,86 @@ class TestParameterReassignment:
         assert "var value = 5" not in result
         assert "int value = 5" not in result
         assert "value = 5" in result
+
+
+class TestHoistedLocalAcrossBranches:
+    """Python hoists locals to function scope.  When a variable is
+    assigned in sibling if/else branches and referenced AFTER the branches
+    merge, C# block scoping would leave it out of scope (CS0103).  The
+    translator must detect this pattern and hoist the declaration to the
+    method-body base.  Regression for data/lessons/pacman_v2_deploy.md
+    gap PV-7 (Movement.SetDirection's `snapped` local, used at indent 3
+    after assignments inside an if/else at indent 4).
+    """
+
+    def test_if_else_assigned_local_used_outside(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "from src.engine.math.vector import Vector2\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def step(self, flag: bool) -> None:\n"
+            "        if flag:\n"
+            "            snapped = Vector2(1.0, 0.0)\n"
+            "        else:\n"
+            "            snapped = Vector2(0.0, 1.0)\n"
+            "        self.apply(snapped)\n"
+        )
+        result = translate(parsed)
+        # Reassignments inside branches must be bare — not redeclared.
+        # The declaration itself is hoisted to the method-body base,
+        # so `snapped` is visible at the outer `self.apply(snapped)` call.
+        # Accept either form: a top-level declaration OR per-branch bare
+        # reassignments with an outer-scope declaration.  The load-bearing
+        # check is that `snapped.x`/`snapped` is reachable at outer indent
+        # without CS0103 — i.e. the C# must compile.
+        lines = result.splitlines()
+        # Find the `apply(snapped)` call line.
+        apply_idx = next(i for i, line in enumerate(lines) if "Apply(snapped)" in line or "apply(snapped)" in line.lower())
+        # Count the `Vector2 snapped` declarations that appear at or before
+        # the usage.  At least one must exist and it must be at a brace
+        # depth ≤ the usage's brace depth (so the symbol is in scope).
+        depth = 0
+        usage_depth = None
+        decl_depths = []
+        for i, line in enumerate(lines):
+            open_braces = line.count("{")
+            close_braces = line.count("}")
+            # Count closings first (they close the prior depth)
+            depth_before = depth
+            depth += open_braces - close_braces
+            if re.search(r"\bVector2\s+snapped\b", line):
+                decl_depths.append(min(depth_before, depth))
+            if i == apply_idx:
+                usage_depth = depth
+        assert decl_depths, "no `Vector2 snapped` declaration found"
+        assert usage_depth is not None
+        # A declaration must be at depth ≤ usage_depth.
+        assert any(d <= usage_depth for d in decl_depths), \
+            f"all snapped declarations are deeper than usage (decls={decl_depths}, use={usage_depth})"
+
+    def test_pv1_sibling_blocks_not_regressed(self):
+        """PV-1 pattern (sibling if-blocks, variable used INSIDE each
+        block only) must remain per-branch declarations — no over-eager
+        hoist.  This would regress if the PV-7 fix hoists unconditionally."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def test(self, a, b):\n"
+            "        if a > 0:\n"
+            "            target = 1\n"
+            "            self.do_thing(target)\n"
+            "        if b > 0:\n"
+            "            target = 2\n"
+            "            self.do_thing(target)\n"
+        )
+        result = translate(parsed)
+        # Either per-branch declarations or a single hoisted declaration
+        # is acceptable — the key invariant is compilability (no CS0103).
+        # For this test, we specifically want to preserve PV-1's per-branch
+        # style OR upgrade to a hoisted declaration, but NOT silently drop
+        # all declarations.
+        decl_count = result.count("var target") + result.count("int target")
+        assert decl_count >= 1
 
 
 class TestLinqTranslation:

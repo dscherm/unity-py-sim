@@ -1127,6 +1127,64 @@ def _join_multiline(raw_lines: list[str]) -> list[tuple[int, str]]:
     return result
 
 
+def _collect_hoist_candidates(
+    logical_lines: list[tuple[int, str]],
+) -> dict[str, str]:
+    """Identify local variables whose usage indent is shallower than any of
+    their assignments — they must be hoisted to the method-body base so C#
+    block scoping doesn't lose them.  Returns ``{name: first_rhs}`` so the
+    caller can infer a type.
+
+    Example (from data/lessons/pacman_v2_deploy.md gap PV-7,
+    Movement.SetDirection):
+
+        if direction.x != 0:
+            snapped = Vector2(...)     # assigned at indent 3
+        else:
+            snapped = Vector2(...)     # assigned at indent 3
+        check_pos = Vector2(snapped.x, ...)   # read at indent 2 (shallower)
+
+    Without hoisting, the per-branch ``Vector2 snapped = …`` declarations
+    don't survive into the outer ``check_pos`` read (CS0103).
+    """
+    # Collect: name -> (all assignment indents, first RHS seen)
+    assign_info: dict[str, tuple[list[int], str]] = {}
+    for indent, line in logical_lines:
+        m = re.match(r"^([a-z_]\w*)\s*:\s*\S+.*=\s*(.+)$", line)
+        if m and "." not in m.group(1):
+            name = m.group(1)
+            if name in assign_info:
+                assign_info[name][0].append(indent)
+            else:
+                assign_info[name] = ([indent], m.group(2))
+            continue
+        m = re.match(r"^([a-z_]\w*)\s*=\s*(.+)$", line)
+        if m and "." not in m.group(1):
+            name = m.group(1)
+            if name in assign_info:
+                assign_info[name][0].append(indent)
+            else:
+                assign_info[name] = ([indent], m.group(2))
+
+    candidates: dict[str, str] = {}
+    for name, (indents, first_rhs) in assign_info.items():
+        min_assign = min(indents)
+        # Skip top-level locals (nothing to hoist to).
+        if min_assign == 0:
+            continue
+        name_re = re.compile(rf"\b{re.escape(name)}\b")
+        assign_lhs_re = re.compile(rf"^{re.escape(name)}\s*[:=]")
+        for use_indent, use_line in logical_lines:
+            if use_indent >= min_assign:
+                continue  # Not shallower — not an escaping use.
+            if assign_lhs_re.match(use_line):
+                continue  # This line IS an assignment to the name; not a read.
+            if name_re.search(use_line):
+                candidates[name] = first_rhs
+                break
+    return candidates
+
+
 def _translate_body(body: str) -> str:
     """Translate Python method body to C#, adding braces for indented blocks."""
     if not body.strip():
@@ -1156,11 +1214,34 @@ def _translate_body(body: str) -> str:
     # PV-4 (GhostBehavior.Enable reassigns the `duration` parameter
     # inside a sibling if-block).
     _declared_vars = {name: 0 for name in _current_method_params}
+
+    # PV-7: variables assigned inside nested blocks and read at a
+    # shallower indent must be hoisted to the method-body base — C#
+    # block scoping would drop them after the inner block closes (CS0103).
+    # Seed `_declared_vars` with them at indent 0 so all in-branch
+    # assignments emit as bare reassignments, and emit the declarations
+    # explicitly at the top of the method body below.
+    hoist_candidates = _collect_hoist_candidates(logical_lines)
+    for hname in hoist_candidates:
+        _declared_vars[hname] = 0
+
     _enumerate_inject = None
     _current_indent = 0
 
     # Second pass: translate each logical line
     entries: list[tuple[int, str]] = []
+
+    # Emit hoisted declarations at the method-body base (indent 0) for
+    # variables whose usage indent is shallower than their assignment
+    # indent (PV-7).  This way subsequent in-branch assignments — now
+    # routed through the `cs_target in _declared_vars` path — emit as
+    # bare reassignments, and the symbol is in scope at the outer-indent
+    # usage.
+    for hname, hfirst_rhs in hoist_candidates.items():
+        hcs_name = snake_to_camel(hname)
+        hcs_type = _infer_expression_type(hfirst_rhs) or "object"
+        entries.append((0, f"{hcs_type} {hcs_name} = default;"))
+
     strip_block_indent: int | None = None  # When set, skip lines deeper than this
     in_docstring = False  # Track multi-line docstrings
     for indent_level, logical_line in logical_lines:
