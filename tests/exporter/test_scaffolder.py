@@ -355,3 +355,74 @@ class TestAspectLockFixture:
         # Both branches present.
         assert "scaleHeight < 1f" in content
         assert "scaleWidth" in content
+
+
+class TestPrefabGuidHealing:
+    """scaffold_project post-step rewrites stale m_Script GUIDs in existing
+    Prefabs/*.prefab to match the deterministic .cs.meta scheme.
+
+    Covers the case where a Prefab was generated in an earlier session
+    (or hand-created with a Unity-random GUID) and now drifts from the
+    current scaffolder's .cs.meta GUID — the root cause behind Flappy
+    Bird's "pipes don't move" symptom (data/lessons/flappy_bird_deploy.md
+    gap 7 follow-on).
+    """
+
+    def test_heal_rewrites_stale_prefab_m_script(self, tmp_path, sample_cs_files):
+        from src.exporter.prefab_generator import _deterministic_guid
+        scripts = tmp_path / "Assets" / "_Project" / "Scripts"
+        prefabs = tmp_path / "Assets" / "_Project" / "Prefabs"
+        prefabs.mkdir(parents=True, exist_ok=True)
+        # Write a stale PlayerController.prefab with a wrong GUID.
+        stale_guid = "00000000000000000000000000000000"
+        (prefabs / "PlayerController.prefab").write_text(
+            "%YAML 1.1\n"
+            "MonoBehaviour:\n"
+            f"  m_Script: {{fileID: 11500000, guid: {stale_guid}, type: 3}}\n"
+            "  m_Name: \n",
+            encoding="utf-8",
+        )
+        # Now run the scaffolder — it writes PlayerController.cs.meta
+        # with the deterministic guid AND heals the prefab to match.
+        scaffold_project("test", tmp_path, cs_files=sample_cs_files)
+        healed = (prefabs / "PlayerController.prefab").read_text(encoding="utf-8")
+        expected = _deterministic_guid("script:PlayerController")
+        assert stale_guid not in healed
+        assert f"guid: {expected}" in healed
+
+    def test_heal_no_op_when_guid_already_matches(self, tmp_path, sample_cs_files):
+        from src.exporter.prefab_generator import _deterministic_guid
+        scripts = tmp_path / "Assets" / "_Project" / "Scripts"
+        prefabs = tmp_path / "Assets" / "_Project" / "Prefabs"
+        prefabs.mkdir(parents=True, exist_ok=True)
+        good = _deterministic_guid("script:PlayerController")
+        content = (
+            "%YAML 1.1\n"
+            "MonoBehaviour:\n"
+            f"  m_Script: {{fileID: 11500000, guid: {good}, type: 3}}\n"
+            "  m_Name: \n"
+        )
+        (prefabs / "PlayerController.prefab").write_text(content, encoding="utf-8")
+        scaffold_project("test", tmp_path, cs_files=sample_cs_files)
+        # Unchanged.
+        assert (prefabs / "PlayerController.prefab").read_text(encoding="utf-8") == content
+
+    def test_heal_skips_prefabs_with_multiple_scripts(self, tmp_path, sample_cs_files):
+        """Multi-script prefabs can't be healed by filename alone — a
+        PlayerController.prefab with scripts from other classes on its
+        children would need per-component class tagging.  Skip to avoid
+        rewriting the wrong script."""
+        prefabs = tmp_path / "Assets" / "_Project" / "Prefabs"
+        prefabs.mkdir(parents=True, exist_ok=True)
+        two_scripts = (
+            "%YAML 1.1\n"
+            "MonoBehaviour:\n"
+            "  m_Script: {fileID: 11500000, guid: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, type: 3}\n"
+            "MonoBehaviour:\n"
+            "  m_Script: {fileID: 11500000, guid: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb, type: 3}\n"
+        )
+        (prefabs / "PlayerController.prefab").write_text(two_scripts, encoding="utf-8")
+        scaffold_project("test", tmp_path, cs_files=sample_cs_files)
+        # Content unchanged because heal refuses to guess the mapping.
+        assert "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" in (prefabs / "PlayerController.prefab").read_text(encoding="utf-8")
+        assert "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" in (prefabs / "PlayerController.prefab").read_text(encoding="utf-8")

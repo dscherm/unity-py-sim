@@ -88,11 +88,24 @@ def main() -> int:
             for m in re.finditer(r'FindGameObjectsWithTag\("(\w+)"\)', code):
                 tags.add(m.group(1))
 
+        # Detect prefab candidates so scaffold_project can regenerate
+        # .prefab YAML with deterministic script-binding GUIDs matching the
+        # fresh .cs.meta files.  Without this, stale .prefab files from
+        # earlier runs keep their old m_Script GUIDs (flappy_bird_deploy.md
+        # gap 7) and Unity silently drops the MonoBehaviour on Instantiate.
+        try:
+            from src.exporter.prefab_detector import detect_prefabs
+            prefab_data = detect_prefabs(str(ROOT / src_path))
+        except Exception as e:
+            print(f"  (prefab detection skipped: {e})")
+            prefab_data = None
+
         scaffold_project(
             game_name=game,
             output_dir=output_dir,
             cs_files=cs_files,
             tags=sorted(tags) if tags else None,
+            prefab_data=prefab_data,
         )
         # Count output files
         file_count = sum(1 for _ in output_dir.rglob("*") if _.is_file())
