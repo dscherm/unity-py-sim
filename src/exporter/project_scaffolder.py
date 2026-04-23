@@ -647,7 +647,15 @@ def _write_project_version(output_dir: Path) -> None:
 
 
 def _write_project_settings(output_dir: Path, game_name: str) -> None:
-    """Write ProjectSettings/ProjectSettings.asset with game name."""
+    """Write ProjectSettings/ProjectSettings.asset with game name.
+
+    `activeInputHandler: 2` selects BOTH input systems (old + new).  The
+    translator emits Keyboard.current.*.wasPressedThisFrame (new Input
+    System) in generated MonoBehaviours.  If the value defaulted to 0
+    (Old Input Manager only), Unity's InputManager.OnUpdate throws
+    InvalidCastException on every editor/play update.  Keeping Both
+    means legacy Input.* calls also work if a helper script uses them.
+    """
     ps_path = output_dir / "ProjectSettings" / "ProjectSettings.asset"
     ps_path.write_text(
         f"""%YAML 1.1
@@ -658,6 +666,7 @@ PlayerSettings:
   companyName: DefaultCompany
   defaultScreenWidth: 1920
   defaultScreenHeight: 1080
+  activeInputHandler: 2
 """,
         encoding="utf-8",
     )

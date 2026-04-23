@@ -105,6 +105,17 @@ class TestProjectSettings:
         for tag in sample_tags:
             assert tag in content, f"Tag '{tag}' must appear in TagManager.asset"
 
+    def test_project_settings_enables_new_input_system(self, tmp_path, sample_cs_files):
+        """Translated MonoBehaviours use `Keyboard.current.*.wasPressedThisFrame`
+        (new Input System).  When `activeInputHandler` defaults to 0
+        (Old Input Manager), Unity's InputManager.OnUpdate throws
+        InvalidCastException on every update.  The scaffolder must set
+        `activeInputHandler: 2` (Both) so generated projects run out of the box."""
+        scaffold_project("breakout", tmp_path, cs_files=sample_cs_files)
+        ps = tmp_path / "ProjectSettings" / "ProjectSettings.asset"
+        content = ps.read_text(encoding="utf-8")
+        assert "activeInputHandler: 2" in content
+
 
 # ---------------------------------------------------------------------------
 # Packages/manifest.json tests
