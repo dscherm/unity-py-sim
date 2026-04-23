@@ -324,3 +324,34 @@ class TestScriptMetaDeterministicGuid:
         content = (tmp_path / "Assets" / "_Project" / "Scripts" / "GameManager.cs.meta").read_text(encoding="utf-8")
         assert "MonoImporter:" in content
         assert "fileFormatVersion: 2" in content
+
+
+class TestAspectLockFixture:
+    """Gap 5 (data/lessons/flappy_bird_deploy.md): scaffolder writes
+    AspectLock.cs so games with specific intended aspect ratios render in
+    a letterboxed viewport regardless of Unity's Game view window size.
+    """
+
+    def test_aspect_lock_cs_written(self, tmp_path, sample_cs_files):
+        scaffold_project("test", tmp_path, cs_files=sample_cs_files)
+        lock = tmp_path / "Assets" / "_Project" / "Scripts" / "AspectLock.cs"
+        assert lock.is_file(), "AspectLock.cs must be written to Scripts/"
+
+    def test_aspect_lock_is_camera_monobehaviour(self, tmp_path, sample_cs_files):
+        scaffold_project("test", tmp_path, cs_files=sample_cs_files)
+        content = (tmp_path / "Assets" / "_Project" / "Scripts" / "AspectLock.cs").read_text(encoding="utf-8")
+        assert "public class AspectLock : MonoBehaviour" in content
+        assert "[RequireComponent(typeof(Camera))]" in content
+        # Must expose a tunable targetAspect so landscape games can override.
+        assert "public float targetAspect" in content
+
+    def test_aspect_lock_handles_wider_and_narrower_windows(self, tmp_path, sample_cs_files):
+        """Implementation must letterbox both directions — wider windows get
+        top/bottom bars, narrower get left/right."""
+        scaffold_project("test", tmp_path, cs_files=sample_cs_files)
+        content = (tmp_path / "Assets" / "_Project" / "Scripts" / "AspectLock.cs").read_text(encoding="utf-8")
+        # Applies to cam.rect (viewport), not to orthographicSize.
+        assert "cam.rect" in content
+        # Both branches present.
+        assert "scaleHeight < 1f" in content
+        assert "scaleWidth" in content

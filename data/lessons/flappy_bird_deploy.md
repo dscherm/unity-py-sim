@@ -217,7 +217,7 @@ confirming the GUID round-trip.
 | 2 | Awake self-wire fallback for injected singleton SerializeFields | P0 | **SHIPPED** — semantic_layer now adds `if (field == null) field = S.Instance;` to Awake |
 | 3 | Prefab-asset references for SerializeField GameObject fields | P0 (blocks spawning) | **SHIPPED** — coplay_generator.py + 4 regression tests |
 | 4 | SpriteRenderer Tiled drawMode for wide-viewport sprites | P1 (visual) | **SHIPPED** — Parallax-component heuristic |
-| 5 | Game-view aspect preset for portrait games | P2 (cosmetic) | open |
+| 5 | Game-view aspect lock for portrait/landscape games | P2 (cosmetic) | **SHIPPED** — AspectLock.cs runtime letterbox fixture |
 | 6 | Sprite-asset list SerializeField wiring | P1 (animation) | **SHIPPED** — scene serializer emits SpriteArrayRef, generator wires via `sprite_<name>` vars |
 | 7 | Deterministic .cs.meta GUIDs matching prefab m_Script refs | P0 (prevents script binding) | **SHIPPED** — this session |
 

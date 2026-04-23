@@ -272,6 +272,33 @@ class TestCameraOrthographic:
         result = generate_scene_script(scene)
         assert "cam.orthographic = true;" not in result
 
+    def test_aspect_lock_attached_to_orthographic_camera(self):
+        """Gap 5: orthographic cameras get AspectLock auto-attached so the
+        viewport letterboxes to the game's intended aspect."""
+        camera_go = _go("Main Camera", components=[
+            {"type": "Transform", "position": [0, 0, -10],
+             "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1]},
+            {"type": "Camera", "orthographic_size": 5,
+             "background_color": [0, 0, 0]},
+        ])
+        scene = _make_scene(camera_go)
+        result = generate_scene_script(scene)
+        assert "AddComponent<AspectLock>()" in result
+        # Idempotency guard so re-running Setup doesn't stack duplicates.
+        assert "GetComponent<AspectLock>() == null" in result
+
+    def test_aspect_lock_not_attached_to_perspective_camera(self):
+        """Only 2D / orthographic scenes need AspectLock; perspective
+        cameras handle aspect natively via FOV."""
+        camera_go = _go("Main Camera", components=[
+            {"type": "Transform", "position": [0, 0, -10],
+             "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1]},
+            {"type": "Camera", "background_color": [0, 0, 0]},  # no orthographic_size
+        ])
+        scene = _make_scene(camera_go)
+        result = generate_scene_script(scene)
+        assert "AspectLock" not in result
+
 
 # --------------- Prefab-asset SerializeField refs (Flappy Bird deploy lesson) ---------------
 

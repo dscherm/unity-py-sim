@@ -305,6 +305,17 @@ def generate_scene_script(
             if pz == 0:
                 pz = -10
             lines.append(f"            {var}.transform.position = new Vector3({px}f, {py}f, {pz}f);")
+            # Gap 5 (flappy_bird_deploy.md): attach AspectLock so the camera
+            # letterboxes to its target aspect at runtime, regardless of the
+            # Game view window size.  Only for orthographic (2D) scenes —
+            # perspective cameras don't have the same aspect-stretch issue.
+            has_ortho = any(
+                c.get("type") == "Camera" and c.get("orthographic_size") is not None
+                for c in go.get("components", [])
+            )
+            if has_ortho:
+                lines.append(f"            if ({var}.GetComponent<AspectLock>() == null)")
+                lines.append(f"                {var}.AddComponent<AspectLock>();")
             lines.append(f"            EditorUtility.SetDirty({var});")
             lines.append("        }")
             lines.append("")

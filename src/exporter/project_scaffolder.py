@@ -157,6 +157,13 @@ def scaffold_project(
     # GameManager.
     _write_autostart(output_dir)
 
+    # 12. Write AspectLock.cs fixture (flappy_bird_deploy.md gap 5).
+    # Runtime letterbox so sprite art painted for one aspect doesn't
+    # stretch/crop under Unity's default Game view aspect.  CoPlay
+    # generator attaches it to Main Camera when the scene has an
+    # orthographic camera.
+    _write_aspect_lock(output_dir)
+
     return output_dir
 
 
@@ -182,6 +189,84 @@ def _write_cs_meta(meta_path: Path, class_name: str) -> None:
         "  assetBundleName: \n"
         "  assetBundleVariant: \n",
         encoding="utf-8",
+    )
+
+
+def _write_aspect_lock(output_dir: Path) -> None:
+    """Write Assets/_Project/Scripts/AspectLock.cs — a runtime letterbox.
+
+    Closes data/lessons/flappy_bird_deploy.md gap 5.  Unity's Game view
+    defaults to Free Aspect (usually landscape); Flappy Bird's portrait art
+    (9:16) was painted for a narrower viewport.  AspectLock forces the
+    Main Camera to render into a letterboxed rectangle whose aspect matches
+    the game's design, regardless of Game view size.
+
+    The scaffolder ships this as a fixture available to every generated
+    project; the CoPlay generator attaches it to Main Camera only when the
+    scene has an orthographic camera (which implies a 2D game with a
+    specific intended aspect).  Default targetAspect = 9/16 (portrait);
+    users change it in the Inspector for landscape games.
+    """
+    lock_cs = (
+        "using UnityEngine;\n"
+        "\n"
+        "// Scaffolder fixture (data/lessons/flappy_bird_deploy.md gap 5).\n"
+        "// Letterboxes Main Camera to a target aspect so sprite art painted\n"
+        "// for one aspect doesn't stretch/crop when Unity's Game view uses\n"
+        "// a different window shape.\n"
+        "[RequireComponent(typeof(Camera))]\n"
+        "[DisallowMultipleComponent]\n"
+        "public class AspectLock : MonoBehaviour\n"
+        "{\n"
+        "    [Tooltip(\"Target width/height ratio. 9/16 = portrait (Flappy Bird). 16/9 = landscape.\")]\n"
+        "    public float targetAspect = 9f / 16f;\n"
+        "\n"
+        "    Camera cam;\n"
+        "    int lastW, lastH;\n"
+        "\n"
+        "    void Awake()\n"
+        "    {\n"
+        "        cam = GetComponent<Camera>();\n"
+        "        Apply();\n"
+        "    }\n"
+        "\n"
+        "    void Update()\n"
+        "    {\n"
+        "        if (Screen.width != lastW || Screen.height != lastH) Apply();\n"
+        "    }\n"
+        "\n"
+        "    void Apply()\n"
+        "    {\n"
+        "        if (cam == null) return;\n"
+        "        lastW = Screen.width; lastH = Screen.height;\n"
+        "        float windowAspect = (float)Screen.width / Screen.height;\n"
+        "        float scaleHeight = windowAspect / targetAspect;\n"
+        "        if (scaleHeight < 1f)\n"
+        "        {\n"
+        "            // Window wider than target — letterbox top/bottom.\n"
+        "            var r = cam.rect;\n"
+        "            r.width = 1f;\n"
+        "            r.height = scaleHeight;\n"
+        "            r.x = 0f;\n"
+        "            r.y = (1f - scaleHeight) / 2f;\n"
+        "            cam.rect = r;\n"
+        "        }\n"
+        "        else\n"
+        "        {\n"
+        "            // Window narrower than target — pillarbox left/right.\n"
+        "            float scaleWidth = 1f / scaleHeight;\n"
+        "            var r = cam.rect;\n"
+        "            r.width = scaleWidth;\n"
+        "            r.height = 1f;\n"
+        "            r.x = (1f - scaleWidth) / 2f;\n"
+        "            r.y = 0f;\n"
+        "            cam.rect = r;\n"
+        "        }\n"
+        "    }\n"
+        "}\n"
+    )
+    (output_dir / "Assets" / "_Project" / "Scripts" / "AspectLock.cs").write_text(
+        lock_cs, encoding="utf-8"
     )
 
 
