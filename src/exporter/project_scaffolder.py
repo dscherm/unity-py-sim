@@ -42,7 +42,11 @@ _DEFAULT_PACKAGES: dict[str, str] = {
 
 # Well-known optional packages and their versions
 _KNOWN_PACKAGE_VERSIONS: dict[str, str] = {
-    "com.unity.inputsystem": "1.7.0",
+    # 1.11.x is the Unity-6-compatible line.  Older (1.7.0) throws
+    # InvalidCastException in InputManager.OnUpdate on every editor tick
+    # on Unity 6, likely due to event-buffer struct-layout differences
+    # between the package and Unity 6's native input runtime.
+    "com.unity.inputsystem": "1.11.2",
     "com.unity.ugui": "1.0.0",
     "com.unity.render-pipelines.universal": "14.0.11",
     "com.unity.2d.sprite": "1.0.0",
