@@ -601,6 +601,60 @@ class TestObjectCommentHint:
         assert "public object payload" in result
 
 
+class TestFloatSpecialLiterals:
+    """`float("inf")`/`float("-inf")`/`float("nan")` are Python special
+    literal constructors.  Translating them as `(float)("inf")` produces
+    CS0030 (cannot cast string to float).  Must map to float constants.
+    Regression for data/lessons/pacman_v2_deploy.md gap PV-5
+    (GhostChase.on_trigger_enter_2d uses `float("inf")` as sentinel).
+    """
+
+    def test_float_inf_becomes_positive_infinity(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def compute(self):\n"
+            "        best = float('inf')\n"
+        )
+        result = translate(parsed)
+        assert '(float)("inf")' not in result
+        assert "float.PositiveInfinity" in result
+
+    def test_float_neg_inf_becomes_negative_infinity(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def compute(self):\n"
+            "        worst = float('-inf')\n"
+        )
+        result = translate(parsed)
+        assert '(float)("-inf")' not in result
+        assert "float.NegativeInfinity" in result
+
+    def test_float_nan_becomes_nan(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def compute(self):\n"
+            "        x = float('nan')\n"
+        )
+        result = translate(parsed)
+        assert '(float)("nan")' not in result
+        assert "float.NaN" in result
+
+    def test_float_numeric_cast_preserved(self):
+        """Normal numeric casts like `float(count)` must still compile as
+        `(float)(count)` — the special-literal handling must not regress."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def compute(self, count):\n"
+            "        ratio = float(count)\n"
+        )
+        result = translate(parsed)
+        assert "(float)(count)" in result
+
+
 class TestLinqTranslation:
     def test_all_generator(self):
         parsed = parse_python(

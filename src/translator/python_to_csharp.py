@@ -2209,6 +2209,13 @@ def _translate_py_expression(expr: str) -> str:
 
     # sum(1 for x in list) already handled by LINQ
     # Python casts: int(x) -> (int)(x), float(x) -> (float)(x), str(x) -> x.ToString()
+    # Special-literal constructors (`float("inf")` etc.) MUST be rewritten
+    # before the generic `float(x) -> (float)(x)` substitution — casting a
+    # string literal to float is CS0030.  Regression for
+    # data/lessons/pacman_v2_deploy.md gap PV-5 (GhostChase.min_dist sentinel).
+    expr = re.sub(r"\bfloat\(\s*['\"]inf['\"]\s*\)", "float.PositiveInfinity", expr)
+    expr = re.sub(r"\bfloat\(\s*['\"]-inf['\"]\s*\)", "float.NegativeInfinity", expr)
+    expr = re.sub(r"\bfloat\(\s*['\"]nan['\"]\s*\)", "float.NaN", expr)
     expr = re.sub(r"\bint\(([^)]+)\)", r"(int)(\1)", expr)
     expr = re.sub(r"\bfloat\(([^)]+)\)", r"(float)(\1)", expr)
     expr = re.sub(r"\bstr\(([^)]+)\)", r"\1.ToString()", expr)
