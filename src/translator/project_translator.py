@@ -68,7 +68,7 @@ def translate_project(
     # class lives in a different file.  Without this, Ghost.OnCollisionEnter2D
     # emitted `frightened.eaten == null` — `eaten: bool` is declared on
     # GhostFrightened in a separate file.
-    from .python_to_csharp import set_project_bool_fields
+    from .python_to_csharp import set_project_bool_fields, set_subclassed_classes
     project_bool_fields: set[str] = set()
     for parsed in parsed_files.values():
         for cls in parsed.classes:
@@ -78,6 +78,19 @@ def translate_project(
                 if ann == "bool" or f.default_value in ("True", "False"):
                     project_bool_fields.add(cs_name)
     set_project_bool_fields(project_bool_fields)
+
+    # Phase 3.8: Collect class names that are subclassed somewhere in the
+    # project so _translate_monobehaviour can emit their [SerializeField]
+    # reference fields as `protected` instead of `private` — otherwise
+    # C# subclasses can't reach base fields like GhostBehavior.ghost.
+    # FU-3 SerializeField cross-component wiring.
+    subclassed: set[str] = set()
+    for parsed in parsed_files.values():
+        for cls in parsed.classes:
+            for parent in cls.base_classes:
+                if parent and parent not in ("MonoBehaviour", "ScriptableObject"):
+                    subclassed.add(parent)
+    set_subclassed_classes(subclassed)
 
     # Phase 4: Translate each file with global awareness
     results = {}

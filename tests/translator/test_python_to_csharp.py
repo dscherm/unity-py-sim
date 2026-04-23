@@ -614,15 +614,21 @@ class TestObjectCommentHint:
         assert "initialBehavior" in result
 
     def test_object_field_without_hint_stays_object(self):
-        """Bare `object` with no type hint must stay as `object` — don't
-        guess.  This is the safe default."""
+        """Bare `object` with no type hint must stay typed as `object` — don't
+        guess a Unity type.  Since object is a reference type it now emits as
+        `[SerializeField] private object payload;` per FU-3 (was
+        `public object payload;` before — the *type* is still `object`, only
+        the access modifier flipped when the SerializeField default became
+        private for reference fields)."""
         parsed = parse_python(
             "from src.engine.core import MonoBehaviour\n"
             "class Foo(MonoBehaviour):\n"
             "    payload: object = None  # raw bytes payload\n"
         )
         result = translate(parsed)
-        assert "public object payload" in result
+        assert "object payload" in result
+        assert "[SerializeField]" in result
+        assert "public object payload" not in result
 
 
 class TestFloatSpecialLiterals:

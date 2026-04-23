@@ -93,8 +93,20 @@ class _TranslationConfig:
     """Per-translation configuration, set by translate()/translate_file()."""
     unity_version: int = 6
     input_system: str = "new"  # "legacy" or "new"
+    # Set of MonoBehaviour class names that are subclassed somewhere in the
+    # same project. Base classes need their [SerializeField] reference fields
+    # emitted as `protected` instead of `private` so C# subclasses can reach
+    # them — see FU-3 SerializeField cross-component wiring.
+    subclassed_classes: set[str] = set()
 
 _config = _TranslationConfig()
+
+
+def set_subclassed_classes(names: set[str]) -> None:
+    """Called by project_translator before translating each file so that
+    base-class reference fields emit as `[SerializeField] protected` instead
+    of `[SerializeField] private`."""
+    _config.subclassed_classes = set(names or ())
 
 
 def translate_file(
@@ -684,16 +696,21 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
         if is_ref and csharp_type.endswith("?"):
             csharp_type = csharp_type[:-1]
 
-        # Public-by-default when the Python name doesn't start with `_` (Python
-        # convention). Subclass-visible reference fields like `ghost: Ghost`
-        # on GhostBehavior must NOT be [SerializeField] private or subclasses
-        # can't touch them. `_` prefix keeps [SerializeField] private semantics.
-        is_public_python = not field.name.startswith("_")
+        # Reference fields always emit as `[SerializeField] private T field;`
+        # so Unity's Inspector can wire them (prevents the Player.gameManager
+        # NullRef class — FU-3). When the *owning* class is subclassed
+        # somewhere in the project, upgrade to `protected` so C# subclasses
+        # can still reach the base field (e.g. GhostBehavior.ghost is read
+        # by GhostChase / GhostFrightened / GhostHome / GhostScatter).
+        access = (
+            "protected" if cls.name in _config.subclassed_classes else "private"
+        )
         entry = {
             "csharp_type": csharp_type,
             "csharp_name": csharp_name,
             "default": default,
-            "serialize": is_ref and not is_public_python,
+            "serialize": is_ref,
+            "access": access,
         }
 
         if field.is_class_level and field.name.isupper():
