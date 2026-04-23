@@ -570,6 +570,37 @@ class TestHoistedLocalAcrossBranches:
         assert decl_count >= 1
 
 
+class TestObjectCommentHint:
+    """A Python field annotated `: object` with a trailing comment that
+    documents the intended Unity type should use that type in C# — emitting
+    `public object foo` leaves any `foo.Enable()` call at CS1061 because
+    System.Object has no Enable method.  Regression for
+    data/lessons/pacman_v2_deploy.md gap PV-6 (Ghost.initial_behavior).
+    """
+
+    def test_object_field_with_component_hint(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    initial_behavior: object = None  # GhostBehavior component to start with\n"
+        )
+        result = translate(parsed)
+        assert "public object initialBehavior" not in result
+        assert "GhostBehavior" in result  # field is typed as GhostBehavior
+        assert "initialBehavior" in result
+
+    def test_object_field_without_hint_stays_object(self):
+        """Bare `object` with no type hint must stay as `object` — don't
+        guess.  This is the safe default."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    payload: object = None  # raw bytes payload\n"
+        )
+        result = translate(parsed)
+        assert "public object payload" in result
+
+
 class TestLinqTranslation:
     def test_all_generator(self):
         parsed = parse_python(

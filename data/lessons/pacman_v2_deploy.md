@@ -195,12 +195,25 @@ to 'float'`.  Python's duck-typing allows `"0.5" + 1.0`-ish
 patterns; C# is strict.  Translator needs to either infer type
 mismatches earlier or emit explicit `float.Parse(...)` calls.
 
-### PV-6 — Typed reference fields emitted as `object`
+### PV-6 — Typed reference fields emitted as `object` ✅ SHIPPED
 `Ghost.cs:73` — `error CS1061: 'object' does not contain a
 definition for 'Enable'`.  A field that should be typed (e.g., a
 MonoBehaviour reference) is being emitted as `public object foo`.
 Similar symptom class to gap 1's List<object> inference; needs
 the same kind of class-aware inference for plain reference fields.
+
+**Status: ✅ shipped.** Added an `object`-annotation comment-hint
+pass to `_infer_field_types` in `src/translator/python_to_csharp.py`,
+mirroring the existing `list` hint lookup (step 1.5).  Pattern:
+`self.foo: object = None  # <TypeName> (component|reference|instance|type)`
+→ field emitted as `public TypeName foo`.  Verified:
+`Ghost.initial_behavior: object = None  # GhostBehavior component` now
+emits `public GhostBehavior initialBehavior;` and the subsequent
+`initialBehavior.Enable()` call compiles.  Tests:
+`tests/translator/test_python_to_csharp.py::TestObjectCommentHint` (+2).
+
+Safety: requires the captured hint to start uppercase, so comments
+like `# raw bytes payload` don't pick up "bytes" as a type.
 
 ### PV-7 — Local assigned in if/else branches, read at outer scope ✅ SHIPPED
 `Movement.cs:84-89` — `error CS0103: The name 'snapped' does not

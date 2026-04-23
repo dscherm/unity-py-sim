@@ -434,6 +434,28 @@ def _infer_field_types(cls: PyClass) -> dict[str, str]:
                 if element and element != "list":
                     type_map[field.name] = f"list[{element}]"
 
+    # 1.6. For bare `object` annotations, pick up trailing
+    # `# TypeName component`/`# TypeName reference`/`# TypeName instance`
+    # comment hints.  Handles Ghost.initial_behavior
+    # (`self.initial_behavior: object = None  # GhostBehavior component`) where
+    # the author could not narrow the annotation because the field holds any
+    # GhostBehavior subclass.  Without this, the translator emits
+    # `public object initialBehavior` and downstream `.Enable()` / method
+    # calls fail with CS1061 (data/lessons/pacman_v2_deploy.md gap PV-6).
+    _obj_hint_re = re.compile(r"#\s*(\w+)\s+(?:component|reference|instance|type)\b")
+    for field in cls.fields:
+        t = (field.type_annotation or "").strip()
+        if t.endswith("| None"):
+            t = t[:-7].strip()
+        if t == "object" and field.name not in type_map and field.source_line:
+            m = _obj_hint_re.search(field.source_line)
+            if m:
+                hinted = m.group(1)
+                # Only accept PascalCase identifiers — avoids false positives
+                # like "# raw bytes payload" being picked up.
+                if hinted and hinted[0].isupper():
+                    type_map[field.name] = hinted
+
     # 2. From get_component(T) calls in start/awake
     for method in cls.methods:
         if method.name in ("start", "awake"):
