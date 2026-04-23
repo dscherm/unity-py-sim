@@ -520,6 +520,7 @@ def _infer_field_types(cls: PyClass) -> dict[str, str]:
 # Thread-local symbol table for the current class being translated
 _current_symbols: dict[str, str] = {}
 _current_method_params: set[str] = set()
+_current_method_locals: set[str] = set()  # C# camelCase names of locals declared in the current method body
 _in_trigger_callback: bool = False
 _in_coroutine: bool = False  # True when translating an IEnumerator method — rewrites `return` → `yield break;`
 _declared_vars: dict[str, int] = {}  # local_name -> indent level of first declaration
@@ -927,8 +928,9 @@ def _translate_method(method: PyMethod) -> dict:
     params_str = ", ".join(params)
 
     # Track parameter names (camelCase) for this.X shadowing detection
-    global _current_method_params, _in_trigger_callback, _in_coroutine
+    global _current_method_params, _current_method_locals, _in_trigger_callback, _in_coroutine
     _current_method_params = {snake_to_camel(p.name) for p in method.parameters}
+    _current_method_locals = set()
     _in_trigger_callback = method.name in _trigger_methods
     _in_coroutine = method.is_coroutine
 
@@ -965,6 +967,7 @@ def _translate_method(method: PyMethod) -> dict:
     _bool_fields.clear()
     _bool_fields.update(saved_bool_fields)
     _current_method_params = set()
+    _current_method_locals = set()
     _in_trigger_callback = False
     _in_coroutine = False
 
@@ -1017,37 +1020,44 @@ def _detect_bool_locals(body_source: str) -> None:
 
 
 def _add_locals_to_symbols(body_source: str) -> None:
-    """Extract local variable assignments and add to symbol table."""
-    global _current_symbols
+    """Extract local variable assignments and add to symbol table.
+
+    Also records each local's camelCase name in `_current_method_locals`
+    so the self-dot replacer knows to emit `this.X` (not bare `X`) when a
+    field and a local share a name — otherwise `self.X = X` collapses to
+    a `X = X;` self-assignment on the local.
+    """
+    global _current_symbols, _current_method_locals
+    def _record(py_name: str) -> None:
+        if not py_name or py_name == "_":
+            return
+        cs_name = snake_to_camel(py_name)
+        # Always mark as a method-scoped local, even if a class field
+        # with the same name pre-registered it in `_current_symbols` —
+        # the shadowing itself is the signal the self-dot replacer needs.
+        _current_method_locals.add(cs_name)
+        if py_name not in _current_symbols:
+            _current_symbols[py_name] = cs_name
     for line in body_source.split("\n"):
         stripped = line.strip()
         # Match: var_name: Type = expression (typed assignment)
         m = re.match(r"^([a-z_]\w*)\s*:\s*\S+.*=\s*", stripped)
         if m and not stripped.startswith("self."):
-            py_name = m.group(1)
-            if py_name not in _current_symbols:
-                _current_symbols[py_name] = snake_to_camel(py_name)
+            _record(m.group(1))
             continue
         # Match: var_name = expression (not self.var_name)
         m = re.match(r"^([a-z_]\w*)\s*=\s*", stripped)
         if m and not stripped.startswith("self."):
-            py_name = m.group(1)
-            if py_name not in _current_symbols:
-                _current_symbols[py_name] = snake_to_camel(py_name)
+            _record(m.group(1))
         # Match for-loop variables: for var_name in ...
         m = re.match(r"^for\s+(\w+)\s+in\s+", stripped)
         if m:
-            py_name = m.group(1)
-            if py_name == "_":
-                pass  # Discard variable — don't register (snake_to_camel("_") is "")
-            elif py_name not in _current_symbols:
-                _current_symbols[py_name] = snake_to_camel(py_name)
+            _record(m.group(1))
         # Match: for idx, var in enumerate(...)
         m = re.match(r"^for\s+(\w+),\s*(\w+)\s+in\s+", stripped)
         if m:
-            for py_name in [m.group(1), m.group(2)]:
-                if py_name not in _current_symbols:
-                    _current_symbols[py_name] = snake_to_camel(py_name)
+            _record(m.group(1))
+            _record(m.group(2))
 
 
 def _infer_constant_type(value: str | None) -> str:
@@ -2100,6 +2110,13 @@ def _translate_py_expression(expr: str) -> str:
             parts = stripped.split("_")
             cs_attr = parts[0] + "".join(p.capitalize() for p in parts[1:])
         if cs_attr in _current_method_params:
+            return f"this.{cs_attr}"
+        # Field vs local shadowing: when a method has a local with the
+        # same name as a class field, `self.X = X` must emit `this.X` so
+        # the field is actually assigned — not a no-op `X = X;` on the
+        # local.  Observed in Ghost.Start (`eyes` local vs `self.eyes`
+        # field).
+        if cs_attr in _current_method_locals:
             return f"this.{cs_attr}"
         return cs_attr
     expr = re.sub(r"\bself\.(\w+)", _self_dot_replace, expr)

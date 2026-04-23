@@ -724,6 +724,46 @@ class TestBoolConditionTruthiness:
         assert "if (rb != null)" in result
 
 
+class TestSelfAttrLocalCollision:
+    """When a method has a local variable with the SAME name as a class
+    field, `self.X = X` must emit `this.X = X` — emitting `X = X` creates
+    a no-op self-assignment on the local (CS1717 warning + the field never
+    gets updated).  Regression for a bug observed in regenerated Ghost.cs:
+        `var eyes = child.gameObject.GetComponent<GhostEyes>();`
+        `if (eyes != null) { eyes = eyes; break; }   // ← should set this.eyes`
+    """
+
+    def test_self_field_assign_with_shadowing_local(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    eyes: object = None\n"
+            "    def start(self):\n"
+            "        eyes = self.get_component(GhostEyes)\n"
+            "        if eyes:\n"
+            "            self.eyes = eyes\n"
+        )
+        result = translate(parsed)
+        # Must NOT be the self-assignment no-op.
+        assert "eyes = eyes;" not in result or "this.eyes = eyes;" in result
+        assert "this.eyes = eyes" in result
+
+    def test_self_field_assign_without_local_uses_bare_name(self):
+        """When no local shadows the field name, `self.X = value` keeps
+        emitting `X = value;` (no unnecessary `this.`)."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    speed: float = 0.0\n"
+            "    def update(self):\n"
+            "        self.speed = 5.0\n"
+        )
+        result = translate(parsed)
+        assert "speed = 5" in result
+        # No-unnecessary-this check: should NOT emit `this.speed` when no collision.
+        assert "this.speed = 5" not in result
+
+
 class TestLinqTranslation:
     def test_all_generator(self):
         parsed = parse_python(
