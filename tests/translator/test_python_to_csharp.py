@@ -655,6 +655,75 @@ class TestFloatSpecialLiterals:
         assert "(float)(count)" in result
 
 
+class TestBoolConditionTruthiness:
+    """`if bool_param:` / `if bool_local:` must not emit `!= null` — bool
+    is a value type and `!= null` is a type error (CS0019).  The condition
+    translator uses `_bool_fields` to recognize class-level bool fields; it
+    must also recognize bool method parameters and locals with a bool RHS.
+
+    Reference bugs observed in regenerated Movement.cs (post-PV-7):
+      `if (forced != null)` at line 67 — `forced: bool` is a param.
+      `if (changingAxis != null)` at line 75 — `changing_axis = (… or …)`.
+    """
+
+    def test_bool_parameter_used_in_if_without_null_check(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def set_dir(self, direction, forced: bool = False) -> None:\n"
+            "        if forced:\n"
+            "            self.direction = direction\n"
+        )
+        result = translate(parsed)
+        assert "if (forced != null)" not in result
+        assert "if (forced)" in result
+
+    def test_bool_local_from_boolean_expression_used_in_if(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def step(self, x, y) -> None:\n"
+            "        changing_axis = (x != 0 and y != 0) or (x == 1 or y == 1)\n"
+            "        if changing_axis:\n"
+            "            self.handle()\n"
+        )
+        result = translate(parsed)
+        assert "if (changingAxis != null)" not in result
+        assert "if (changingAxis)" in result
+
+    def test_multiline_bool_local_detected(self):
+        """RHS spanning multiple physical lines must still be recognised
+        as a boolean expression.  This is the exact Movement.set_direction
+        pattern (changing_axis assignment spans 4 lines)."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def step(self, x, y) -> None:\n"
+            "        changing_axis = (\n"
+            "            (x != 0 and y != 0) or\n"
+            "            (x == 1 or y == 1)\n"
+            "        )\n"
+            "        if changing_axis:\n"
+            "            self.handle()\n"
+        )
+        result = translate(parsed)
+        assert "if (changingAxis != null)" not in result
+        assert "if (changingAxis)" in result
+
+    def test_non_bool_local_still_gets_null_check(self):
+        """Non-bool object references must keep the `!= null` safety."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def use_rb(self) -> None:\n"
+            "        rb = self.get_component(Rigidbody2D)\n"
+            "        if rb:\n"
+            "            rb.move_position(Vector2(0, 0))\n"
+        )
+        result = translate(parsed)
+        assert "if (rb != null)" in result
+
+
 class TestLinqTranslation:
     def test_all_generator(self):
         parsed = parse_python(

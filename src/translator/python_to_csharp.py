@@ -894,6 +894,9 @@ def _translate_method(method: PyMethod) -> dict:
 
     # Parameters — add to symbol table for this method's scope
     saved_symbols = dict(_current_symbols)
+    # Save _bool_fields so per-method bool param/local additions don't
+    # poison sibling methods on the same class.
+    saved_bool_fields = set(_bool_fields)
     # Trigger callbacks: Unity receives Collider2D, not GameObject
     # In the Python simulator, triggers receive GameObject directly — override the annotation
     _trigger_methods = {"on_trigger_enter_2d", "on_trigger_exit_2d", "on_trigger_stay_2d"}
@@ -916,6 +919,11 @@ def _translate_method(method: PyMethod) -> dict:
             params.append(f"{csharp_type} {csharp_param_name}")
         # Add param to symbol table
         _current_symbols[p.name] = csharp_param_name
+        # Track bool params so `if forced:` translates to `if (forced)`
+        # rather than `if (forced != null)`.  `_bool_fields` is consulted
+        # by `_translate_py_condition` for the truthiness decision.
+        if csharp_type == "bool":
+            _bool_fields.add(csharp_param_name)
     params_str = ", ".join(params)
 
     # Track parameter names (camelCase) for this.X shadowing detection
@@ -926,6 +934,9 @@ def _translate_method(method: PyMethod) -> dict:
 
     # Extract local variable names and add to symbol table
     _add_locals_to_symbols(method.body_source)
+    # Also detect local bool assignments so `if changing_axis:` doesn't
+    # get `!= null` appended (CS0019 on value types).
+    _detect_bool_locals(method.body_source)
 
     # Discover prefab fields from raw Python source: instantiate(self.xxx_prefab, ...)
     for prefab_match in re.finditer(r'instantiate\(self\.(\w*prefab\w*)', method.body_source, re.IGNORECASE):
@@ -951,6 +962,8 @@ def _translate_method(method: PyMethod) -> dict:
 
     # Restore symbol table (remove method-scoped names)
     _current_symbols = saved_symbols
+    _bool_fields.clear()
+    _bool_fields.update(saved_bool_fields)
     _current_method_params = set()
     _in_trigger_callback = False
     _in_coroutine = False
@@ -966,6 +979,41 @@ def _translate_method(method: PyMethod) -> dict:
         "params": params_str,
         "body": body,
     }
+
+
+_BOOL_EXPR_RE = re.compile(
+    r"\b(and|or|not)\b|==|!=|<=|>=|<(?!=)|>(?!=)|\bTrue\b|\bFalse\b"
+)
+
+
+def _detect_bool_locals(body_source: str) -> None:
+    """Scan the method body for assignments whose RHS is a boolean expression
+    (uses `and`/`or`/`not`, comparison ops, or `True`/`False` literals) and
+    add the local's C# name to `_bool_fields`.  The condition translator
+    consults this set to avoid emitting `!= null` for bool locals — which
+    would be CS0019 on value types.
+
+    Handles the Movement.set_direction pattern (multi-line RHS):
+        changing_axis = (
+            (x != 0 and y != 0) or
+            (x == 1 or y == 1)
+        )
+        if changing_axis:   # → `if (changingAxis)`, not `if (changingAxis != null)`
+
+    Uses `_join_multiline` so RHS spanning multiple physical lines is
+    analysed as a single logical expression.
+    """
+    global _bool_fields
+    for _indent, line in _join_multiline(body_source.split("\n")):
+        m = re.match(r"^([a-z_]\w*)\s*(?::\s*bool\s*)?=\s*(.+)$", line)
+        if not m:
+            continue
+        name, rhs = m.group(1), m.group(2)
+        if "." in name or name == "self":
+            continue
+        rhs_stripped = rhs.strip().rstrip(":")
+        if _BOOL_EXPR_RE.search(rhs_stripped):
+            _bool_fields.add(snake_to_camel(name))
 
 
 def _add_locals_to_symbols(body_source: str) -> None:
