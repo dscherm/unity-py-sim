@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.translator.semantic_layer import transform
+from src.translator.semantic_layer import transform, rewrite_singleton_access
 
 
 class TestStripPygameReferences:
@@ -192,3 +192,168 @@ class TestOnRealOutput:
         result = transform(code)
         assert "pygame" not in result
         assert "!in" not in result
+
+
+class TestRewriteSingletonAccess:
+    """S2-3: singleton access rewrite to [SerializeField] private reference."""
+
+    def test_injects_serialized_field_into_consumer(self):
+        cs = (
+            "using UnityEngine;\n"
+            "public class Enemy\n"
+            "{\n"
+            "    public void OnKill()\n"
+            "    {\n"
+            "        GameManager.Instance.score += 10;\n"
+            "    }\n"
+            "}\n"
+        )
+        out = rewrite_singleton_access(
+            cs, singletons={"GameManager"}, current_classes={"Enemy"}
+        )
+        assert "[SerializeField] private GameManager gameManager;" in out
+        # Call sites rewritten to the field reference.
+        assert "gameManager.score += 10;" in out
+        # Singleton access in method bodies (other than Awake) is gone.
+        call_site_pos = out.index("gameManager.score += 10;")
+        # Ensure no literal `GameManager.Instance.` appears at call sites.
+        assert "GameManager.Instance." not in out[:call_site_pos + 30]
+
+    def test_injects_awake_fallback_for_runtime_self_wiring(self):
+        """data/lessons/flappy_bird_deploy.md gap 2: the injected
+        [SerializeField] must have a self-wire fallback in Awake, else
+        scenes without Inspector-wired singleton refs NPE at runtime.
+        """
+        cs = (
+            "using UnityEngine;\n"
+            "public class Enemy\n"
+            "{\n"
+            "    public void OnKill()\n"
+            "    {\n"
+            "        GameManager.Instance.score += 10;\n"
+            "    }\n"
+            "}\n"
+        )
+        out = rewrite_singleton_access(
+            cs, singletons={"GameManager"}, current_classes={"Enemy"}
+        )
+        assert "void Awake()" in out
+        assert "if (gameManager == null) gameManager = GameManager.Instance;" in out
+
+    def test_awake_fallback_merged_into_existing_awake(self):
+        """Don't overwrite a class's existing Awake — prepend into it."""
+        cs = (
+            "using UnityEngine;\n"
+            "public class Enemy\n"
+            "{\n"
+            "    void Awake()\n"
+            "    {\n"
+            "        Debug.Log(\"existing awake body\");\n"
+            "    }\n"
+            "    public void OnKill()\n"
+            "    {\n"
+            "        GameManager.Instance.score += 10;\n"
+            "    }\n"
+            "}\n"
+        )
+        out = rewrite_singleton_access(
+            cs, singletons={"GameManager"}, current_classes={"Enemy"}
+        )
+        # Only one Awake in the output — the existing one was extended.
+        assert out.count("void Awake()") == 1
+        # The original body is preserved.
+        assert 'Debug.Log("existing awake body")' in out
+        # And the self-wire line is inside (before or after) the existing body.
+        assert "if (gameManager == null) gameManager = GameManager.Instance;" in out
+
+    def test_does_not_rewrite_singleton_in_its_own_file(self):
+        cs = (
+            "using UnityEngine;\n"
+            "public class GameManager\n"
+            "{\n"
+            "    public static GameManager Instance;\n"
+            "    public void SomeMethod()\n"
+            "    {\n"
+            "        GameManager.Instance = this;\n"
+            "    }\n"
+            "}\n"
+        )
+        out = rewrite_singleton_access(
+            cs, singletons={"GameManager"}, current_classes={"GameManager"}
+        )
+        # Must leave the singleton's own body untouched so init still works
+        assert "[SerializeField] private GameManager" not in out
+        assert "GameManager.Instance = this;" in out
+
+    def test_reuses_existing_serialized_field_name(self):
+        cs = (
+            "using UnityEngine;\n"
+            "public class Enemy\n"
+            "{\n"
+            "    [SerializeField] private GameManager gm;\n"
+            "    public void OnKill()\n"
+            "    {\n"
+            "        GameManager.Instance.score += 10;\n"
+            "    }\n"
+            "}\n"
+        )
+        out = rewrite_singleton_access(
+            cs, singletons={"GameManager"}, current_classes={"Enemy"}
+        )
+        # Should reuse `gm`, not inject a second field
+        assert out.count("private GameManager") == 1
+        assert "gm.score += 10;" in out
+
+    def test_multiple_consumer_classes_each_get_own_field(self):
+        cs = (
+            "using UnityEngine;\n"
+            "public class Enemy\n"
+            "{\n"
+            "    public void Hit() { GameManager.Instance.lives -= 1; }\n"
+            "}\n"
+            "public class Powerup\n"
+            "{\n"
+            "    public void Apply() { GameManager.Instance.score += 50; }\n"
+            "}\n"
+        )
+        out = rewrite_singleton_access(
+            cs, singletons={"GameManager"}, current_classes={"Enemy", "Powerup"}
+        )
+        # Both classes must get their own field
+        assert out.count("[SerializeField] private GameManager gameManager;") == 2
+        assert "gameManager.lives -= 1" in out
+        assert "gameManager.score += 50" in out
+
+    def test_unrelated_classes_untouched(self):
+        """Singleton rewrite must not touch classes that don't reference the singleton."""
+        cs = (
+            "using UnityEngine;\n"
+            "public class Bystander\n"
+            "{\n"
+            "    public void DoNothing() { var x = 1; }\n"
+            "}\n"
+        )
+        out = rewrite_singleton_access(
+            cs, singletons={"GameManager"}, current_classes={"Bystander"}
+        )
+        assert "[SerializeField]" not in out
+        assert "var x = 1;" in out
+
+    def test_transform_accepts_and_threads_singletons_kwarg(self):
+        """Backward-compat: transform() without kwargs still works; with kwargs, rewrites happen."""
+        cs = (
+            "using UnityEngine;\n"
+            "public class Enemy\n"
+            "{\n"
+            "    public void OnKill() { GameManager.Instance.score += 10; }\n"
+            "}\n"
+        )
+        # No kwargs → no singleton rewrite
+        out_plain = transform(cs)
+        assert "[SerializeField]" not in out_plain
+        # With kwargs → singleton rewrite fires
+        out_with = transform(
+            cs, singletons={"GameManager"}, current_classes={"Enemy"}
+        )
+        assert "[SerializeField] private GameManager gameManager;" in out_with
+        assert "gameManager.score += 10" in out_with
