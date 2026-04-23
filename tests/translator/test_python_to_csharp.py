@@ -391,6 +391,67 @@ class TestSiblingBlockScoping:
         assert "target = 2" in result  # bare reassignment in nested block
 
 
+class TestCoroutineReturn:
+    """Python `return` inside a generator (coroutine) must emit `yield break;`
+    in C#.  A plain `return;` inside an `IEnumerator` method is CS1622.
+    Regression for data/lessons/pacman_v2_deploy.md gap PV-3
+    (GhostHome.ExitTransition early-exit).
+    """
+
+    def test_bare_return_in_coroutine_becomes_yield_break(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def exit_transition(self):\n"
+            "        if self.done:\n"
+            "            return\n"
+            "        yield None\n"
+        )
+        result = translate(parsed)
+        assert "IEnumerator" in result
+        assert "yield break;" in result
+        # No bare `return;` — that would be CS1622.
+        for line in result.splitlines():
+            stripped = line.strip()
+            assert stripped != "return;", f"bare return in coroutine: {line!r}"
+
+    def test_return_with_value_in_coroutine_becomes_yield_break(self):
+        """Python generators can't truly `return value`, but some code paths
+        emit `return None` (early-exit).  Treat any return with a trivial
+        value inside a coroutine as yield break — a `return value;` inside
+        IEnumerator is also CS1622."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def exit_transition(self):\n"
+            "        if self.done:\n"
+            "            return None\n"
+            "        yield None\n"
+        )
+        result = translate(parsed)
+        assert "IEnumerator" in result
+        assert "yield break;" in result
+        for line in result.splitlines():
+            stripped = line.strip()
+            assert not stripped.startswith("return "), f"valued return in coroutine: {line!r}"
+
+    def test_bare_return_in_non_coroutine_unchanged(self):
+        """Non-coroutine methods must still emit `return;` — don't regress
+        plain void-return handling."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def update(self):\n"
+            "        if self.done:\n"
+            "            return\n"
+            "        self.step()\n"
+        )
+        result = translate(parsed)
+        assert "void Update()" in result
+        assert "yield break;" not in result
+        assert "return;" in result
+
+
 class TestLinqTranslation:
     def test_all_generator(self):
         parsed = parse_python(

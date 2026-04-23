@@ -154,7 +154,7 @@ if-blocks — the 15 original CS0103 errors are gone.  Tests:
 With PV-1 unblocked, `check_compile_errors` on regenerated
 Pacman V2 surfaces 5 NEW gaps that PV-1 had been masking:
 
-### PV-3 — Python `return` inside a coroutine must yield break
+### PV-3 — Python `return` inside a coroutine must yield break ✅ SHIPPED
 `GhostHome.cs:38` — `error CS1622: Cannot return a value from an
 iterator. Use the yield return statement to return a value, or
 yield break to end the iteration.`
@@ -162,6 +162,14 @@ yield break to end the iteration.`
 Python coroutine uses `return` early-exit; C# IEnumerator methods
 must use `yield break`.  Translator needs to detect early-exit
 `return` in a coroutine context and rewrite.
+
+**Status: ✅ shipped.** Added module-level `_in_coroutine` flag in
+`src/translator/python_to_csharp.py`, set from `method.is_coroutine`
+in `_translate_method`.  In `_translate_py_statement`, bare `return`
+and `return None`/`return null`/`return ` inside a coroutine context
+now emit `yield break;` instead of `return;`.  Verified:
+`GhostHome.cs:38` now emits `yield break;`.  Tests:
+`tests/translator/test_python_to_csharp.py::TestCoroutineReturn` (+3).
 
 ### PV-4 — Parameter shadowing with enclosing-scope locals
 `GhostBehavior.cs:19` — `error CS0136: A local or parameter named

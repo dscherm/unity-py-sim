@@ -499,6 +499,7 @@ def _infer_field_types(cls: PyClass) -> dict[str, str]:
 _current_symbols: dict[str, str] = {}
 _current_method_params: set[str] = set()
 _in_trigger_callback: bool = False
+_in_coroutine: bool = False  # True when translating an IEnumerator method — rewrites `return` → `yield break;`
 _declared_vars: dict[str, int] = {}  # local_name -> indent level of first declaration
 _current_indent: int = 0
 _enumerate_inject: str | None = None
@@ -896,9 +897,10 @@ def _translate_method(method: PyMethod) -> dict:
     params_str = ", ".join(params)
 
     # Track parameter names (camelCase) for this.X shadowing detection
-    global _current_method_params, _in_trigger_callback
+    global _current_method_params, _in_trigger_callback, _in_coroutine
     _current_method_params = {snake_to_camel(p.name) for p in method.parameters}
     _in_trigger_callback = method.name in _trigger_methods
+    _in_coroutine = method.is_coroutine
 
     # Extract local variable names and add to symbol table
     _add_locals_to_symbols(method.body_source)
@@ -929,6 +931,7 @@ def _translate_method(method: PyMethod) -> dict:
     _current_symbols = saved_symbols
     _current_method_params = set()
     _in_trigger_callback = False
+    _in_coroutine = False
 
     # Fix access for lifecycle methods
     if method.is_lifecycle:
@@ -1324,12 +1327,20 @@ def _translate_py_statement(line: str) -> str:
     if line == "yield":
         return "yield return null;"
 
-    # Return
+    # Return — inside a coroutine (IEnumerator method), Python's early-exit
+    # `return` or `return None` must become `yield break;`.  A plain
+    # `return;` or `return null;` inside IEnumerator is CS1622.  Regression
+    # for data/lessons/pacman_v2_deploy.md gap PV-3
+    # (GhostHome.ExitTransition).
     if line.startswith("return "):
         value = line[7:].strip()
+        if _in_coroutine and value in ("None", "null", ""):
+            return "yield break;"
         value = _translate_py_expression(value)
         return f"return {value};"
     if line == "return":
+        if _in_coroutine:
+            return "yield break;"
         return "return;"
 
     # Compound assignment
