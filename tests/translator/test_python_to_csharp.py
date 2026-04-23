@@ -827,6 +827,25 @@ class TestGetattrDoubleGameObject:
         assert ".gameObject.gameObject" not in result
 
 
+class TestEmptyDictInitialization:
+    """Module-level / static Dictionary fields declared as `{}` in Python
+    must emit `new Dictionary<K,V>()` in C# — initialising to `null` and
+    then calling `.ContainsKey(...)` throws NullReferenceException at
+    runtime.  Regression for Passage._recent_teleports."""
+
+    def test_empty_dict_with_typed_annotation_is_initialized(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "_cache: dict[int, float] = {}\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def use(self):\n"
+            "        _cache[1] = 2.0\n"
+        )
+        result = translate(parsed)
+        assert "new Dictionary<int, float>()" in result
+        assert " = null;" not in result.split("_cache")[0] + "_cache = null"  # no null assignment to _cache
+
+
 class TestLinqTranslation:
     def test_all_generator(self):
         parsed = parse_python(

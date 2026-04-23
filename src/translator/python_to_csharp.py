@@ -2788,8 +2788,13 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
             return f"new {csharp_type}()"
         return "null"
 
-    # Empty dict: {} -> null
+    # Empty dict: {} -> new Dictionary<K,V>() when typed, else null.
+    # A static/class Dictionary field initialised to null NREs on the
+    # first `.ContainsKey(...)` call; emit a fresh instance instead so
+    # the field is usable from field init (e.g. Passage._recent_teleports).
     if value == "{}":
+        if csharp_type.startswith("Dictionary<"):
+            return f"new {csharp_type}()"
         return "null"
 
     # Dataclass/constructor calls with keyword args:
