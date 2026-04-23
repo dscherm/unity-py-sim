@@ -545,6 +545,30 @@ class TestHoistedLocalAcrossBranches:
         assert any(d <= usage_depth for d in decl_depths), \
             f"all snapped declarations are deeper than usage (decls={decl_depths}, use={usage_depth})"
 
+    def test_single_letter_var_not_false_positived_by_member_access(self):
+        """The hoist detector matched bare-word regex and saw `x`/`y` in
+        `position.x`/`position.y` as an escaping read.  It must not —
+        `.x` is member access, not a reference to a local named `x`.
+        Regression for the `var x = default;` CS0818 bug observed in
+        regenerated GhostHome.ExitTransition."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "from src.engine.math.vector import Vector2\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def step(self, start_pos) -> None:\n"
+            "        outer = Vector2(start_pos.x, start_pos.y)\n"
+            "        if True:\n"
+            "            if True:\n"
+            "                x = outer.x + 1.0\n"
+            "                y = outer.y + 1.0\n"
+            "                self.use(Vector2(x, y))\n"
+        )
+        result = translate(parsed)
+        # Must not emit the invalid `var x = default;` — either don't hoist
+        # at all (since there's no escaping read) or use a concrete type.
+        assert "var x = default;" not in result
+        assert "var y = default;" not in result
+
     def test_pv1_sibling_blocks_not_regressed(self):
         """PV-1 pattern (sibling if-blocks, variable used INSIDE each
         block only) must remain per-branch declarations — no over-eager

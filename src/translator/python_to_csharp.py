@@ -1252,7 +1252,13 @@ def _collect_hoist_candidates(
         # Skip top-level locals (nothing to hoist to).
         if min_assign == 0:
             continue
-        name_re = re.compile(rf"\b{re.escape(name)}\b")
+        # The lookbehind excludes member-access matches (`.x`, `.y`) — we
+        # don't want `position.x` to count as a read of a local named `x`.
+        # Without it, single-letter names collide with common Unity
+        # properties (Vector2.x, Transform.position.x, etc.) and generate
+        # spurious `var x = default;` hoists (CS0818 — `default` has no
+        # inferrable type on its own).
+        name_re = re.compile(rf"(?<![\.\w]){re.escape(name)}(?!\w)")
         assign_lhs_re = re.compile(rf"^{re.escape(name)}\s*[:=]")
         for use_indent, use_line in logical_lines:
             if use_indent >= min_assign:
@@ -1317,9 +1323,24 @@ def _translate_body(body: str) -> str:
     # routed through the `cs_target in _declared_vars` path — emit as
     # bare reassignments, and the symbol is in scope at the outer-indent
     # usage.
-    for hname, hfirst_rhs in hoist_candidates.items():
+    for hname, hfirst_rhs in list(hoist_candidates.items()):
         hcs_name = snake_to_camel(hname)
-        hcs_type = _infer_expression_type(hfirst_rhs) or "object"
+        # Params are already in scope and seeded by the PV-4 fix — skip
+        # emitting a hoisted declaration for them (it would redeclare the
+        # parameter).  The seed stays put so in-body assignments still
+        # emit bare reassignments.
+        if hcs_name in _current_method_params:
+            continue
+        hcs_type = _infer_expression_type(hfirst_rhs)
+        # `var x = default;` is CS0818 — `default` on its own has no
+        # inferrable type.  When we can't concretely type the RHS, skip
+        # hoisting for that name (fall back to per-branch declarations —
+        # PV-1 pattern).  Remove from the seed set too so in-branch
+        # assignments still emit `var` declarations.
+        if not hcs_type or hcs_type == "var":
+            _declared_vars.pop(hcs_name, None)
+            hoist_candidates.pop(hname, None)
+            continue
         entries.append((0, f"{hcs_type} {hcs_name} = default;"))
 
     strip_block_indent: int | None = None  # When set, skip lines deeper than this
