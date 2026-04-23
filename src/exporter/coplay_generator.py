@@ -446,6 +446,48 @@ def generate_scene_script(
                     lines.append(f"                so.ApplyModifiedProperties();")
                     lines.append(f"            }}")
                     lines.append(f"        }}")
+                elif isinstance(field_val, dict) and field_val.get("_type") == "MonoBehaviourRef":
+                    # Pacman V2 pattern: `GameManager.pacman = pacman_component`.
+                    # Resolve by looking up the component on the target
+                    # GameObject — safer than matching by reference equality
+                    # across scene setups.
+                    ref_name = field_val.get("ref", "")
+                    ref_ctype = field_val.get("component_type", "")
+                    cs_field = _to_camel_case(field_name)
+                    ref_var = _safe_var_name(ref_name)
+                    lines.append(f"        {{")
+                    lines.append(f"            var so = new SerializedObject({var}.GetComponent<{ns_prefix}{ctype}>());")
+                    lines.append(f"            var prop = so.FindProperty(\"{cs_field}\");")
+                    lines.append(f"            if (prop != null && {ref_var} != null)")
+                    lines.append(f"            {{")
+                    lines.append(f"                prop.objectReferenceValue = {ref_var}.GetComponent<{ns_prefix}{ref_ctype}>();")
+                    lines.append(f"                so.ApplyModifiedProperties();")
+                    lines.append(f"            }}")
+                    lines.append(f"        }}")
+                elif isinstance(field_val, dict) and field_val.get("_type") == "MonoBehaviourRefArray":
+                    # Pacman V2 pattern: `GameManager.ghosts: list[Ghost]`
+                    # holds refs to Ghost components on separate GameObjects.
+                    # Without this wiring the list is empty at runtime and
+                    # ResetState() has nothing to iterate — ghosts never move.
+                    refs = field_val.get("refs", [])
+                    ref_ctype = field_val.get("component_type", "")
+                    cs_field = _to_camel_case(field_name)
+                    lines.append(f"        {{")
+                    lines.append(f"            var so = new SerializedObject({var}.GetComponent<{ns_prefix}{ctype}>());")
+                    lines.append(f"            var prop = so.FindProperty(\"{cs_field}\");")
+                    lines.append(f"            if (prop != null)")
+                    lines.append(f"            {{")
+                    lines.append(f"                prop.arraySize = {len(refs)};")
+                    for i, ref_go_name in enumerate(refs):
+                        ref_var = _safe_var_name(ref_go_name)
+                        lines.append(
+                            f"                if ({ref_var} != null) "
+                            f"prop.GetArrayElementAtIndex({i}).objectReferenceValue "
+                            f"= {ref_var}.GetComponent<{ns_prefix}{ref_ctype}>();"
+                        )
+                    lines.append(f"                so.ApplyModifiedProperties();")
+                    lines.append(f"            }}")
+                    lines.append(f"        }}")
                 elif isinstance(field_val, dict) and field_val.get("_type") == "SpriteArrayRef":
                     # Gap 6 (data/lessons/flappy_bird_deploy.md): list-of-
                     # asset-names fields become sprite-array SerializeFields,

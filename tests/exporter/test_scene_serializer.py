@@ -203,6 +203,57 @@ class TestTranslatedClassRegistryFilter:
         # `stuff` is skipped entirely — not a SpriteArrayRef, not a scalar.
         assert fields.get("stuff") != {"_type": "SpriteArrayRef", "refs": ["a", 1, "b"]}
 
+    def test_monobehaviour_list_field_emits_ref_array(self):
+        """Pacman V2 GameManager pattern: `self.ghosts: list[Ghost]` holds
+        references to Ghost components attached to other GameObjects in the
+        scene.  The serializer must emit a `MonoBehaviourRefArray` entry
+        so the CoPlay generator can wire the list via SerializedObject at
+        scene-setup time.  Without this, GameManager.ghosts is an empty
+        list at runtime and nothing moves."""
+        class Enemy(MonoBehaviour):
+            pass
+
+        class Boss(MonoBehaviour):
+            def __init__(self):
+                super().__init__()
+                self.enemies = []
+
+        e1_go = GameObject("Enemy1")
+        e1 = e1_go.add_component(Enemy)
+        e2_go = GameObject("Enemy2")
+        e2 = e2_go.add_component(Enemy)
+
+        boss_go = GameObject("Boss")
+        boss = boss_go.add_component(Boss)
+        boss.enemies = [e1, e2]
+
+        data = serialize_scene()
+        boss_obj = next(g for g in data["game_objects"] if g["name"] == "Boss")
+        boss_comp = next(c for c in boss_obj["components"] if c.get("type") == "Boss")
+        enemies_field = boss_comp["fields"]["enemies"]
+        assert enemies_field["_type"] == "MonoBehaviourRefArray"
+        assert enemies_field["component_type"] == "Enemy"
+        # refs list GameObject names in order so CoPlay can look up GetComponent<T>() on each.
+        assert enemies_field["refs"] == ["Enemy1", "Enemy2"]
+
+    def test_underscore_private_field_is_serialized(self):
+        """Python-convention `_foo` fields translate to `[SerializeField]
+        private` in C# — the scene serializer must include them so the
+        Inspector wiring survives, otherwise GameManager._all_pellets
+        stays empty and the game doesn't work."""
+        class Holder(MonoBehaviour):
+            def __init__(self):
+                super().__init__()
+                self._count = 7
+
+        go = GameObject("H")
+        go.add_component(Holder)
+        data = serialize_scene()
+        holder_comp = next(c for c in data["game_objects"][0]["components"] if c.get("type") == "Holder")
+        # The Python field name survives — the translator/CoPlay pass handles
+        # `_count` → `count` camelCasing; what matters is the VALUE is captured.
+        assert 7 in holder_comp["fields"].values() or holder_comp["fields"].get("_count") == 7 or holder_comp["fields"].get("count") == 7
+
     def test_engine_components_never_filtered(self):
         """Transform, SpriteRenderer, Rigidbody2D, colliders, Camera, etc. are
         engine primitives, not user classes.  They must pass through the

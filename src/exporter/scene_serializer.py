@@ -133,9 +133,11 @@ def _serialize_component(
             "is_monobehaviour": True,
             "fields": {},
         }
-        # Capture public fields that aren't private/internal
+        # Capture fields — Python convention `_foo` becomes C# `[SerializeField]
+        # private foo` (inspector-wired), so we include underscored fields too.
+        # Still skip dunders (`__dict__`, `__class__`, etc.).
         for attr_name in dir(comp):
-            if attr_name.startswith("_"):
+            if attr_name.startswith("__"):
                 continue
             if callable(getattr(type(comp), attr_name, None)):
                 continue
@@ -152,8 +154,35 @@ def _serialize_component(
                 data["fields"][attr_name] = {"_type": "Vector3", "value": _vec3_to_list(val)}
             elif isinstance(val, GameObject):
                 data["fields"][attr_name] = {"_type": "GameObjectRef", "name": val.name}
+            elif isinstance(val, MonoBehaviour):
+                # Single MonoBehaviour reference — resolve via its GameObject
+                # and the concrete class name.
+                go_name = val.game_object.name if val.game_object else None
+                if go_name:
+                    data["fields"][attr_name] = {
+                        "_type": "MonoBehaviourRef",
+                        "component_type": type(val).__name__,
+                        "ref": go_name,
+                    }
             elif val is None:
                 data["fields"][attr_name] = None
+            elif (isinstance(val, list) and val
+                  and all(isinstance(x, MonoBehaviour) and x.game_object for x in val)):
+                # GameManager.ghosts pattern: `list[Ghost]` holds refs to
+                # component instances on other GameObjects in the scene.
+                # Emit a MonoBehaviourRefArray so CoPlay can populate the
+                # SerializedObject list via GetComponent<T>() on each named
+                # GameObject.  Without this, the list stays empty at runtime.
+                component_types = {type(x).__name__ for x in val}
+                # Pick the most-derived shared type if mixed — for homogeneous
+                # lists there's only one.  Heterogeneous Ghost/Pellet would
+                # need per-element typing; not needed for Pacman V2.
+                ctype = next(iter(component_types)) if len(component_types) == 1 else type(val[0]).__name__
+                data["fields"][attr_name] = {
+                    "_type": "MonoBehaviourRefArray",
+                    "component_type": ctype,
+                    "refs": [x.game_object.name for x in val],
+                }
             elif (isinstance(val, list) and val
                   and all(isinstance(x, str) for x in val)):
                 # Gap 6 pattern: list of asset-ref strings → Sprite-array
