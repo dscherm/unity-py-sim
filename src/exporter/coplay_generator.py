@@ -122,6 +122,13 @@ def generate_scene_script(
     lines.append("using UnityEngine;")
     lines.append("using UnityEditor;")
     lines.append("using System.Linq;")
+    # When the translated MonoBehaviours live in a namespace (the default
+    # — e.g. `PacmanV2`), the Editor setup script needs `using <ns>;` so
+    # bare class names like `Movement`, `Node`, `AnimatedSprite` resolve.
+    # Without this, every `GetComponent<Movement>()` / `AddComponent<Node>()`
+    # in the generated script fires CS0246.
+    if namespace:
+        lines.append(f"using {namespace};")
     lines.append("")
     lines.append("public class GeneratedSceneSetup")
     lines.append("{")
@@ -689,6 +696,8 @@ def generate_validation_script(
     lines.append("using System.Collections.Generic;")
     lines.append("using System.Linq;")
     lines.append("using System.Text;")
+    if namespace:
+        lines.append(f"using {namespace};")
     lines.append("")
     lines.append("public class GeneratedSceneValidation")
     lines.append("{")
