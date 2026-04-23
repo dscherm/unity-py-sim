@@ -150,16 +150,21 @@ def translate(
             _class_field_order[cls.name] = ordered
 
     # Pre-pass: collect bool, array, and dict fields from ALL classes for truthiness/length/membership checks
-    global _bool_fields, _array_fields, _dict_fields
+    global _bool_fields, _array_fields, _dict_fields, _cross_class_bool_fields
     _bool_fields = set()
     _array_fields = set()
     _dict_fields = set()
+    _cross_class_bool_fields = set()
     for cls in parsed.classes:
         for f in cls.fields:
             ann = (f.type_annotation or "").strip()
             cs_name = f.name if f.name.isupper() else snake_to_camel(f.name)
             if ann == "bool" or f.default_value in ("True", "False"):
                 _bool_fields.add(cs_name)
+                # Also cache on the cross-class set so per-class translation
+                # resets don't lose it — needed to classify `other.eaten`
+                # in Ghost when `eaten: bool` lives on GhostFrightened.
+                _cross_class_bool_fields.add(cs_name)
             if "list[" in ann or "[]" in ann:
                 _array_fields.add(cs_name)
             if "dict[" in ann or ann.startswith("Dict[") or ann.startswith("Dictionary<"):
@@ -531,6 +536,17 @@ _array_fields: set[str] = set()  # C# names of fields with array types (use .Len
 _dict_fields: set[str] = set()  # C# names of fields with dict types (use .ContainsKey not .Contains)
 _prefab_fields: set[str] = set()  # Prefab fields discovered from Instantiate() calls
 _enum_values: dict[str, str] = {}  # "EnumType.UPPER_SNAKE" -> "EnumType.PascalCase"
+_cross_class_bool_fields: set[str] = set()  # Bool field names across ALL classes in the translation unit — survives the per-class _bool_fields reset so `other.bool_field` can be correctly translated.
+_project_bool_fields: set[str] = set()  # Bool field names across ALL files in the project — seeded by project_translator before per-file translate() calls.
+
+
+def set_project_bool_fields(names: set[str]) -> None:
+    """Seed the project-wide bool field cache.  Called by project_translator
+    after a cross-file pre-scan so that `other_class_ref.bool_field` in one
+    file is correctly typed when `bool_field` was declared in another file.
+    Cleared by passing an empty set."""
+    global _project_bool_fields
+    _project_bool_fields = set(names)
 
 
 def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
@@ -2643,7 +2659,11 @@ def _translate_py_condition(cond: str) -> str:
             ident = part.strip()
             # Check if it's a known bool field or ends with a bool property
             last_prop = ident.rsplit(".", 1)[-1] if "." in ident else ident
-            if ident in _bool_fields or last_prop in _BOOL_PROPERTIES or last_prop in _bool_fields:
+            if (ident in _bool_fields
+                    or last_prop in _BOOL_PROPERTIES
+                    or last_prop in _bool_fields
+                    or last_prop in _cross_class_bool_fields
+                    or last_prop in _project_bool_fields):
                 fixed_parts.append(ident)
             else:
                 fixed_parts.append(f"{ident} != null")
@@ -2653,7 +2673,11 @@ def _translate_py_condition(cond: str) -> str:
             if neg_match:
                 ident = neg_match.group(1)
                 last_prop = ident.rsplit(".", 1)[-1] if "." in ident else ident
-                if ident in _bool_fields or last_prop in _BOOL_PROPERTIES or last_prop in _bool_fields:
+                if (ident in _bool_fields
+                        or last_prop in _BOOL_PROPERTIES
+                        or last_prop in _bool_fields
+                        or last_prop in _cross_class_bool_fields
+                        or last_prop in _project_bool_fields):
                     fixed_parts.append(f"!{ident}")
                 else:
                     fixed_parts.append(f"{ident} == null")

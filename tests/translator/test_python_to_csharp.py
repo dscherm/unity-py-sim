@@ -715,6 +715,26 @@ class TestBoolConditionTruthiness:
         assert "if (changingAxis != null)" not in result
         assert "if (changingAxis)" in result
 
+    def test_not_cross_class_bool_field_reference(self):
+        """`not other.bool_field` where `bool_field` is a bool on another
+        class in the same translation unit must emit `!other.field`, not
+        `other.field == null`.  Without cross-class field-type tracking,
+        Ghost.cs generated `frightened.eaten == null` where `eaten: bool`
+        is a field on GhostFrightened."""
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Other(MonoBehaviour):\n"
+            "    eaten: bool = False\n"
+            "class Main(MonoBehaviour):\n"
+            "    other: Other = None\n"
+            "    def check(self):\n"
+            "        if self.other and not self.other.eaten:\n"
+            "            self.action()\n"
+        )
+        result = translate(parsed)
+        assert "other.eaten == null" not in result
+        assert "!other.eaten" in result or "other.eaten == false" in result
+
     def test_multiline_bool_local_detected(self):
         """RHS spanning multiple physical lines must still be recognised
         as a boolean expression.  This is the exact Movement.set_direction

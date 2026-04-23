@@ -60,6 +60,25 @@ def translate_project(
     # Phase 3.5: Build global function registry (function → source class name)
     global_functions = _build_global_function_registry(parsed_files)
 
+    # Phase 3.6: Detect singleton classes (S2-3) — classes with `ClassName.instance = self`
+    singletons = _detect_singleton_classes(py_files)
+
+    # Phase 3.7: Collect bool field names across ALL files so the condition
+    # translator can classify `other.bool_field` correctly when `other`'s
+    # class lives in a different file.  Without this, Ghost.OnCollisionEnter2D
+    # emitted `frightened.eaten == null` — `eaten: bool` is declared on
+    # GhostFrightened in a separate file.
+    from .python_to_csharp import set_project_bool_fields
+    project_bool_fields: set[str] = set()
+    for parsed in parsed_files.values():
+        for cls in parsed.classes:
+            for f in cls.fields:
+                ann = (f.type_annotation or "").strip()
+                cs_name = f.name if f.name.isupper() else snake_to_camel(f.name)
+                if ann == "bool" or f.default_value in ("True", "False"):
+                    project_bool_fields.add(cs_name)
+    set_project_bool_fields(project_bool_fields)
+
     # Phase 4: Translate each file with global awareness
     results = {}
     for py_name, parsed in parsed_files.items():
@@ -85,7 +104,12 @@ def translate_project(
                                 local_functions=local_functions)
 
         # Semantic post-processing: strip simulator artifacts, fix Unity patterns
-        cs_code = semantic_transform(cs_code)
+        current_classes = {cls.name for cls in parsed.classes}
+        cs_code = semantic_transform(
+            cs_code,
+            singletons=singletons,
+            current_classes=current_classes,
+        )
 
         results[cs_name] = cs_code
 
@@ -172,6 +196,62 @@ def _build_global_function_registry(parsed_files: dict[str, PyFile]) -> dict[str
     return registry
 
 
+def _detect_singleton_classes(py_files: list[Path]) -> set[str]:
+    """Detect classes that assign themselves to a class-level ``instance`` attribute.
+
+    A class is a singleton if its source contains one of (anywhere inside a class body):
+      - ``ClassName.instance = self``
+      - ``self.__class__.instance = self``
+      - ``cls.instance = self`` (inside a classmethod)
+
+    Used by ``semantic_layer.rewrite_singleton_access`` (task S2-3) to inject
+    ``[SerializeField] private ClassName classNameCamel;`` into consumer classes
+    and rewrite ``ClassName.Instance.X`` → ``classNameCamel.X``.
+
+    Operates on the raw Python source because ``__init__`` body is not retained
+    on the IR as a method (it's only used to extract instance fields).
+    """
+    import ast
+    singletons: set[str] = set()
+    for py_file in py_files:
+        try:
+            tree = ast.parse(py_file.read_text(encoding="utf-8"))
+        except (SyntaxError, OSError):
+            continue
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.ClassDef):
+                continue
+            cls_name = node.name
+            for sub in ast.walk(node):
+                if not isinstance(sub, ast.Assign):
+                    continue
+                # Must assign from `self`
+                if not (isinstance(sub.value, ast.Name) and sub.value.id == "self"):
+                    continue
+                for target in sub.targets:
+                    if not isinstance(target, ast.Attribute):
+                        continue
+                    if target.attr != "instance":
+                        continue
+                    base = target.value
+                    # ClassName.instance = self
+                    if isinstance(base, ast.Name) and base.id == cls_name:
+                        singletons.add(cls_name)
+                        break
+                    # cls.instance = self
+                    if isinstance(base, ast.Name) and base.id == "cls":
+                        singletons.add(cls_name)
+                        break
+                    # self.__class__.instance = self
+                    if (isinstance(base, ast.Attribute)
+                            and base.attr == "__class__"
+                            and isinstance(base.value, ast.Name)
+                            and base.value.id == "self"):
+                        singletons.add(cls_name)
+                        break
+    return singletons
+
+
 def _collect_local_functions(parsed: PyFile) -> set[str]:
     """Collect PascalCase names of all functions/methods defined in this file."""
     local: set[str] = set()
@@ -242,11 +322,15 @@ def _post_process(
     # Inject cross-file constants that are referenced but not defined in this class
     const_lines = []
     for const_name, const_value in global_constants.items():
-        # Only inject if referenced in the code and not already declared as a field/const
-        already_declared = (f"const int {const_name}" in cs_code or
-                           f"const float {const_name}" in cs_code or
-                           f"static int {const_name}" in cs_code or
-                           f"static float {const_name}" in cs_code)
+        # Only inject if referenced in the code and not already declared as a field/const.
+        # S10-2 + S11-4: Recognise any prior declaration but require the name to be
+        # the declaration TARGET (before the `=`), so `x = CONST_NAME;` doesn't
+        # falsely count as a declaration of `CONST_NAME`.
+        declared_pattern = (
+            rf'(?:const|static|readonly|private|public|protected)\b'
+            rf'(?:[^=\n]*?)\b{re.escape(const_name)}\s*[=;]'
+        )
+        already_declared = bool(re.search(declared_pattern, cs_code))
         if const_name in cs_code and not already_declared:
             # Infer type from value
             v = const_value.strip()
