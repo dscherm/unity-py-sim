@@ -175,11 +175,16 @@ class TestCSharpFilePlacement:
         scripts = tmp_path / "Assets" / "_Project" / "Scripts"
         assert not (scripts / "_required_packages.json").exists()
 
-    def test_only_cs_files_in_scripts_dir(self, tmp_path, sample_cs_files):
+    def test_only_cs_and_meta_files_in_scripts_dir(self, tmp_path, sample_cs_files):
+        """Scripts dir must contain only .cs (sources) and .meta (Unity script
+        metadata, deterministic GUIDs — see flappy_bird_deploy.md gap 7).
+        No other file types should leak in."""
         scaffold_project("breakout", tmp_path, cs_files=sample_cs_files)
         scripts = tmp_path / "Assets" / "_Project" / "Scripts"
         for f in scripts.iterdir():
-            assert f.suffix == ".cs", f"Non-.cs file found in Scripts: {f.name}"
+            assert f.suffix in (".cs", ".meta"), (
+                f"Unexpected file in Scripts: {f.name}"
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -265,3 +270,57 @@ class TestAutoStartFixture:
         scaffold_project("test", tmp_path, cs_files=minimal)
         autostart = tmp_path / "Assets" / "_Project" / "Scripts" / "AutoStart.cs"
         assert autostart.is_file()
+
+
+class TestScriptMetaDeterministicGuid:
+    """Gap 7 (data/lessons/flappy_bird_deploy.md): each .cs file must ship
+    with a .cs.meta whose GUID matches the prefab_generator's m_Script
+    reference scheme — `_deterministic_guid(f"script:{class_name}")`.
+
+    Without this, Unity assigns a random GUID to each .cs on first import
+    and the prefab's MonoBehaviour refs are dangling.  Symptom: spawned
+    Pipes clones had no Pipes component attached, Update() never ran,
+    pipes sat frozen at the spawn position.
+    """
+
+    def test_cs_meta_files_written(self, tmp_path, sample_cs_files):
+        scaffold_project("test", tmp_path, cs_files=sample_cs_files)
+        scripts = tmp_path / "Assets" / "_Project" / "Scripts"
+        assert (scripts / "GameManager.cs.meta").is_file()
+        assert (scripts / "PlayerController.cs.meta").is_file()
+
+    def test_cs_meta_guid_matches_deterministic_scheme(self, tmp_path, sample_cs_files):
+        """The .meta guid must equal prefab_generator's script:<class> GUID."""
+        from src.exporter.prefab_generator import _deterministic_guid
+        scaffold_project("test", tmp_path, cs_files=sample_cs_files)
+        content = (tmp_path / "Assets" / "_Project" / "Scripts" / "GameManager.cs.meta").read_text(encoding="utf-8")
+        expected = _deterministic_guid("script:GameManager")
+        assert f"guid: {expected}" in content
+
+    def test_prefab_monobehaviour_ref_resolves_to_same_guid(self, tmp_path, sample_cs_files):
+        """Prefab m_Script guid must equal the scaffolded .cs.meta guid for
+        the same class name — else Unity can't bind the script on import."""
+        from src.exporter.prefab_generator import (
+            _deterministic_guid,
+            generate_prefab_yaml,
+        )
+        scaffold_project("test", tmp_path, cs_files=sample_cs_files)
+        meta = (tmp_path / "Assets" / "_Project" / "Scripts" / "GameManager.cs.meta").read_text(encoding="utf-8")
+        prefab = generate_prefab_yaml("GameManager", ["GameManager"])
+        # Extract the guid from the meta; assert prefab m_Script uses it.
+        for line in meta.splitlines():
+            if line.startswith("guid: "):
+                meta_guid = line.split("guid: ", 1)[1].strip()
+                break
+        else:
+            raise AssertionError("Meta file has no guid: line")
+        assert f"m_Script: {{fileID: 11500000, guid: {meta_guid}, type: 3}}" in prefab
+        # Sanity: scheme matches both sides.
+        assert meta_guid == _deterministic_guid("script:GameManager")
+
+    def test_meta_is_mono_importer(self, tmp_path, sample_cs_files):
+        """Unity expects MonoImporter block (not GenericImporter) for .cs."""
+        scaffold_project("test", tmp_path, cs_files=sample_cs_files)
+        content = (tmp_path / "Assets" / "_Project" / "Scripts" / "GameManager.cs.meta").read_text(encoding="utf-8")
+        assert "MonoImporter:" in content
+        assert "fileFormatVersion: 2" in content

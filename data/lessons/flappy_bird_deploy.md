@@ -157,16 +157,69 @@ need a new `_type: "SpriteArrayRef"` with asset paths; generator emits the
 `AssetDatabase.LoadAssetAtPath<Sprite>` + array fill pattern that
 `WireBirdSprites.cs` demonstrates.
 
+## Gap 7 — Script .cs.meta GUIDs drift from prefab m_Script refs
+
+Discovered during the second playtest session while diagnosing "pipes
+not moving toward the bird."
+
+**Symptom:** Spawner.Spawn() successfully called `Instantiate(prefab)` —
+the resulting `Pipes(Clone)` appeared in the hierarchy with its
+Top/Bottom/Scoring children — but the clone's root had ONLY a Transform.
+The Pipes MonoBehaviour component was missing.  Since Pipes.Update() is
+what scrolls the pipe left, every spawn just stacked at the Spawner's
+x=8 position forever.  The user saw "the game just keeps adding pipes
+to the right side of the screen."
+
+**Root cause:** GUID drift between the scaffolder's prefab output and
+Unity's .cs.meta files:
+
+- `Pipes.prefab` m_Script referenced guid `cf73fc57bf8b3384fb060c245c743cab`
+  (deterministic from SHA-256 of class name via prefab_generator).
+- `Pipes.cs.meta` GUID was `440c45d30e28a1c41bcd8a846a521a22` (random,
+  assigned by Unity on first import because the scaffolder didn't write
+  `.cs.meta` files — Unity auto-generated them with fresh GUIDs).
+
+Unity couldn't resolve the MonoBehaviour reference when loading the
+prefab → silently dropped the component → Instantiate produced a
+scriptless shell.
+
+**Fix applied in-editor:** `sed`-equivalent patch to `Pipes.prefab` line
+262 — swap the prefab's m_Script guid to match the real .cs.meta guid.
+Verified via an editor script `RefreshAndInspect.cs`:
+```
+Pipes.prefab root now has script: Pipes
+```
+
+**Upstream fix (SHIPPED this session):**
+- `src/exporter/project_scaffolder.py:_write_cs_meta()` now writes a
+  `.cs.meta` beside each scaffolded `.cs`, using
+  `_deterministic_guid(f"script:{class_name}")` from prefab_generator.
+  Unity honors pre-existing `.meta` files, so the deterministic GUID
+  wins over the random one Unity would have generated.
+- `src/exporter/prefab_generator.py` MonoBehaviour stub emission now
+  writes `m_Script: {fileID: 11500000, guid: <same_deterministic_guid>,
+  type: 3}` instead of `fileID: 0` (null script).
+- Both sides compute identical GUIDs → prefab resolves the script on
+  first project import → Instantiate yields a clone with all its
+  MonoBehaviours attached → Update() runs → pipes scroll.
+
+Tests: 4 new cases in
+`tests/exporter/test_scaffolder.py::TestScriptMetaDeterministicGuid`
+plus an updated assertion in
+`tests/exporter/test_prefab_generator.py::test_monobehaviour_for_custom_component`
+confirming the GUID round-trip.
+
 ## Summary of upstream work
 
 | # | Gap | Severity | Status |
 |---|---|---|---|
-| 1 | No path to un-pause (UI Play button onClick not wired) | P0 (blocks gameplay) | open — workaround: AutoStart fixture |
+| 1 | No path to un-pause (UI Play button onClick not wired) | P0 | **SHIPPED** — AutoStart fixture |
 | 2 | Stale manual patches in Player.cs / GameManager.cs (singleton → SerializeField) | P0 | open — regenerate discards the patches |
-| 3 | Prefab-asset references for SerializeField GameObject fields | P0 (blocks spawning) | **SHIPPED this session** — coplay_generator.py + 4 regression tests |
-| 4 | SpriteRenderer Tiled drawMode for wide-viewport sprites | P1 (visual) | open |
+| 3 | Prefab-asset references for SerializeField GameObject fields | P0 (blocks spawning) | **SHIPPED** — coplay_generator.py + 4 regression tests |
+| 4 | SpriteRenderer Tiled drawMode for wide-viewport sprites | P1 (visual) | **SHIPPED** — Parallax-component heuristic |
 | 5 | Game-view aspect preset for portrait games | P2 (cosmetic) | open |
 | 6 | Sprite-asset list SerializeField wiring | P1 (animation) | open |
+| 7 | Deterministic .cs.meta GUIDs matching prefab m_Script refs | P0 (prevents script binding) | **SHIPPED** — this session |
 
 ## Commands used in this session (for reproducibility)
 

@@ -100,7 +100,13 @@ def scaffold_project(
     for rel_dir in _PROJECT_DIRS:
         (output_dir / rel_dir).mkdir(parents=True, exist_ok=True)
 
-    # 2. Write C# files to Scripts directory
+    # 2. Write C# files to Scripts directory.  Each file also gets a .cs.meta
+    # with a deterministic GUID (flappy_bird_deploy.md gap 7) so the prefab
+    # generator's m_Script references — which use the same SHA-256 scheme —
+    # resolve correctly on first project import.  Without this, Unity
+    # assigns random GUIDs to each .cs on first import, the prefabs'
+    # MonoBehaviour refs become dangling, and spawned clones have no
+    # attached script (Update() never runs, pipes don't move, etc.).
     scripts_dir = output_dir / "Assets" / "_Project" / "Scripts"
     for filename, content in cs_files.items():
         if filename in _EXCLUDED_FILES:
@@ -108,6 +114,8 @@ def scaffold_project(
         if not filename.endswith(".cs"):
             continue
         (scripts_dir / filename).write_text(content, encoding="utf-8")
+        class_name = filename[:-3]  # strip `.cs`
+        _write_cs_meta(scripts_dir / f"{filename}.meta", class_name)
 
     # 3. Generate Packages/manifest.json
     _write_manifest(output_dir, cs_files, required_packages)
@@ -150,6 +158,31 @@ def scaffold_project(
     _write_autostart(output_dir)
 
     return output_dir
+
+
+def _write_cs_meta(meta_path: Path, class_name: str) -> None:
+    """Write a .cs.meta next to a scaffolded .cs file.
+
+    Uses the same deterministic GUID scheme (`script:<class>`) that
+    `prefab_generator._deterministic_guid` uses when emitting m_Script
+    references, so prefab MonoBehaviour bindings resolve on first import.
+    """
+    from src.exporter.prefab_generator import _deterministic_guid
+    guid = _deterministic_guid(f"script:{class_name}")
+    meta_path.write_text(
+        "fileFormatVersion: 2\n"
+        f"guid: {guid}\n"
+        "MonoImporter:\n"
+        "  externalObjects: {}\n"
+        "  serializedVersion: 2\n"
+        "  defaultReferences: []\n"
+        "  executionOrder: 0\n"
+        "  icon: {instanceID: 0}\n"
+        "  userData: \n"
+        "  assetBundleName: \n"
+        "  assetBundleVariant: \n",
+        encoding="utf-8",
+    )
 
 
 def _write_autostart(output_dir: Path) -> None:

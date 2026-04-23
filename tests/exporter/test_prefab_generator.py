@@ -87,9 +87,17 @@ class TestPrefabYaml:
         assert "m_PlayOnAwake: 0" in yaml
 
     def test_monobehaviour_for_custom_component(self):
+        """MonoBehaviour stubs must reference the script asset via the
+        deterministic GUID scheme the scaffolder uses when writing
+        .cs.meta.  Null refs (`m_Script: {fileID: 0}`) cause Unity to
+        drop the component on Instantiate — see flappy_bird_deploy.md
+        gap 7 (Pipes clone had no Pipes script, Update() never ran,
+        pipes never scrolled)."""
+        from src.exporter.prefab_generator import _deterministic_guid
         yaml = generate_prefab_yaml("Brick", ["Brick"])
         assert "MonoBehaviour:" in yaml
-        assert "m_Script: {fileID: 0}" in yaml
+        expected_guid = _deterministic_guid("script:Brick")
+        assert f"m_Script: {{fileID: 11500000, guid: {expected_guid}, type: 3}}" in yaml
         assert "m_Name: Brick" in yaml
 
     def test_component_refs_in_gameobject(self):

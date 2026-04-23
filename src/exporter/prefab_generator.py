@@ -117,13 +117,21 @@ def generate_prefab_yaml(class_name: str, components: list[str]) -> str:
         lines.append(f"--- !u!{class_id} &{comp_id}")
 
         if class_id == _MONOBEHAVIOUR_CLASS_ID:
-            # MonoBehaviour stub — script reference will be empty (wired by Unity)
+            # MonoBehaviour stub — wire the script reference via the same
+            # deterministic GUID scheme the scaffolder uses when writing
+            # `Assets/_Project/Scripts/<comp_name>.cs.meta` (see
+            # project_scaffolder._write_cs_meta).  Both sides compute
+            # `_deterministic_guid(f"script:{comp_name}")`, so Unity resolves
+            # the binding on first import without hitting the random-GUID
+            # drift that broke Flappy Bird Pipes instantiation
+            # (flappy_bird_deploy.md gap 7).
+            script_guid = _deterministic_guid(f"script:{comp_name}")
             lines.append("MonoBehaviour:")
             lines.append("  m_ObjectHideFlags: 0")
             lines.append(f"  m_GameObject: {{fileID: {go_id}}}")
             lines.append("  m_Enabled: 1")
             lines.append("  m_EditorHideFlags: 0")
-            lines.append("  m_Script: {fileID: 0}")
+            lines.append(f"  m_Script: {{fileID: 11500000, guid: {script_guid}, type: 3}}")
             lines.append(f"  m_Name: {comp_name}")
         elif comp_name == "SpriteRenderer":
             lines.append("SpriteRenderer:")
