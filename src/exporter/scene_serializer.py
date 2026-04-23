@@ -154,6 +154,16 @@ def _serialize_component(
                 data["fields"][attr_name] = {"_type": "GameObjectRef", "name": val.name}
             elif val is None:
                 data["fields"][attr_name] = None
+            elif (isinstance(val, list) and val
+                  and all(isinstance(x, str) for x in val)):
+                # Gap 6 pattern: list of asset-ref strings → Sprite-array
+                # SerializeField.  Downstream CoPlay generator resolves each
+                # string against sprite_mappings and wires via AssetDatabase.
+                # See data/lessons/flappy_bird_deploy.md gap 6.
+                data["fields"][attr_name] = {
+                    "_type": "SpriteArrayRef",
+                    "refs": list(val),
+                }
         return data
 
     return None

@@ -156,6 +156,53 @@ class TestTranslatedClassRegistryFilter:
         # MonoBehaviours are subject to the registry filter.
         assert "Transform" in comp_types
 
+    def test_string_list_field_emits_sprite_array_ref(self):
+        """Gap 6: a list of asset-ref strings on a MonoBehaviour field becomes
+        a SpriteArrayRef in the scene JSON so the CoPlay generator can wire
+        it as a Unity sprite-array SerializeField."""
+        class BirdAnim(MonoBehaviour):
+            def __init__(self):
+                super().__init__()
+                self.sprites = ["bird_01", "bird_02", "bird_03"]
+
+        go = GameObject("Bird")
+        go.add_component(BirdAnim)
+
+        data = serialize_scene()
+        obj = next(g for g in data["game_objects"] if g["name"] == "Bird")
+        bird_anim = next(c for c in obj["components"] if c.get("type") == "BirdAnim")
+        sprites_field = bird_anim["fields"]["sprites"]
+        assert sprites_field["_type"] == "SpriteArrayRef"
+        assert sprites_field["refs"] == ["bird_01", "bird_02", "bird_03"]
+
+    def test_empty_list_not_emitted_as_sprite_array(self):
+        """Empty list has no asset-name information; skip serialization rather
+        than emitting a 0-length SpriteArrayRef (easier to spot gaps)."""
+        class EmptyContainer(MonoBehaviour):
+            def __init__(self):
+                super().__init__()
+                self.sprites = []
+
+        go = GameObject("X")
+        go.add_component(EmptyContainer)
+        data = serialize_scene()
+        fields = data["game_objects"][0]["components"][0]["fields"]
+        assert "sprites" not in fields or fields["sprites"] != {"_type": "SpriteArrayRef", "refs": []}
+
+    def test_mixed_list_not_treated_as_sprite_array(self):
+        """Lists mixing strings and non-strings are not sprite arrays."""
+        class MixedBag(MonoBehaviour):
+            def __init__(self):
+                super().__init__()
+                self.stuff = ["a", 1, "b"]
+
+        go = GameObject("M")
+        go.add_component(MixedBag)
+        data = serialize_scene()
+        fields = data["game_objects"][0]["components"][0]["fields"]
+        # `stuff` is skipped entirely — not a SpriteArrayRef, not a scalar.
+        assert fields.get("stuff") != {"_type": "SpriteArrayRef", "refs": ["a", 1, "b"]}
+
     def test_engine_components_never_filtered(self):
         """Transform, SpriteRenderer, Rigidbody2D, colliders, Camera, etc. are
         engine primitives, not user classes.  They must pass through the

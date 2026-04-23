@@ -15,7 +15,10 @@ class Player(MonoBehaviour):
 
     def __init__(self) -> None:
         super().__init__()
-        self.sprites: list = []  # Sprite[]
+        # Sprite[] — strings are asset_refs resolved to Sprite assets by the
+        # CoPlay generator via sprite_mappings.  Gap 6 pattern: list of
+        # asset-name strings becomes a Unity sprite-array SerializeField.
+        self.sprites: list = ["bird_01", "bird_02", "bird_03"]  # Sprite[]
         self.strength: float = 5.0
         self.gravity: float = -9.81
         self.tilt: float = 5.0

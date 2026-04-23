@@ -218,7 +218,7 @@ confirming the GUID round-trip.
 | 3 | Prefab-asset references for SerializeField GameObject fields | P0 (blocks spawning) | **SHIPPED** — coplay_generator.py + 4 regression tests |
 | 4 | SpriteRenderer Tiled drawMode for wide-viewport sprites | P1 (visual) | **SHIPPED** — Parallax-component heuristic |
 | 5 | Game-view aspect preset for portrait games | P2 (cosmetic) | open |
-| 6 | Sprite-asset list SerializeField wiring | P1 (animation) | open |
+| 6 | Sprite-asset list SerializeField wiring | P1 (animation) | **SHIPPED** — scene serializer emits SpriteArrayRef, generator wires via `sprite_<name>` vars |
 | 7 | Deterministic .cs.meta GUIDs matching prefab m_Script refs | P0 (prevents script binding) | **SHIPPED** — this session |
 
 ## Commands used in this session (for reproducibility)

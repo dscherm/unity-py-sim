@@ -428,6 +428,27 @@ def generate_scene_script(
                     lines.append(f"                so.ApplyModifiedProperties();")
                     lines.append(f"            }}")
                     lines.append(f"        }}")
+                elif isinstance(field_val, dict) and field_val.get("_type") == "SpriteArrayRef":
+                    # Gap 6 (data/lessons/flappy_bird_deploy.md): list-of-
+                    # asset-names fields become sprite-array SerializeFields,
+                    # wired via the sprite_<name> variables the header of
+                    # this script already loads from sprite_mappings.  Silently
+                    # skip entries that aren't in the mapping (falls back to
+                    # null slot — matches Unity's default for unassigned
+                    # array elements).
+                    refs = [r for r in field_val.get("refs", []) if r in sprite_mappings]
+                    cs_field = _to_camel_case(field_name)
+                    lines.append(f"        {{")
+                    lines.append(f"            var so = new SerializedObject({var}.GetComponent<{ns_prefix}{ctype}>());")
+                    lines.append(f"            var prop = so.FindProperty(\"{cs_field}\");")
+                    lines.append(f"            if (prop != null)")
+                    lines.append(f"            {{")
+                    lines.append(f"                prop.arraySize = {len(refs)};")
+                    for i, name in enumerate(refs):
+                        lines.append(f"                prop.GetArrayElementAtIndex({i}).objectReferenceValue = sprite_{name};")
+                    lines.append(f"                so.ApplyModifiedProperties();")
+                    lines.append(f"            }}")
+                    lines.append(f"        }}")
 
     # Always attach the AutoStart fixture (flappy_bird_deploy.md gap 1) so
     # any GameManager that starts paused gets un-paused at runtime without a

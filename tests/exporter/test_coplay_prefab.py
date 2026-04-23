@@ -426,6 +426,66 @@ class TestParallaxSpriteTiling:
         result = generate_scene_script(scene)
         assert "SpriteDrawMode.Tiled" not in result
 
+    def test_sprite_array_field_wired_from_sprite_mappings(self):
+        """Gap 6 (data/lessons/flappy_bird_deploy.md): a SpriteArrayRef
+        field is wired via SerializedObject with one entry per asset
+        name, pointing to the `sprite_<name>` variables the header of
+        the generated script loads from sprite_mappings."""
+        player = _go("Player", components=[
+            {"type": "Transform", "position": [-2, 0, 0],
+             "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1]},
+            {"type": "Player", "is_monobehaviour": True,
+             "fields": {
+                 "sprites": {
+                     "_type": "SpriteArrayRef",
+                     "refs": ["bird_01", "bird_02", "bird_03"],
+                 }
+             }},
+        ])
+        scene = _make_scene(player)
+        mapping = {
+            "sprites": {
+                "bird_01": {"unity_path": "Assets/Art/Sprites/Bird_01.png"},
+                "bird_02": {"unity_path": "Assets/Art/Sprites/Bird_02.png"},
+                "bird_03": {"unity_path": "Assets/Art/Sprites/Bird_03.png"},
+            }
+        }
+        result = generate_scene_script(scene, mapping)
+        assert "FindProperty(\"sprites\")" in result
+        assert "prop.arraySize = 3" in result
+        assert "objectReferenceValue = sprite_bird_01" in result
+        assert "objectReferenceValue = sprite_bird_02" in result
+        assert "objectReferenceValue = sprite_bird_03" in result
+
+    def test_sprite_array_skips_entries_not_in_mapping(self):
+        """If some asset names aren't in sprite_mappings, only the known
+        ones are wired — no reference to an undeclared `sprite_foo` var
+        that would produce a compile error."""
+        player = _go("Player", components=[
+            {"type": "Transform", "position": [0, 0, 0],
+             "rotation": [0, 0, 0, 1], "local_scale": [1, 1, 1]},
+            {"type": "Player", "is_monobehaviour": True,
+             "fields": {
+                 "sprites": {
+                     "_type": "SpriteArrayRef",
+                     "refs": ["bird_01", "unknown_asset", "bird_02"],
+                 }
+             }},
+        ])
+        scene = _make_scene(player)
+        mapping = {
+            "sprites": {
+                "bird_01": {"unity_path": "Assets/Art/Sprites/Bird_01.png"},
+                "bird_02": {"unity_path": "Assets/Art/Sprites/Bird_02.png"},
+            }
+        }
+        result = generate_scene_script(scene, mapping)
+        # 2 known entries — arraySize matches only resolvable ones.
+        assert "prop.arraySize = 2" in result
+        assert "sprite_bird_01" in result
+        assert "sprite_bird_02" in result
+        assert "sprite_unknown_asset" not in result
+
     def test_parallax_preserves_sprite_vertical_extent(self):
         """The tiled size keeps the sprite's native height so the vertical
         visual doesn't get stretched — only the width expands to tile."""
