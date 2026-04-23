@@ -452,6 +452,43 @@ class TestCoroutineReturn:
         assert "return;" in result
 
 
+class TestParameterReassignment:
+    """C# forbids a local variable from shadowing a method parameter
+    (CS0136).  Python's flat function scope lets a parameter be reassigned
+    inside the method body — the translator must emit those as bare
+    reassignments, not `var X = ...` declarations.  Regression for
+    data/lessons/pacman_v2_deploy.md gap PV-4 (GhostBehavior.Enable).
+    """
+
+    def test_parameter_reassignment_inside_if_not_redeclared(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    duration: float = 0.0\n"
+            "    def enable(self, duration: float = -1.0) -> None:\n"
+            "        if duration < 0:\n"
+            "            duration = self.duration\n"
+        )
+        result = translate(parsed)
+        # Parameter `duration` must NOT get a fresh `var`/`float`/... declaration.
+        assert "var duration = this.duration" not in result
+        assert "float duration = this.duration" not in result
+        # Bare reassignment is the correct form.
+        assert "duration = this.duration" in result
+
+    def test_parameter_reassignment_at_method_root(self):
+        parsed = parse_python(
+            "from src.engine.core import MonoBehaviour\n"
+            "class Foo(MonoBehaviour):\n"
+            "    def test(self, value: int) -> None:\n"
+            "        value = 5\n"
+        )
+        result = translate(parsed)
+        assert "var value = 5" not in result
+        assert "int value = 5" not in result
+        assert "value = 5" in result
+
+
 class TestLinqTranslation:
     def test_all_generator(self):
         parsed = parse_python(

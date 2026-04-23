@@ -171,7 +171,7 @@ now emit `yield break;` instead of `return;`.  Verified:
 `GhostHome.cs:38` now emits `yield break;`.  Tests:
 `tests/translator/test_python_to_csharp.py::TestCoroutineReturn` (+3).
 
-### PV-4 — Parameter shadowing with enclosing-scope locals
+### PV-4 — Parameter shadowing with enclosing-scope locals ✅ SHIPPED
 `GhostBehavior.cs:19` — `error CS0136: A local or parameter named
 'duration' cannot be declared in this scope because that name is
 used in an enclosing local scope to define a local or parameter`.
@@ -181,6 +181,13 @@ name used elsewhere in the function.  C# forbids a parameter name
 from being reused as a local within the same method.  Translator
 needs to detect parameter-shadowing in method bodies and rename
 either the parameter or the conflicting local.
+
+**Status: ✅ shipped.** `_translate_body` now seeds `_declared_vars`
+with the current method's parameter names at indent 0.  Assignments
+to parameter names inside the body emit bare `X = value;` rather
+than `var X = value;`/`Type X = value;`.  Verified: `GhostBehavior.cs:19`
+now emits `duration = this.duration;`.  Tests:
+`tests/translator/test_python_to_csharp.py::TestParameterReassignment` (+2).
 
 ### PV-5 — String→float conversion unhandled in expression translation
 `GhostChase.cs:38` — `error CS0030: Cannot convert type 'string'

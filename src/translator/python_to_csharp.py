@@ -1149,7 +1149,13 @@ def _translate_body(body: str) -> str:
     # CS0103 (see data/lessons/pacman_v2_deploy.md gap PV-1 /
     # GhostHome.cs's ExitTransition coroutine).
     global _declared_vars, _enumerate_inject, _current_indent
-    _declared_vars = {}
+    # Seed with parameter names at the method-body base indent (0).  In
+    # C#, a local cannot shadow a method parameter (CS0136) — reassigning
+    # a parameter inside the body must emit a bare `X = ...;`, not a
+    # fresh `var X = ...;`.  Fixes data/lessons/pacman_v2_deploy.md gap
+    # PV-4 (GhostBehavior.Enable reassigns the `duration` parameter
+    # inside a sibling if-block).
+    _declared_vars = {name: 0 for name in _current_method_params}
     _enumerate_inject = None
     _current_indent = 0
 
