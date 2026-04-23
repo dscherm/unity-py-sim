@@ -9,10 +9,11 @@ public class Player : MonoBehaviour
     public float tilt = 5.0f;
     public Vector3 direction = new Vector3(0, 0, 0);
     public int spriteIndex = 0;
-    public List<Sprite> sprites;
+    [SerializeField] private Sprite[] sprites = ['bird_01', 'bird_02', 'bird_03'];
     [SerializeField] private SpriteRenderer spriteRenderer;
      void Awake()
     {
+        if (gameManager == null) gameManager = GameManager.Instance;
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
      void Start()
@@ -41,11 +42,11 @@ public class Player : MonoBehaviour
     public void AnimateSprite()
     {
         spriteIndex += 1;
-        if (spriteIndex >= sprites.Count)
+        if (spriteIndex >= sprites.Length)
         {
             spriteIndex = 0;
         }
-        if (spriteIndex < sprites.Count && spriteIndex >= 0)
+        if (spriteIndex < sprites.Length && spriteIndex >= 0)
         {
             if (spriteRenderer != null)
             {

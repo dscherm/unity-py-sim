@@ -6,6 +6,15 @@ public class GeneratedSceneSetup
 {
     public static string Execute()
     {
+        // FU-4 editor-guard: EditorSceneManager.NewScene and
+        // SaveOpenScenes throw InvalidOperationException when the
+        // editor is in Play mode.  Fail fast with a readable message
+        // rather than corrupting state mid-play.
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isPlaying)
+        {
+            return "[skipped] scene setup refused: editor is in Play mode";
+        }
+
         string result = "";
 
         // === CREATE TAGS AND LAYERS ===
@@ -57,6 +66,8 @@ public class GeneratedSceneSetup
             cam.backgroundColor = new Color(0.443f, 0.773f, 0.812f, 1f);
             cam.clearFlags = CameraClearFlags.SolidColor;
             go_MainCamera.transform.position = new Vector3(0f, 0f, -10f);
+            if (go_MainCamera.GetComponent<AspectLock>() == null)
+                go_MainCamera.AddComponent<AspectLock>();
             EditorUtility.SetDirty(go_MainCamera);
         }
 
@@ -190,6 +201,8 @@ public class GeneratedSceneSetup
         if (sprite_background != null) go_Background_sr.sprite = sprite_background;
         if (unlitMat != null) go_Background_sr.sharedMaterial = unlitMat;
         go_Background_sr.sortingOrder = -10;
+        go_Background_sr.drawMode = SpriteDrawMode.Tiled;
+        go_Background_sr.size = new Vector2(40f, 12.0f);
         go_Background.AddComponent<Parallax>();
         {
             var so = new SerializedObject(go_Background.GetComponent<Parallax>());
@@ -208,6 +221,8 @@ public class GeneratedSceneSetup
         if (sprite_ground != null) go_GroundParallax_sr.sprite = sprite_ground;
         if (unlitMat != null) go_GroundParallax_sr.sharedMaterial = unlitMat;
         go_GroundParallax_sr.sortingOrder = 5;
+        go_GroundParallax_sr.drawMode = SpriteDrawMode.Tiled;
+        go_GroundParallax_sr.size = new Vector2(40f, 0.5f);
         go_GroundParallax.AddComponent<Parallax>();
         {
             var so = new SerializedObject(go_GroundParallax.GetComponent<Parallax>());
@@ -251,13 +266,40 @@ public class GeneratedSceneSetup
         // === WIRE CROSS-REFERENCES ===
         {
             var so = new SerializedObject(go_Player.GetComponent<Player>());
+            var prop = so.FindProperty("GameObject");
+            if (prop != null) { prop.objectReferenceValue = go_Player; so.ApplyModifiedProperties(); }
+        }
+        {
+            var so = new SerializedObject(go_Player.GetComponent<Player>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_Player; so.ApplyModifiedProperties(); }
+        }
+        {
+            var so = new SerializedObject(go_Player.GetComponent<Player>());
+            var prop = so.FindProperty("sprites");
+            if (prop != null)
+            {
+                prop.arraySize = 3;
+                prop.GetArrayElementAtIndex(0).objectReferenceValue = sprite_bird_01;
+                prop.GetArrayElementAtIndex(1).objectReferenceValue = sprite_bird_02;
+                prop.GetArrayElementAtIndex(2).objectReferenceValue = sprite_bird_03;
+                so.ApplyModifiedProperties();
+            }
+        }
+        {
+            var so = new SerializedObject(go_Pipes.GetComponent<Pipes>());
+            var prop = so.FindProperty("GameObject");
+            if (prop != null) { prop.objectReferenceValue = go_Pipes; so.ApplyModifiedProperties(); }
         }
         {
             var so = new SerializedObject(go_Pipes.GetComponent<Pipes>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_Pipes; so.ApplyModifiedProperties(); }
+        }
+        {
+            var so = new SerializedObject(go_Spawner.GetComponent<Spawner>());
+            var prop = so.FindProperty("GameObject");
+            if (prop != null) { prop.objectReferenceValue = go_Spawner; so.ApplyModifiedProperties(); }
         }
         {
             var so = new SerializedObject(go_Spawner.GetComponent<Spawner>());
@@ -271,13 +313,28 @@ public class GeneratedSceneSetup
         }
         {
             var so = new SerializedObject(go_Background.GetComponent<Parallax>());
+            var prop = so.FindProperty("GameObject");
+            if (prop != null) { prop.objectReferenceValue = go_Background; so.ApplyModifiedProperties(); }
+        }
+        {
+            var so = new SerializedObject(go_Background.GetComponent<Parallax>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_Background; so.ApplyModifiedProperties(); }
         }
         {
             var so = new SerializedObject(go_GroundParallax.GetComponent<Parallax>());
+            var prop = so.FindProperty("GameObject");
+            if (prop != null) { prop.objectReferenceValue = go_GroundParallax; so.ApplyModifiedProperties(); }
+        }
+        {
+            var so = new SerializedObject(go_GroundParallax.GetComponent<Parallax>());
             var prop = so.FindProperty("gameObject");
             if (prop != null) { prop.objectReferenceValue = go_GroundParallax; so.ApplyModifiedProperties(); }
+        }
+        {
+            var so = new SerializedObject(go_GameManager.GetComponent<GameManager>());
+            var prop = so.FindProperty("GameObject");
+            if (prop != null) { prop.objectReferenceValue = go_GameManager; so.ApplyModifiedProperties(); }
         }
         {
             var so = new SerializedObject(go_GameManager.GetComponent<GameManager>());
@@ -294,11 +351,49 @@ public class GeneratedSceneSetup
             var prop = so.FindProperty("playButton");
             if (prop != null) { prop.objectReferenceValue = go_PlayButton; so.ApplyModifiedProperties(); }
         }
+        {
+            var so = new SerializedObject(go_GameManager.GetComponent<GameManager>());
+            var prop = so.FindProperty("player");
+            if (prop != null && go_Player != null)
+            {
+                prop.objectReferenceValue = go_Player.GetComponent<Player>();
+                so.ApplyModifiedProperties();
+            }
+        }
+        {
+            var so = new SerializedObject(go_GameManager.GetComponent<GameManager>());
+            var prop = so.FindProperty("spawner");
+            if (prop != null && go_Spawner != null)
+            {
+                prop.objectReferenceValue = go_Spawner.GetComponent<Spawner>();
+                so.ApplyModifiedProperties();
+            }
+        }
+
+        // --- AutoStart (scaffolder fixture, un-pauses on Play) ---
+        if (GameObject.Find("AutoStart") == null)
+        {
+            var go_AutoStart = new GameObject("AutoStart");
+            go_AutoStart.AddComponent<AutoStart>();
+            EditorUtility.SetDirty(go_AutoStart);
+        }
 
         // === SAVE ===
-        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
-            UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene());
-        UnityEditor.SceneManagement.EditorSceneManager.SaveOpenScenes();
+        // FU-4 scene-save-path: force the canonical scene path so
+        // CoPlay's save_scene MCP call doesn't silently drop Scene.unity
+        // at Assets/ root (see coplay_generator_gaps.md P2 observation).
+        const string _scenePath = "Assets/_Project/Scenes/Scene.unity";
+        var _activeScene = UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene();
+        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(_activeScene);
+        if (string.IsNullOrEmpty(_activeScene.path))
+        {
+            System.IO.Directory.CreateDirectory("Assets/_Project/Scenes");
+            UnityEditor.SceneManagement.EditorSceneManager.SaveScene(_activeScene, _scenePath);
+        }
+        else
+        {
+            UnityEditor.SceneManagement.EditorSceneManager.SaveOpenScenes();
+        }
 
         result = "Scene setup complete: 17 GameObjects";
         return result;

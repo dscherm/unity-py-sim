@@ -4,8 +4,13 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Obstacle
-  - Scoring
+  - Untagged
+  - Respawn
+  - Finish
+  - EditorOnly
+  - MainCamera
+  - Player
+  - GameController
   layers:
   - Default
   - TransparentFX
@@ -13,10 +18,6 @@ TagManager:
   - ""
   - Water
   - UI
-  - ""
-  - ""
-  - ""
-  - ""
   - ""
   - ""
   - ""

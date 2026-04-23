@@ -5,7 +5,7 @@ public class Spawner : MonoBehaviour
     public float minHeight = -1.0f;
     public float maxHeight = 2.0f;
     public float verticalGap = 3.0f;
-    public GameObject prefab;
+    [SerializeField] private GameObject prefab;
      void OnEnable()
     {
         InvokeRepeating("Spawn", spawnRate, spawnRate);

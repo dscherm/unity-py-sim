@@ -252,3 +252,132 @@ python tools/gen_flappy_coplay.py
 
 These are in the generated project tree and will be overwritten on regen
 unless preserved. Upstream fix for gap 1 + gap 6 removes the need for them.
+
+---
+
+## 2026-04-23 preflight: FU-1 / FU-3 / FU-4 follow-ups landed
+
+The bridge-mode follow-ups from pipeline `coplay-gaps-upstream-2026-04-22`
+shipped (commits `6a961eb`, `c1f2bcc`, `c1ebf95`). The flappy_bird_project
+tree has been regenerated with those fixes in place. **Nothing in this
+regeneration is home-machine verified yet** — that's the remaining Task 8
+work.
+
+### What changed since the 2026-04-22 playtest
+
+**FU-1 (gap 4 wiring) — `6a961eb`:**
+- `tools/gen_coplay.py` now wires the translated-class registry into every
+  project, not just flappy_bird. No direct effect on flappy_bird output
+  (that was already wired), but confirms the same filter when regenerating
+  other games.
+
+**FU-3 (SerializeField default flip) — `c1f2bcc`:**
+- Reference fields now default to `[SerializeField] private T field;`
+  instead of `public T field;`. Visible in `Player.cs`:
+  ```csharp
+  [SerializeField] private GameManager gameManager;
+  [SerializeField] private SpriteRenderer spriteRenderer;
+  ```
+  Previously both were public. The earlier gap 2 manual patch
+  `[SerializeField] private GameManager gameManager` is now the canonical
+  output — no more "current translator output uses singleton, patch is
+  harmful" tension.
+- `GameManager.cs` reference fields also flipped:
+  `[SerializeField] private Text scoreText;` etc.
+
+**FU-4 (P2 cleanup) — `c1ebf95`:**
+- `GeneratedSceneSetup.Execute()` now bails with
+  `"[skipped] scene setup refused: editor is in Play mode"` if the editor
+  is mid-play. Previously ran anyway and corrupted state.
+- `GeneratedSceneSetup` saves to `Assets/_Project/Scenes/Scene.unity`
+  explicitly (with `Directory.CreateDirectory` first) when the active
+  scene has no path, falls back to `SaveOpenScenes()` otherwise.
+- `GeneratedSceneValidation.cs` uses
+  `FindObjectsByType<GameObject>(FindObjectsSortMode.None)` instead of
+  deprecated `FindObjectsOfType<GameObject>` — stops firing CS0618.
+- Translated MonoBehaviour method bodies that called
+  `find_objects_of_type(T)` now emit `FindObjectsByType<T>(FindObjectsSortMode.None)`
+  as well (Unity 6 target).
+
+### Home-machine playtest checklist — FU-2 acceptance
+
+When the next home-machine Unity session runs, verify the following so
+Task 8 can move to `passes: true`:
+
+1. **Pull the branch:**
+   ```bash
+   git fetch origin
+   git checkout feat/asset-pipeline-and-translator
+   git pull
+   ```
+2. **Open `data/generated/flappy_bird_project/` in Unity 6.**
+3. **Compile gate:** `dotnet build` or Unity's own compile — expect 0
+   errors. Known pre-existing warnings we aren't fixing here:
+   - `Sprite[] sprites = ['bird_01', ...]` literal — Python list syntax
+     leaking into C# default. Flag as `[translator-pre-existing]`, not a
+     FU-2 blocker; `WireBirdSprites.cs` editor script fills the array at
+     import time so Inspector wiring still works.
+   - `[SerializeField] private MonoBehaviour player;` in `GameManager.cs`
+     — type inference gap. Wire via Inspector by hand (drag `Player`
+     GameObject onto the field) as part of the intervention count.
+4. **Run `Tools → Setup Generated Scene` (or execute
+   `GeneratedSceneSetup.Execute()` via CoPlay MCP).** Expect it to
+   *decline* if you accidentally triggered it mid-Play — that's the new
+   FU-4 guard.
+5. **Verify 17 GameObjects in the scene,** matching the registry report
+   from `gen_flappy_coplay.py`: `GameManager, Parallax, Pipes, Player,
+   Spawner` (5 translated classes). `PlayButtonHandler` / `QuitHandler`
+   must be absent — gap 4 filter is now load-bearing.
+6. **FU-4 scene-save sanity:** after the Setup run, confirm
+   `Assets/_Project/Scenes/Scene.unity` exists (not `Assets/Scene.unity`
+   at project root). That's the gap-2 save-path fix paying off.
+7. **Playtest flow:** Press Play. The bird should fall under gravity,
+   Space / LMB flaps, pipes scroll, score advances. Record any new
+   NullRef / NRE that wasn't in the 2026-04-22 list — those are *new
+   regressions* from FU-1/3/4 and need fixing before Task 8 closes.
+8. **Log manual interventions.** Re-run the flow after wiring each, and
+   track them in a new `### 2026-MM-DD home-machine playtest` section at
+   the bottom of this file. Goal per `plan.md` Task 8:
+   `< 5 manual interventions to get from Python source to playable Unity`.
+
+### Regression risks to watch for (FU-3-specific)
+
+The `[SerializeField] private` flip means any field that *was* public and
+is now private will appear **blank** in the Inspector on scene reload
+unless CoPlay wired it (or the `Awake()` self-wire fallback from gap 2
+fires). Concretely:
+
+- `Player.gameManager` — should auto-wire via the semantic-layer Awake
+  fallback (`if (gameManager == null) gameManager = GameManager.Instance;`).
+- `Player.spriteRenderer` — should auto-wire via `GetComponent<SpriteRenderer>()`
+  which is already present in Awake.
+- `GameManager.scoreText` / `playButton` / `gameOverDisplay` — these are
+  cross-GameObject refs. CoPlay setup should wire them from the scene
+  graph. **If the wiring doesn't round-trip, you'll see a NullRef on the
+  first score update.** That's gap 2 / FU-3 interaction — the fix is in
+  `coplay_generator` SerializeField wiring; if it's missed, log it as a
+  gap-8 regression.
+
+### Commands to regenerate on the work machine (for reference)
+
+```bash
+# Full pipeline (translate → scaffold → package manifest)
+python -m src.pipeline --game flappy_bird --output data/generated/flappy_bird_project
+
+# CoPlay scene setup + validation script (uses FU-1 wired translated_classes)
+python tools/gen_flappy_coplay.py \
+  --validation-output data/generated/flappy_bird_project/Assets/Editor/GeneratedSceneValidation.cs
+```
+
+Output from the 2026-04-23 regeneration:
+
+```
+[1/3] Translated 5 file(s) to C#
+[info] 17 GameObjects serialized, 9 sprite mappings,
+       5 translated classes in registry:
+       ['GameManager', 'Parallax', 'Pipes', 'Player', 'Spawner']
+```
+
+Once home-machine playtest runs green, flip `plan.md` Task 8
+`passes: false` → `passes: true`, bridge-state.json `FU-2-blocked` →
+`done`, and add this session's findings under a new dated header above.

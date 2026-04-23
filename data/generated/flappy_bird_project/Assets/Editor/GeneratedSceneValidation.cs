@@ -12,7 +12,9 @@ public class GeneratedSceneValidation
         int expectedCount = 17;
 
         // === GAMEOBJECT COUNT ===
-        var allGOs = Object.FindObjectsOfType<GameObject>();
+        // FU-4 FindObjectsByType migration — FindObjectsOfType is deprecated
+        // in Unity 6 (CS0618); FindObjectsByType requires an explicit sort mode.
+        var allGOs = Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
         if (allGOs.Length < expectedCount)
             failures.Add($"GameObject count {allGOs.Length} < expected {expectedCount}");
 
@@ -31,6 +33,14 @@ public class GeneratedSceneValidation
             if (go == null) failures.Add("Missing GameObject: Player");
             else
             {
+                {
+                    var _comp = go.GetComponent<Player>();
+                    if (_comp == null) failures.Add("Player missing component Player");
+                    else {
+                        var so = new SerializedObject(_comp);
+                        { var _p = so.FindProperty("GameObject"); if (_p == null || _p.objectReferenceValue == null) failures.Add("Player.GameObject null (expected Player)"); else if (_p.objectReferenceValue.name != "Player") failures.Add("Player.GameObject " + _p.objectReferenceValue.name + " != Player"); }
+                    }
+                }
             }
         }
 
@@ -60,6 +70,14 @@ public class GeneratedSceneValidation
             if (go == null) failures.Add("Missing GameObject: Pipes");
             else
             {
+                {
+                    var _comp = go.GetComponent<Pipes>();
+                    if (_comp == null) failures.Add("Pipes missing component Pipes");
+                    else {
+                        var so = new SerializedObject(_comp);
+                        { var _p = so.FindProperty("GameObject"); if (_p == null || _p.objectReferenceValue == null) failures.Add("Pipes.GameObject null (expected Pipes)"); else if (_p.objectReferenceValue.name != "Pipes") failures.Add("Pipes.GameObject " + _p.objectReferenceValue.name + " != Pipes"); }
+                    }
+                }
             }
         }
 
@@ -104,6 +122,7 @@ public class GeneratedSceneValidation
                     if (_comp == null) failures.Add("Spawner missing component Spawner");
                     else {
                         var so = new SerializedObject(_comp);
+                        { var _p = so.FindProperty("GameObject"); if (_p == null || _p.objectReferenceValue == null) failures.Add("Spawner.GameObject null (expected Spawner)"); else if (_p.objectReferenceValue.name != "Spawner") failures.Add("Spawner.GameObject " + _p.objectReferenceValue.name + " != Spawner"); }
                         { var _p = so.FindProperty("prefab"); if (_p == null || _p.objectReferenceValue == null) failures.Add("Spawner.prefab null (expected Pipes)"); else if (_p.objectReferenceValue.name != "Pipes") failures.Add("Spawner.prefab " + _p.objectReferenceValue.name + " != Pipes"); }
                     }
                 }
@@ -116,6 +135,14 @@ public class GeneratedSceneValidation
             if (go == null) failures.Add("Missing GameObject: Background");
             else
             {
+                {
+                    var _comp = go.GetComponent<Parallax>();
+                    if (_comp == null) failures.Add("Background missing component Parallax");
+                    else {
+                        var so = new SerializedObject(_comp);
+                        { var _p = so.FindProperty("GameObject"); if (_p == null || _p.objectReferenceValue == null) failures.Add("Background.GameObject null (expected Background)"); else if (_p.objectReferenceValue.name != "Background") failures.Add("Background.GameObject " + _p.objectReferenceValue.name + " != Background"); }
+                    }
+                }
             }
         }
 
@@ -125,6 +152,14 @@ public class GeneratedSceneValidation
             if (go == null) failures.Add("Missing GameObject: GroundParallax");
             else
             {
+                {
+                    var _comp = go.GetComponent<Parallax>();
+                    if (_comp == null) failures.Add("GroundParallax missing component Parallax");
+                    else {
+                        var so = new SerializedObject(_comp);
+                        { var _p = so.FindProperty("GameObject"); if (_p == null || _p.objectReferenceValue == null) failures.Add("GroundParallax.GameObject null (expected GroundParallax)"); else if (_p.objectReferenceValue.name != "GroundParallax") failures.Add("GroundParallax.GameObject " + _p.objectReferenceValue.name + " != GroundParallax"); }
+                    }
+                }
             }
         }
 
@@ -175,6 +210,7 @@ public class GeneratedSceneValidation
                     if (_comp == null) failures.Add("GameManager missing component GameManager");
                     else {
                         var so = new SerializedObject(_comp);
+                        { var _p = so.FindProperty("GameObject"); if (_p == null || _p.objectReferenceValue == null) failures.Add("GameManager.GameObject null (expected GameManager)"); else if (_p.objectReferenceValue.name != "GameManager") failures.Add("GameManager.GameObject " + _p.objectReferenceValue.name + " != GameManager"); }
                         { var _p = so.FindProperty("gameOverDisplay"); if (_p == null || _p.objectReferenceValue == null) failures.Add("GameManager.gameOverDisplay null (expected GameOver)"); else if (_p.objectReferenceValue.name != "GameOver") failures.Add("GameManager.gameOverDisplay " + _p.objectReferenceValue.name + " != GameOver"); }
                         { var _p = so.FindProperty("playButton"); if (_p == null || _p.objectReferenceValue == null) failures.Add("GameManager.playButton null (expected PlayButton)"); else if (_p.objectReferenceValue.name != "PlayButton") failures.Add("GameManager.playButton " + _p.objectReferenceValue.name + " != PlayButton"); }
                     }

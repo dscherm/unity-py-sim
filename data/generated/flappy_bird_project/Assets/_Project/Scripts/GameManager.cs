@@ -3,11 +3,11 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public int score = 0;
-    public MonoBehaviour player;
-    public MonoBehaviour spawner;
-    public Text scoreText;
-    public GameObject playButton;
-    public GameObject gameOverDisplay;
+    [SerializeField] private MonoBehaviour player;
+    [SerializeField] private MonoBehaviour spawner;
+    [SerializeField] private Text scoreText;
+    [SerializeField] private GameObject playButton;
+    [SerializeField] private GameObject gameOverDisplay;
     // Singleton — wire via Inspector [SerializeField] on dependents
     public static GameManager Instance = null;
      void Awake()
