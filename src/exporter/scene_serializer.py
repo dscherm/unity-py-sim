@@ -133,12 +133,17 @@ def _serialize_component(
             "is_monobehaviour": True,
             "fields": {},
         }
-        # Capture fields — skip Python private fields (single `_` prefix) and
-        # dunders (`__dict__`, `__class__`, etc.).  Private `_foo` fields are
-        # implementation details of the Python simulator (e.g. `_enabled`,
-        # `_game_object`) and have no Unity C# counterpart to wire in the scene.
-        for attr_name in dir(comp):
-            if attr_name.startswith("_"):
+        # Capture fields — skip dunders and the MonoBehaviour/Component
+        # base-class internals (`_enabled`, `_game_object`) which have no
+        # user-visible C# counterpart.  Other single-underscore fields set
+        # by the user subclass are included but stored without the leading
+        # underscore so the serialized key matches the C# camelCase name
+        # that the translator emits (e.g. `_count` → `count`).
+        _BASE_INTERNALS = frozenset({"_enabled", "_game_object"})
+        for attr_name in vars(comp):
+            if attr_name.startswith("__"):
+                continue
+            if attr_name in _BASE_INTERNALS:
                 continue
             if callable(getattr(type(comp), attr_name, None)):
                 continue
@@ -146,27 +151,30 @@ def _serialize_component(
                 val = getattr(comp, attr_name)
             except Exception:
                 continue
+            # Use stripped key for single-underscore fields so the serialized
+            # name matches the C# camelCase the translator emits (`_count` → `count`).
+            field_key = attr_name.lstrip("_") if attr_name.startswith("_") else attr_name
             # Serialize based on type
             if isinstance(val, (int, float, str, bool)):
-                data["fields"][attr_name] = val
+                data["fields"][field_key] = val
             elif isinstance(val, Vector2):
-                data["fields"][attr_name] = {"_type": "Vector2", "value": _vec2_to_list(val)}
+                data["fields"][field_key] = {"_type": "Vector2", "value": _vec2_to_list(val)}
             elif isinstance(val, Vector3):
-                data["fields"][attr_name] = {"_type": "Vector3", "value": _vec3_to_list(val)}
+                data["fields"][field_key] = {"_type": "Vector3", "value": _vec3_to_list(val)}
             elif isinstance(val, GameObject):
-                data["fields"][attr_name] = {"_type": "GameObjectRef", "name": val.name}
+                data["fields"][field_key] = {"_type": "GameObjectRef", "name": val.name}
             elif isinstance(val, MonoBehaviour):
                 # Single MonoBehaviour reference — resolve via its GameObject
                 # and the concrete class name.
                 go_name = val.game_object.name if val.game_object else None
                 if go_name:
-                    data["fields"][attr_name] = {
+                    data["fields"][field_key] = {
                         "_type": "MonoBehaviourRef",
                         "component_type": type(val).__name__,
                         "ref": go_name,
                     }
             elif val is None:
-                data["fields"][attr_name] = None
+                data["fields"][field_key] = None
             elif (isinstance(val, list) and val
                   and all(isinstance(x, MonoBehaviour) and x.game_object for x in val)):
                 # GameManager.ghosts pattern: `list[Ghost]` holds refs to
@@ -179,7 +187,7 @@ def _serialize_component(
                 # lists there's only one.  Heterogeneous Ghost/Pellet would
                 # need per-element typing; not needed for Pacman V2.
                 ctype = next(iter(component_types)) if len(component_types) == 1 else type(val[0]).__name__
-                data["fields"][attr_name] = {
+                data["fields"][field_key] = {
                     "_type": "MonoBehaviourRefArray",
                     "component_type": ctype,
                     "refs": [x.game_object.name for x in val],
@@ -190,7 +198,7 @@ def _serialize_component(
                 # SerializeField.  Downstream CoPlay generator resolves each
                 # string against sprite_mappings and wires via AssetDatabase.
                 # See data/lessons/flappy_bird_deploy.md gap 6.
-                data["fields"][attr_name] = {
+                data["fields"][field_key] = {
                     "_type": "SpriteArrayRef",
                     "refs": list(val),
                 }

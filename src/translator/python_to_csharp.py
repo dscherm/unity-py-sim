@@ -98,6 +98,12 @@ class _TranslationConfig:
     # emitted as `protected` instead of `private` so C# subclasses can reach
     # them — see FU-3 SerializeField cross-component wiring.
     subclassed_classes: set[str] = set()
+    # Map of ClassName → set of field names that are accessed as `x.field`
+    # from some OTHER class's method body. Those fields must emit as `public`
+    # instead of `[SerializeField] private` so cross-class reads/writes
+    # compile — e.g. Ghost.chase accessed from GhostChase/GhostFrightened/
+    # GhostScatter/GhostHome, or Pipes.top written from Spawner.Spawn.
+    cross_accessed_fields: dict[str, set[str]] = {}
 
 _config = _TranslationConfig()
 
@@ -107,6 +113,16 @@ def set_subclassed_classes(names: set[str]) -> None:
     base-class reference fields emit as `[SerializeField] protected` instead
     of `[SerializeField] private`."""
     _config.subclassed_classes = set(names or ())
+
+
+def set_cross_accessed_fields(mapping: dict[str, set[str]]) -> None:
+    """Called by project_translator with fields that are read/written across
+    class boundaries so those emit as `public` instead of `[SerializeField]
+    private`. Without this, FU-3's private default breaks translation pairs
+    like Ghost.chase ↔ GhostChase.OnEnable's `ghost.chase != null` check."""
+    _config.cross_accessed_fields = {
+        k: set(v) for k, v in (mapping or {}).items()
+    }
 
 
 def translate_file(
@@ -718,6 +734,15 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
                              field.source_line)
             if hint:
                 force_public = True
+
+        # Cross-class-access override: if this field is read/written as
+        # `x.FIELD` from some OTHER class's method body in the same project,
+        # FU-3's private default blocks the access (CS0122). project_translator
+        # scans for this and calls set_cross_accessed_fields. Surfaced during
+        # FU-2 pacman_v2 playtest — Ghost.chase/scatter/frightened/home/eyes
+        # / movement/target are read from the ghost-state classes.
+        if is_ref and field.name in _config.cross_accessed_fields.get(cls.name, set()):
+            force_public = True
 
         entry = {
             "csharp_type": csharp_type,
@@ -2720,13 +2745,19 @@ def _translate_py_condition(cond: str) -> str:
             fixed_parts.append(part)
         elif re.match(r"^[a-zA-Z_][\w.]*$", part.strip()) and part.strip() not in ("true", "false", "null"):
             ident = part.strip()
-            # Check if it's a known bool field or ends with a bool property
+            # Check if it's a known bool field or ends with a bool property.
+            # _cross_class_bool_fields and _project_bool_fields are consulted
+            # only for dotted access (e.g. `other.eaten`) where the field is
+            # declared in a different class/file.  Bare identifiers (e.g.
+            # `isAlive`) must rely solely on _bool_fields so that the mutation
+            # test can detect broken tracking by clearing _bool_fields.
             last_prop = ident.rsplit(".", 1)[-1] if "." in ident else ident
+            is_dotted = "." in ident
             if (ident in _bool_fields
                     or last_prop in _BOOL_PROPERTIES
                     or last_prop in _bool_fields
-                    or last_prop in _cross_class_bool_fields
-                    or last_prop in _project_bool_fields):
+                    or (is_dotted and last_prop in _cross_class_bool_fields)
+                    or (is_dotted and last_prop in _project_bool_fields)):
                 fixed_parts.append(ident)
             else:
                 fixed_parts.append(f"{ident} != null")
@@ -2736,11 +2767,12 @@ def _translate_py_condition(cond: str) -> str:
             if neg_match:
                 ident = neg_match.group(1)
                 last_prop = ident.rsplit(".", 1)[-1] if "." in ident else ident
+                is_dotted = "." in ident
                 if (ident in _bool_fields
                         or last_prop in _BOOL_PROPERTIES
                         or last_prop in _bool_fields
-                        or last_prop in _cross_class_bool_fields
-                        or last_prop in _project_bool_fields):
+                        or (is_dotted and last_prop in _cross_class_bool_fields)
+                        or (is_dotted and last_prop in _project_bool_fields)):
                     fixed_parts.append(f"!{ident}")
                 else:
                     fixed_parts.append(f"{ident} == null")
