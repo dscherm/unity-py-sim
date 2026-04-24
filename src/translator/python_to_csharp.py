@@ -705,12 +705,27 @@ def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
         access = (
             "protected" if cls.name in _config.subclassed_classes else "private"
         )
+
+        # Trailing-comment override: `self.x: T = None  # public T x` forces
+        # `public T x;` (no [SerializeField]) so other translated classes in
+        # the project can read/write it without CS0122.  Honours both
+        # `# public T name` and `# public T` hints.  Discovered on FU-2
+        # home-machine playtest — Spawner.cs wrote pipes_comp.top/.bottom
+        # while Pipes.cs had them as [SerializeField] private after FU-3.
+        force_public = False
+        if is_ref and field.source_line:
+            hint = re.search(r"#\s*public\s+\w+(?:\s+\w+)?\s*$",
+                             field.source_line)
+            if hint:
+                force_public = True
+
         entry = {
             "csharp_type": csharp_type,
             "csharp_name": csharp_name,
             "default": default,
-            "serialize": is_ref,
+            "serialize": is_ref and not force_public,
             "access": access,
+            "force_public": force_public,
         }
 
         if field.is_class_level and field.name.isupper():
@@ -2893,6 +2908,21 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
                     cs_elem = elem.strip()
                 converted.append(cs_elem)
             return f"new {csharp_type[:-2]}[] {{ {', '.join(converted)} }}"
+
+        # List of string literals: ["a", "b"] → new string[] { "a", "b" }
+        # when the field is string[], OR null when it's a reference array
+        # (the strings were asset-name tokens that get wired at runtime by
+        # CoPlay / Resources.Load; emitting them verbatim produces invalid
+        # C# like `Sprite[] s = ['a', 'b'];`).  FU-2 home-machine compile fix.
+        string_literal = lambda e: re.match(r"^\s*['\"][^'\"]*['\"]\s*$", e)
+        if elements and all(string_literal(e) for e in elements):
+            elem_type = csharp_type[:-2]
+            if elem_type == "string":
+                quoted = ', '.join(f'"{e.strip()[1:-1]}"' for e in elements)
+                return f"new string[] {{ {quoted} }}"
+            # Reference-array target with string-literal defaults: drop the
+            # default so CoPlay / editor scripts wire the real assets.
+            return "null"
 
     # Color tuples: (R, G, B) -> new Color32(R, G, B, 255)
     # Only apply when target type is Color32-related (avoid clobbering InvaderRowConfig etc.)

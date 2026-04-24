@@ -381,3 +381,88 @@ Output from the 2026-04-23 regeneration:
 Once home-machine playtest runs green, flip `plan.md` Task 8
 `passes: false` → `passes: true`, bridge-state.json `FU-2-blocked` →
 `done`, and add this session's findings under a new dated header above.
+
+---
+
+## 2026-04-24 home-machine playtest — Task 8 closes
+
+Flappy Bird runs end-to-end on Unity 6000.4.0f1. Bird falls under
+gravity, Space / LMB flaps, pipes scroll, game-over fires when bird
+hits Ground, AutoStart un-pauses on first Update tick. Task 8
+`passes: true`.
+
+### Manual interventions (goal: <5)
+
+1. **Add `com.coplaydev.coplay` to `Packages/manifest.json`** — the
+   scaffolder regenerated manifest.json without the CoPlay reference;
+   without it the MCP bridge can't talk to the running editor. Added
+   as a git URL (`https://github.com/CoplayDev/unity-plugin.git#beta`,
+   matches breakout_project's packages-lock.json). **Upstream fix
+   (not shipped):** scaffolder should read an optional env / config
+   flag "include CoPlay package" and emit the entry. Low priority —
+   only matters on the home machine.
+2. **Wire `Spawner.prefab` to `Assets/_Project/Prefabs/Pipes.prefab`
+   via `set_property`** — gap 3 was marked SHIPPED in the 2026-04-22
+   session but the CoPlay scene setup still serialises the scene
+   GameObject reference, not the prefab asset. When `GameManager.Play()`
+   calls `FindObjectsByType<Pipes>()` + `Destroy(...)`, the scene
+   template gets wiped and the Spawner's prefab ref goes null.
+   **Upstream fix needed:** re-verify `coplay_generator.py`
+   prefab-asset-vs-scene-object detection. Regression since the
+   earlier shipped fix — the `prefab_manifest` may not be flowing
+   through on the `src.pipeline` path.
+
+Total interventions: **2** (inside the <5 budget — Task 8 goal met).
+
+### Translator/source fixes shipped in this session
+
+These are now in `src/` and benefit every future regeneration, not
+just this flappy_bird session:
+
+- **Python-list-literal default for reference arrays** — `["bird_01",
+  "bird_02"]` on a `Sprite[]` field was leaking into C# as invalid
+  `['bird_01', ...]` syntax. Now emits `null` (CoPlay / editor
+  scripts wire the real assets post-scaffold). Covers the case where
+  string-literal lists are asset-name tokens.
+- **`# public T name` trailing-comment override** — when a Python
+  field's source line ends with `# public T name`, the translator
+  emits `public T field;` instead of the FU-3 default
+  `[SerializeField] private T field;`. Unblocks cross-class access:
+  `Spawner` writes to `pipes_comp.top`/`.bottom` which FU-3 had made
+  private. The author of `pipes.py` already had the hint comment;
+  now it's load-bearing.
+- **`translate_project` default `unity_version=5` → `6`** — the
+  FU-4 `FindObjectsByType` migration was gated on Unity 6, but
+  `src.pipeline` didn't pass the flag so GameManager.cs still
+  emitted the deprecated form. Unity 6 is the compile + runtime
+  target on the home machine (6000.4.0f1 confirmed).
+
+### Fixture updates (not translator — hand-authored stubs)
+
+- **`PlayButtonHandler.cs`** — no longer reads
+  `GameManager.Instance.playButton` (FU-3 made that field private
+  and PlayButtonHandler legitimately shouldn't peek at it). The
+  stub now just fires `Play()` on any click/space while
+  `Time.timeScale == 0`, which is the only moment a play button is
+  semantically meaningful anyway.
+- **`AutoStart.cs`** — moved the un-pause from `Start` to `Update`.
+  Unity's Start order is alphabetical when not overridden, so
+  `AutoStart.Start` ran *before* `GameManager.Start`, and
+  `GameManager.Start` then re-paused. Running in Update fires after
+  every Start has settled, un-pauses once, then self-disables.
+
+### What's still rough (not blockers)
+
+- **`GameManager.cs:5`** — `[SerializeField] private MonoBehaviour
+  player;` / `private MonoBehaviour spawner;` — type inference gap
+  for injected fields. Doesn't break compile but requires dragging
+  the Player / Spawner GameObjects onto the Inspector slots. Would
+  be nicer typed as `Player` / `Spawner`. Future translator-typing
+  enhancement.
+- **CoPlay `save_scene`** tool writes to `Assets/Scene.unity` (root)
+  rather than the active scene path. The FU-4 scene-save-path fix
+  in `GeneratedSceneSetup.Execute()` does the right thing — this is
+  a CoPlay MCP tool limitation, not a translator/generator bug.
+  Work around by editing the in-memory scene + saving via
+  `EditorSceneManager.SaveScene(_activeScene, path)` instead of the
+  MCP `save_scene` tool.

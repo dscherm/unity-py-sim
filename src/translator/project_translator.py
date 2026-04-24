@@ -11,7 +11,7 @@ Usage:
 
     results = translate_project(
         "examples/space_invaders/space_invaders_python/",
-        input_system="legacy", unity_version=5
+        input_system="legacy", unity_version=6
     )
     for filename, csharp_code in results.items():
         Path(f"output/{filename}").write_text(csharp_code)
@@ -35,7 +35,7 @@ def translate_project(
     directory: str | Path,
     *,
     input_system: str = "legacy",
-    unity_version: int = 5,
+    unity_version: int = 6,
     namespace: str | None = None,
 ) -> dict[str, str]:
     """Translate all Python files in a directory with cross-file type awareness.

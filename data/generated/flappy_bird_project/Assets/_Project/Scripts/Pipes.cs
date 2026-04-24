@@ -4,8 +4,8 @@ public class Pipes : MonoBehaviour
     public float speed = 5.0f;
     public float gap = 3.0f;
     public float leftEdge = 0.0f;
-    [SerializeField] private Transform top;
-    [SerializeField] private Transform bottom;
+    public Transform top;
+    public Transform bottom;
      void Start()
     {
         if (Camera.main != null)

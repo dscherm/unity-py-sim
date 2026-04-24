@@ -9,7 +9,7 @@ public class Player : MonoBehaviour
     public float tilt = 5.0f;
     public Vector3 direction = new Vector3(0, 0, 0);
     public int spriteIndex = 0;
-    [SerializeField] private Sprite[] sprites = ['bird_01', 'bird_02', 'bird_03'];
+    [SerializeField] private Sprite[] sprites;
     [SerializeField] private SpriteRenderer spriteRenderer;
      void Awake()
     {

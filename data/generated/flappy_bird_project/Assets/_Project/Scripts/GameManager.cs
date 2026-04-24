@@ -60,7 +60,7 @@ public class GameManager : MonoBehaviour
         {
             player.enabled = true;
         }
-        var pipes = FindObjectsOfType<Pipes>();
+        var pipes = FindObjectsByType<Pipes>(FindObjectsSortMode.None);
         for (int i = 0; i < pipes.Length; i++)
         {
             Destroy(pipes[i].gameObject);
