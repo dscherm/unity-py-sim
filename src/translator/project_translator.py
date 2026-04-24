@@ -68,7 +68,11 @@ def translate_project(
     # class lives in a different file.  Without this, Ghost.OnCollisionEnter2D
     # emitted `frightened.eaten == null` — `eaten: bool` is declared on
     # GhostFrightened in a separate file.
-    from .python_to_csharp import set_project_bool_fields, set_subclassed_classes
+    from .python_to_csharp import (
+        set_project_bool_fields,
+        set_subclassed_classes,
+        set_cross_accessed_fields,
+    )
     project_bool_fields: set[str] = set()
     for parsed in parsed_files.values():
         for cls in parsed.classes:
@@ -91,6 +95,59 @@ def translate_project(
                 if parent and parent not in ("MonoBehaviour", "ScriptableObject"):
                     subclassed.add(parent)
     set_subclassed_classes(subclassed)
+
+    # Phase 3.9: Detect cross-class field access — fields that are read or
+    # written as `x.FIELD` from some OTHER class's method body in the same
+    # project. FU-3's `[SerializeField] private` default blocks those
+    # accesses at compile time (CS0122). Surfaced during FU-2 pacman_v2
+    # playtest where Ghost.chase/scatter/frightened/home/eyes/movement/
+    # target are all read from sibling ghost-state classes.
+    #
+    # Heuristic (conservative, low false-positive):
+    #   For each (class C, field F), check if ANY method body in a class
+    #   B != C contains `.F` with F at a word boundary. If yes, mark (C, F).
+    #   `\.\bF\b` ensures `.position` on Transform doesn't accidentally
+    #   mark a project field named `position` (field declaration is what
+    #   matters — common Unity names aren't declared on project classes).
+    cross_accessed: dict[str, set[str]] = {}
+    # Build (class_name → method body corpus) for OTHER-class scanning.
+    per_class_bodies: dict[str, str] = {}
+    for parsed in parsed_files.values():
+        for cls in parsed.classes:
+            per_class_bodies.setdefault(cls.name, "")
+            for method in cls.methods:
+                per_class_bodies[cls.name] += "\n" + (method.body_source or "")
+    # Build (child_class → set of base_class names) so we can skip subclasses
+    # when scanning for cross-class field access.  A subclass accessing
+    # `self.field` inherited from its base class is NOT cross-class access —
+    # it's legitimate inheritance and the field should emit as `protected`,
+    # not `public`.  Without this exclusion, GhostChase inheriting
+    # GhostBehavior.ghost would force `ghost` to emit as `public`, bypassing
+    # the `[SerializeField] protected` path added in Phase 3.8.
+    subclass_of: dict[str, set[str]] = {}
+    for parsed in parsed_files.values():
+        for cls in parsed.classes:
+            for parent in cls.base_classes:
+                if parent and parent not in ("MonoBehaviour", "ScriptableObject"):
+                    subclass_of.setdefault(cls.name, set()).add(parent)
+    for parsed in parsed_files.values():
+        for cls in parsed.classes:
+            for field in cls.fields:
+                name = field.name
+                if not name or name.startswith("__"):
+                    continue
+                pat = re.compile(rf"\.\b{re.escape(name)}\b")
+                for other_name, body in per_class_bodies.items():
+                    if other_name == cls.name:
+                        continue
+                    # Skip subclasses — they reach inherited fields via `self.field`
+                    # which is normal inheritance, not cross-class access.
+                    if cls.name in subclass_of.get(other_name, set()):
+                        continue
+                    if pat.search(body):
+                        cross_accessed.setdefault(cls.name, set()).add(name)
+                        break
+    set_cross_accessed_fields(cross_accessed)
 
     # Phase 4: Translate each file with global awareness
     results = {}
