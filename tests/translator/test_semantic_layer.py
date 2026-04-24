@@ -238,7 +238,7 @@ class TestRewriteSingletonAccess:
             cs, singletons={"GameManager"}, current_classes={"Enemy"}
         )
         assert "void Awake()" in out
-        assert "if (gameManager == null) gameManager = GameManager.Instance;" in out
+        assert "if (gameManager == null) gameManager = FindObjectOfType<GameManager>();" in out
 
     def test_awake_fallback_merged_into_existing_awake(self):
         """Don't overwrite a class's existing Awake — prepend into it."""
@@ -264,7 +264,7 @@ class TestRewriteSingletonAccess:
         # The original body is preserved.
         assert 'Debug.Log("existing awake body")' in out
         # And the self-wire line is inside (before or after) the existing body.
-        assert "if (gameManager == null) gameManager = GameManager.Instance;" in out
+        assert "if (gameManager == null) gameManager = FindObjectOfType<GameManager>();" in out
 
     def test_does_not_rewrite_singleton_in_its_own_file(self):
         cs = (

@@ -173,7 +173,7 @@ def _inject_awake_fallback(
             continue
         body = cs_source[brace_pos + 1:end_pos]
         awake_lines = [
-            f"        if ({field_name} == null) {field_name} = {singleton}.Instance;"
+            f"        if ({field_name} == null) {field_name} = FindObjectOfType<{singleton}>();"
             for singleton, field_name in fallbacks
         ]
         awake_block = "\n".join(awake_lines)
