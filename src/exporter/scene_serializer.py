@@ -133,11 +133,12 @@ def _serialize_component(
             "is_monobehaviour": True,
             "fields": {},
         }
-        # Capture fields — Python convention `_foo` becomes C# `[SerializeField]
-        # private foo` (inspector-wired), so we include underscored fields too.
-        # Still skip dunders (`__dict__`, `__class__`, etc.).
+        # Capture fields — skip Python private fields (single `_` prefix) and
+        # dunders (`__dict__`, `__class__`, etc.).  Private `_foo` fields are
+        # implementation details of the Python simulator (e.g. `_enabled`,
+        # `_game_object`) and have no Unity C# counterpart to wire in the scene.
         for attr_name in dir(comp):
-            if attr_name.startswith("__"):
+            if attr_name.startswith("_"):
                 continue
             if callable(getattr(type(comp), attr_name, None)):
                 continue
