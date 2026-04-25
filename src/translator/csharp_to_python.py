@@ -430,10 +430,25 @@ def _extract_condition(text: str) -> str:
 
 
 def _translate_literal(value: str | None) -> str:
-    """Translate a C# literal value to Python."""
+    """Translate a C# literal value to Python.
+
+    Field initializers reach this path even when they are compound C#
+    expressions like ``new Vector2(0, 0.6f)``. The whole-string
+    convert_float_literal() helper only handles a bare literal, so we
+    also run the same regex passes that _translate_expression uses for
+    embedded ``new`` constructors and ``Nf`` / ``N.Nf`` float literals.
+    Without these, Python emits ``new Vector2(0, 0.6f)`` and trips
+    SyntaxError on parse-back (M-2 phase-2 fix for pairs 006, 009).
+    """
     if value is None:
         return "None"
     value = value.strip()
+    # Strip embedded `new` keyword: `new Vector2(...)` -> `Vector2(...)`.
+    value = re.sub(r"\bnew\s+", "", value)
+    # Embedded float-suffix stripping (decimal first so `0.5f` doesn't
+    # become `0.50` via the int rule).
+    value = re.sub(r"(\d+\.\d+)[fF]\b", r"\1", value)
+    value = re.sub(r"\b(\d+)[fF]\b", lambda m: m.group(1) + ".0", value)
     value = convert_float_literal(value)
     value = value.replace("true", "True").replace("false", "False")
     value = re.sub(r"\bnull\b", "None", value)

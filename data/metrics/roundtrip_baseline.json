@@ -46,7 +46,7 @@
       "original_classes": 1,
       "roundtrip_classes": 0,
       "details": [
-        "Python parse error: invalid decimal literal (<unknown>, line 20)"
+        "Python parse error: invalid syntax (<unknown>, line 60)"
       ],
       "error": null
     },
@@ -74,7 +74,7 @@
       "original_classes": 1,
       "roundtrip_classes": 0,
       "details": [
-        "Python parse error: invalid decimal literal (<unknown>, line 13)"
+        "Python parse error: invalid character '\u2014' (U+2014) (<unknown>, line 13)"
       ],
       "error": null
     },
@@ -88,7 +88,7 @@
       "original_classes": 1,
       "roundtrip_classes": 0,
       "details": [
-        "Python parse error: invalid syntax (<unknown>, line 9)"
+        "Python parse error: invalid syntax (<unknown>, line 19)"
       ],
       "error": null
     },
