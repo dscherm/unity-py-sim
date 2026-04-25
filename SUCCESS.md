@@ -90,7 +90,9 @@ These define the project's *maturity*, not its *shipping*. Useful for prioritiza
 
 **Definition**: Every push to `main` triggers the home-machine self-hosted runner to clone, deploy, run CoPlay, run Play mode for N seconds, capture screenshots and Unity console logs, and post results back as a PR/commit check. Zero manual ritual on the home machine.
 
-**Delivered by**: M-7.
+**Status (2026-04-25, partial)**: M-7 v1 (deploy-only) shipped. Self-hosted Windows runner registered, Unity 6 license activated, `.github/workflows/home_machine.yml` triggers on push to `main` + `workflow_dispatch`, runs `tools/home_machine_deploy.ps1` per game in `data/generated/*_project/` matrix. Deploy step covers: C# compile (translator output), CoPlay scene-setup execution (`GeneratedSceneSetup.Execute`), asset/reference loading. Failures upload Unity log as artifact + write per-run JSON to `data/metrics/home_machine_runs/`. PlayMode validation (frame ticking, screenshot capture, exception detection during gameplay) is **M-7 phase 2** — will use Unity Test Framework's `[UnityTest]` PlayMode runner via `Unity -runTests` rather than a custom batchmode harness, since Unity batchmode doesn't reliably keep its main loop alive long enough for async coroutines to tick after `-executeMethod` returns.
+
+**Delivered by**: M-7 v1 (deploy automation) + M-7 phase 2 (PlayMode validation via UTF, separate task).
 
 ### ASP-6 · Translation accuracy dashboard live
 

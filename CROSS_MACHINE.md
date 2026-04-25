@@ -1,9 +1,24 @@
 # CROSS_MACHINE.md — home-machine GitHub Actions runner
 
 This doc covers everything needed to bring the home Windows machine
-online as a self-hosted GitHub Actions runner so the Unity playtest
+online as a self-hosted GitHub Actions runner so the Unity deploy
 workflow (`.github/workflows/home_machine.yml`) runs automatically on
 every push to `main`. M-7 of `SUCCESS.md` lives here.
+
+## What v1 covers
+
+Per-game CoPlay scene reconstruction in batchmode against each
+`data/generated/<game>_project/`. Catches translator C# compile errors,
+CoPlay-generator scene-setup exceptions, and missing-asset references.
+Failures upload Unity's full Editor log as a workflow artifact.
+
+PlayMode validation (frame ticking, screenshot capture, runtime
+exception detection during gameplay) is intentionally **out of v1
+scope** — see `plan.md` task `M-7-phase-2`. The Unity Test Framework
+(`Unity -runTests -testPlatform PlayMode`) is the supported path and
+will land separately. The leftover `tools/home_machine_playtest.cs` is
+preserved in tree as a reference for that rewrite — it's not staged
+into projects by the v1 workflow.
 
 ## Prerequisites
 
@@ -81,9 +96,11 @@ gh workflow run home_machine.yml --ref main
 gh run watch
 ```
 
-Expected: `breakout` and `flappy_bird` jobs each take ~10–15 min.
-Artifacts (`<game>-playtest-<run_id>.zip`) contain `frame_*.png`
-screenshots + `summary.json`. Check **Actions** in the repo UI.
+Expected: `breakout` and `flappy_bird` jobs each take ~5–10 min (cold
+asset import dominates the first run; subsequent runs reuse Library
+caches and finish faster). Each job uploads `<game>-deploy-<run_id>.zip`
+containing the full Unity Editor log, plus a per-run JSON in
+`data/metrics/home_machine_runs/`. Check **Actions** in the repo UI.
 
 ## Failure modes and fixes
 
@@ -91,20 +108,30 @@ screenshots + `summary.json`. Check **Actions** in the repo UI.
 |---|---|---|
 | `Unity.exe not found at ...` | Hub install path differs | Pass `-UnityPath` to `home_machine_deploy.ps1`; or symlink to the expected path |
 | `LICENSE SYSTEM` errors in Editor.log | License inactive or expired | Re-run manual activation; check the runner user has access to `%LocalAppData%\Unity\Unity_lic.ulf` |
-| Workflow hangs at "Play mode validation" | Unity entered Play mode but never exited | Inspect `Editor.log` artifact; usually a NullRef in a MonoBehaviour Awake — check the game's generated scripts |
-| `summary.json not produced` | Play mode never entered (compile errors) | Look at the deploy step's log — most likely a C# syntax error from the translator |
-| Runner shows as Offline after reboot | Service didn't auto-start | `cd C:\actions-runner; .\svc.cmd status` then `.\svc.cmd start` |
+| `Cannot configure the runner because it is already configured` | A previous registration succeeded | Skip — runner is already wired up. To rotate, run `.\config.cmd remove` then re-run with a fresh token |
+| `The '<' operator is reserved for future use` | Pasted `<PLACEHOLDER>` literally | PowerShell parses `<` as redirection — assign the value to a `$var` first, then pass `$var` |
+| `running scripts is disabled on this system` | Default execution policy | `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, accept prompt |
+| Deploy exits `1` with no compile log | Another Unity instance holds the project lock | `Get-Process Unity \| Stop-Process -Force` (don't kill UnityHub), retry |
+| `Exiting without the bug reporter ... return code 1` after barely any log | Project lock contention (above) or asset import failure | Inspect first 100 lines of the log artifact for the real cause |
+| Runner shows as Offline after reboot | run.cmd window closed (v1 runs interactively, not as a service) | Re-launch `cd C:\actions-runner\r; .\run.cmd`. Service install is a follow-up — `svc.cmd` isn't bundled in this runner version |
 
 ## Verifying the failure path
 
-Before declaring M-7 done, prove a deliberate regression turns the
-home-machine check red:
+Before declaring M-7 v1 done, prove a deliberate regression turns the
+home-machine check red. v1 catches **compile + scene-setup** failures,
+not runtime exceptions during gameplay (that's M-7 phase 2).
 
 1. On a feature branch, hand-edit a generated `.cs` file to introduce
-   a NullRef (e.g., `transform = null;` in `Awake()`).
+   a syntax error or compile error (e.g., delete a closing brace, or
+   call a non-existent method on `transform`).
 2. Push, open a PR.
-3. Confirm the **Home Machine** check fails with the exception in the
-   uploaded log.
+3. Confirm the **Home Machine** check fails — the deploy step prints
+   the C# compile error in the workflow log; the Editor log artifact
+   has the full context.
+4. Revert the diff, push again, confirm green.
+
+(Awake/Start NullRef detection requires PlayMode and is intentionally
+out of v1 scope. Track via `M-7-phase-2`.)
 4. Revert the diff and confirm green.
 
 ## Secrets and security notes

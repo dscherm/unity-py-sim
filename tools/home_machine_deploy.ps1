@@ -38,7 +38,19 @@ param(
 
     [string]$Method = "GeneratedSceneSetup.Execute",
 
-    [string]$LogFile = ""
+    [string]$LogFile = "",
+
+    # Set when the executed method drives its own lifetime (e.g. enters Play
+    # mode). Unity's `-quit` flag forces an immediate exit after the static
+    # method returns, which kills async work like Play mode coroutines
+    # before they tick. The method must call EditorApplication.Exit() itself.
+    [switch]$NoQuit,
+
+    # Enable Unity's render context. By default we pass `-nographics` for
+    # the deploy/setup case (no rendering needed). Play mode validation
+    # needs a render target so ScreenCapture produces non-empty PNGs and
+    # MonoBehaviour Update ticks at frame cadence — pass -WithGraphics.
+    [switch]$WithGraphics
 )
 
 $ErrorActionPreference = "Stop"
@@ -81,16 +93,20 @@ Write-Host "[deploy] Project: $absProject"
 Write-Host "[deploy] Method: $Method"
 Write-Host "[deploy] Log: $LogFile"
 
-$unityArgs = @(
-    "-batchmode"
-    "-nographics"
+$unityArgs = @("-batchmode")
+if (-not $WithGraphics) {
+    $unityArgs += "-nographics"
+}
+$unityArgs += @(
     "-projectPath", $absProject
     "-executeMethod", $Method
     # `-logFile -` makes Unity stream the log to stdout, so we tee it
     # into both the console (visible in CI) and a file artifact.
     "-logFile", "-"
-    "-quit"
 )
+if (-not $NoQuit) {
+    $unityArgs += "-quit"
+}
 
 Write-Host "----- Unity log -----"
 # Don't use 2>&1: PowerShell 5.1 wraps native stderr in ErrorRecord and,

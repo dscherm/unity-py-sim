@@ -2854,8 +2854,32 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
     "Document setup in CROSS_MACHINE.md: runner registration, Unity license activation, secret management",
     "Verify: a deliberate translator regression in a feature branch produces a red home-machine check on the PR"
   ],
-  "passes": false,
+  "passes": true,
+  "completed_2026-04-25": "v1 (deploy-only) shipped. Self-hosted Windows runner registered + Unity 6 license activated on home machine. tools/home_machine_deploy.ps1 wraps Unity batchmode `-executeMethod` with -logFile - + Tee-Object (avoids the PS5.1 NativeCommandError trap on stderr). .github/workflows/home_machine.yml triggers on push to main + workflow_dispatch, per-game matrix (breakout, flappy_bird), runs GeneratedSceneSetup.Execute, uploads Unity log artifact, writes per-run JSON to data/metrics/home_machine_runs/. CROSS_MACHINE.md documents runner registration + license activation + smoke test + failure-mode table. Phase 2 (PlayMode validation) intentionally deferred — see M-7-phase-2 below; the original tools/home_machine_playtest.cs is preserved in tree for the rewrite to reference.",
   "depends_on": ["M-6"],
   "estimated_effort_hours": 50
+}
+```
+
+### Task M-7-phase-2: PlayMode validation via Unity Test Framework
+
+```json
+{
+  "id": "M-7-phase-2",
+  "category": "infrastructure",
+  "priority": 8,
+  "title": "PlayMode validation on home machine via Unity Test Framework",
+  "description": "M-7 v1 catches compile + scene-setup regressions but not runtime exceptions during gameplay (Awake/Start/Update NullRefs, etc.). Phase 2 adds PlayMode validation using Unity's [UnityTest] runner via `Unity -runTests -testPlatform PlayMode`. Idiomatic, supported, and survives batchmode lifecycle quirks that broke our custom harness in v1. Result: every push gets per-game `play_for_N_seconds_no_errors()` test that fails the check on any logged exception.",
+  "steps": [
+    "Confirm com.unity.test-framework is in each generated project's Packages/manifest.json (auto-injected by project_scaffolder if missing)",
+    "Author tools/home_machine_playmode_test.cs.j2 — a [UnityTest] IEnumerator that loads the active scene, advances frames for N seconds via `yield return null`, asserts no Application.logMessageReceived events of type Error/Exception",
+    "Update project_scaffolder.py to write the test into Assets/Tests/Editor (or Assets/Tests/PlayMode) with a matching .asmdef referencing UnityEngine.TestRunner + UnityEditor.TestRunner",
+    "Add tools/home_machine_run_tests.ps1 wrapping Unity -batchmode -runTests -testPlatform PlayMode -testResults <path>",
+    "Add a `playtest` job (or step) to .github/workflows/home_machine.yml that runs after `deploy`, parses the JUnit-style test results JSON, fails the check on any test failure, uploads test results + Editor.log as artifacts",
+    "Verify on home machine: introduce a deliberate NullRef in a generated MonoBehaviour Awake on a feature branch, confirm the playtest job goes red on the PR"
+  ],
+  "passes": false,
+  "depends_on": ["M-7"],
+  "estimated_effort_hours": 6
 }
 ```
