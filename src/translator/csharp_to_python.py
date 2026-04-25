@@ -300,16 +300,19 @@ def _translate_statement(line: str, cls: CSharpClass) -> list[str]:
     if result == "return":
         return [f"return{comment}"]
 
-    # Variable declaration: Type name = value
+    # Variable declaration: `Type name = value`. The shape (two identifiers
+    # then `=`) is unambiguous inside a C# function body, so we don't need
+    # an allowlist of types. The previous allowlist (int/float/Vector2/...)
+    # silently dropped declarations of user-defined types like
+    # `PlayerInputHandler player = (PlayerInputHandler)owner`, which then
+    # leaked the C# type prefix into Python (M-2 phase-2b fix for pairs
+    # 020/021/022).
     decl_match = re.match(r"^(\w+)\s+(\w+)\s*=\s*(.+)$", result)
     if decl_match:
-        var_type, var_name, value = decl_match.groups()
-        if var_type in ("int", "float", "double", "bool", "string", "var",
-                         "Vector2", "Vector3", "GameObject", "Rigidbody2D",
-                         "BallController", "Collision2D"):
-            py_name = camel_to_snake(var_name)
-            py_value = _translate_expression(value, cls)
-            return [f"{py_name} = {py_value}{comment}"]
+        _var_type, var_name, value = decl_match.groups()
+        py_name = camel_to_snake(var_name)
+        py_value = _translate_expression(value, cls)
+        return [f"{py_name} = {py_value}{comment}"]
 
     # Assignment: name = value
     assign_match = re.match(r"^([\w.]+)\s*=\s*(.+)$", result)
@@ -349,6 +352,13 @@ def _translate_expression(expr: str, cls: CSharpClass) -> str:
     # new Constructor() -> Constructor()
     expr = re.sub(r"\bnew\s+", "", expr)
 
+    # C# cast `(Type)expr` -> `expr`. Use a lookahead so we keep the
+    # following identifier intact. Only matches when the cast type is
+    # a single PascalCase identifier (`(Vector2)pos`, `(MyType)x`),
+    # which avoids stripping legitimate parenthesized expressions
+    # like `(a + b) * c`. M-2 phase-2b fix for pairs 006/020/021/022.
+    expr = re.sub(r"\(([A-Z]\w*)\)\s*(?=[A-Za-z_(])", "", expr)
+
     # Float literals: 5f -> 5.0, 0.5f -> 0.5 (order matters — decimal first)
     expr = re.sub(r"(\d+\.\d+)f\b", r"\1", expr)
     expr = re.sub(r"\b(\d+)f\b", lambda m: m.group(1) + ".0", expr)
@@ -364,6 +374,11 @@ def _translate_expression(expr: str, cls: CSharpClass) -> str:
     # Bool/null literals
     expr = expr.replace("true", "True").replace("false", "False")
     expr = re.sub(r"\bnull\b", "None", expr)
+
+    # Logical operators: && -> and, || -> or. Use spaces so they remain
+    # parseable when adjacent to identifiers. M-2 phase-2b fix for pair
+    # 027 (was failing parse-back on `player.A && player.B`).
+    expr = expr.replace("&&", " and ").replace("||", " or ")
 
     # Apply API translations
     for cs_api, py_api in _api_translations.items():

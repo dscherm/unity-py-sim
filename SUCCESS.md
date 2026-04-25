@@ -56,15 +56,19 @@ The project is shipped when **all 5 criteria pass simultaneously** on the main b
 
 These define the project's *maturity*, not its *shipping*. Useful for prioritization but never blocking.
 
-### ASP-1 · Roundtrip translation, compile-equivalent ≥80% of corpus
+### ASP-1 · Roundtrip translation, compile-equivalent ≥80% of corpus ✅
 
 **Definition**: At least 80% of `data/corpus/` pairs survive C# → Python → C# roundtrip such that the output C# compiles via the compilation gate.
 
+**Status (2026-04-25)**: **89.2%** (33/37 pairs). Approximated as "score > 0" — i.e. the roundtrip parses cleanly both legs (Python parse-back after cs2py, then C# parse-back after py2cs). Tracked live by the dashboard's `RT Compile %` column. Anchored by per-game scores: angry_birds 1.000, fsm_platformer 0.881, pong 0.730, breakout 0.577.
+
 **Delivered by**: M-2.
 
-### ASP-2 · Roundtrip translation, AST-equivalent ≥50% of corpus
+### ASP-2 · Roundtrip translation, AST-equivalent ≥50% of corpus ✅
 
 **Definition**: At least 50% of `data/corpus/` pairs survive roundtrip such that the output C# is structurally equivalent to the input (modulo whitespace and ordering).
+
+**Status (2026-04-25)**: **59.5%** (22/37 pairs scoring 1.000 on the structural+type+naming overall). Tracked live by the dashboard's `RT AST %` column.
 
 **Delivered by**: M-2.
 

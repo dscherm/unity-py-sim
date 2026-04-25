@@ -2,7 +2,7 @@
   "total_pairs": 37,
   "succeeded": 37,
   "failed": 0,
-  "avg_overall": 0.586,
+  "avg_overall": 0.849,
   "by_game": {
     "pong": {
       "count": 4,
@@ -10,7 +10,7 @@
     },
     "breakout": {
       "count": 5,
-      "avg_overall": 0.4
+      "avg_overall": 0.577
     },
     "angry_birds": {
       "count": 8,
@@ -18,7 +18,7 @@
     },
     "fsm_platformer": {
       "count": 20,
-      "avg_overall": 0.439
+      "avg_overall": 0.881
     }
   },
   "pairs": [
@@ -33,20 +33,6 @@
       "roundtrip_classes": 0,
       "details": [
         "Python parse error: invalid syntax (<unknown>, line 40)"
-      ],
-      "error": null
-    },
-    {
-      "id": "006_ball_controller",
-      "game": "breakout",
-      "overall": 0.0,
-      "structural": 0.0,
-      "type": 0.0,
-      "naming": 0.0,
-      "original_classes": 1,
-      "roundtrip_classes": 0,
-      "details": [
-        "Python parse error: invalid syntax (<unknown>, line 60)"
       ],
       "error": null
     },
@@ -89,132 +75,6 @@
       "roundtrip_classes": 0,
       "details": [
         "Python parse error: invalid syntax (<unknown>, line 19)"
-      ],
-      "error": null
-    },
-    {
-      "id": "020_player_idle_state",
-      "game": "fsm_platformer",
-      "overall": 0.0,
-      "structural": 0.0,
-      "type": 0.0,
-      "naming": 0.0,
-      "original_classes": 1,
-      "roundtrip_classes": 0,
-      "details": [
-        "Python parse error: invalid syntax (<unknown>, line 11)"
-      ],
-      "error": null
-    },
-    {
-      "id": "021_player_running_state",
-      "game": "fsm_platformer",
-      "overall": 0.0,
-      "structural": 0.0,
-      "type": 0.0,
-      "naming": 0.0,
-      "original_classes": 1,
-      "roundtrip_classes": 0,
-      "details": [
-        "Python parse error: invalid syntax (<unknown>, line 8)"
-      ],
-      "error": null
-    },
-    {
-      "id": "022_player_jumping_state",
-      "game": "fsm_platformer",
-      "overall": 0.0,
-      "structural": 0.0,
-      "type": 0.0,
-      "naming": 0.0,
-      "original_classes": 1,
-      "roundtrip_classes": 0,
-      "details": [
-        "Python parse error: invalid syntax (<unknown>, line 11)"
-      ],
-      "error": null
-    },
-    {
-      "id": "023_player_falling_state",
-      "game": "fsm_platformer",
-      "overall": 0.0,
-      "structural": 0.0,
-      "type": 0.0,
-      "naming": 0.0,
-      "original_classes": 1,
-      "roundtrip_classes": 0,
-      "details": [
-        "Python parse error: invalid syntax (<unknown>, line 8)"
-      ],
-      "error": null
-    },
-    {
-      "id": "024_player_landing_state",
-      "game": "fsm_platformer",
-      "overall": 0.0,
-      "structural": 0.0,
-      "type": 0.0,
-      "naming": 0.0,
-      "original_classes": 1,
-      "roundtrip_classes": 0,
-      "details": [
-        "Python parse error: invalid syntax (<unknown>, line 11)"
-      ],
-      "error": null
-    },
-    {
-      "id": "027_jump_transition",
-      "game": "fsm_platformer",
-      "overall": 0.0,
-      "structural": 0.0,
-      "type": 0.0,
-      "naming": 0.0,
-      "original_classes": 1,
-      "roundtrip_classes": 0,
-      "details": [
-        "Python parse error: invalid syntax (<unknown>, line 11)"
-      ],
-      "error": null
-    },
-    {
-      "id": "033_player_input_handler",
-      "game": "fsm_platformer",
-      "overall": 0.0,
-      "structural": 0.0,
-      "type": 0.0,
-      "naming": 0.0,
-      "original_classes": 1,
-      "roundtrip_classes": 0,
-      "details": [
-        "Python parse error: invalid syntax (<unknown>, line 79)"
-      ],
-      "error": null
-    },
-    {
-      "id": "034_enemy_idle_state",
-      "game": "fsm_platformer",
-      "overall": 0.0,
-      "structural": 0.0,
-      "type": 0.0,
-      "naming": 0.0,
-      "original_classes": 1,
-      "roundtrip_classes": 0,
-      "details": [
-        "Python parse error: invalid syntax (<unknown>, line 11)"
-      ],
-      "error": null
-    },
-    {
-      "id": "035_enemy_walk_state",
-      "game": "fsm_platformer",
-      "overall": 0.0,
-      "structural": 0.0,
-      "type": 0.0,
-      "naming": 0.0,
-      "original_classes": 1,
-      "roundtrip_classes": 0,
-      "details": [
-        "Python parse error: invalid syntax (<unknown>, line 15)"
       ],
       "error": null
     },
@@ -262,6 +122,20 @@
       "error": null
     },
     {
+      "id": "027_jump_transition",
+      "game": "fsm_platformer",
+      "overall": 0.85,
+      "structural": 1.0,
+      "type": 0.5,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [
+        "Return type mismatch: JumpTransition.IsValid: bool -> object"
+      ],
+      "error": null
+    },
+    {
       "id": "028_fall_transition",
       "game": "fsm_platformer",
       "overall": 0.85,
@@ -300,6 +174,22 @@
       "roundtrip_classes": 1,
       "details": [
         "Return type mismatch: TimeTransition.IsValid: bool -> object"
+      ],
+      "error": null
+    },
+    {
+      "id": "006_ball_controller",
+      "game": "breakout",
+      "overall": 0.883,
+      "structural": 0.9,
+      "type": 0.909,
+      "naming": 0.833,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [
+        "BallController: missing methods: {'Reset'}",
+        "BallController: extra methods: {'ResetState'}",
+        "Method name lost: BallController.Reset"
       ],
       "error": null
     },
@@ -490,7 +380,103 @@
       "error": null
     },
     {
+      "id": "020_player_idle_state",
+      "game": "fsm_platformer",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "021_player_running_state",
+      "game": "fsm_platformer",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "022_player_jumping_state",
+      "game": "fsm_platformer",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "023_player_falling_state",
+      "game": "fsm_platformer",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "024_player_landing_state",
+      "game": "fsm_platformer",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [],
+      "error": null
+    },
+    {
       "id": "032_walk_command",
+      "game": "fsm_platformer",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "033_player_input_handler",
+      "game": "fsm_platformer",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "034_enemy_idle_state",
+      "game": "fsm_platformer",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "035_enemy_walk_state",
       "game": "fsm_platformer",
       "overall": 1.0,
       "structural": 1.0,
