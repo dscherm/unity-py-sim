@@ -375,5 +375,47 @@
       "No DOVirtual, DOPath, or shader property tweening yet",
       "Sequence API matches DOTween: append, join, on_complete"
     ]
+  },
+  {
+    "unity_class": "Component",
+    "unity_namespace": "UnityEngine",
+    "python_class": "Component",
+    "python_module": "src.engine.core",
+    "category": "core",
+    "notes": "Base class for everything attached to a GameObject. Exposes game_object, transform, enabled, and the GetComponent helper. Concrete components inherit (Transform, MonoBehaviour, etc.).",
+    "example_unity": "public class Foo : Component { }",
+    "example_python": "class Foo(Component): pass",
+    "completeness": "full",
+    "behavioral_differences": []
+  },
+  {
+    "unity_class": "Time",
+    "unity_namespace": "UnityEngine",
+    "python_class": "Time",
+    "python_module": "src.engine.time_manager",
+    "category": "core",
+    "notes": "Static time accessors: delta_time, fixed_delta_time, time, frame_count, time_scale. Class-level fields, not an instance — mirrors Unity's static API.",
+    "example_unity": "transform.Translate(Vector3.up * Time.deltaTime);",
+    "example_python": "self.transform.translate(Vector3.up * Time.delta_time)",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Unity Time.deltaTime is camelCase static; Python uses snake_case (delta_time)",
+      "Time.timeScale not yet wired through fixed_update scheduling"
+    ]
+  },
+  {
+    "unity_class": "Input",
+    "unity_namespace": "UnityEngine",
+    "python_class": "Input",
+    "python_module": "src.engine.input_manager",
+    "category": "core",
+    "notes": "Static input polling: get_key, get_key_down, get_key_up, get_axis. Backed by pygame in the simulator.",
+    "example_unity": "if (Input.GetKey(KeyCode.Space)) { ... }",
+    "example_python": "if Input.get_key(KeyCode.SPACE): ...",
+    "completeness": "partial",
+    "behavioral_differences": [
+      "Unity Input is the legacy input manager; Python wraps pygame.key.get_pressed() and event queues",
+      "No GetAxis smoothing — returns raw -1/0/+1 unless a custom axis is registered"
+    ]
   }
 ]

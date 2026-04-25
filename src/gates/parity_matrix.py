@@ -36,6 +36,7 @@ class ParityRow:
     kind: str  # "class" | "method" | "property" | "lifecycle" | "enum" | "pattern"
     python_class: str | None
     python_module: str | None
+    python_member: str | None  # explicit python_method/python_property from mapping
     has_python_impl: bool
     has_parity_test: bool
 
@@ -46,33 +47,72 @@ def _normalize(entry: dict[str, Any], kind: str) -> ParityRow | None:
         return None
     if kind == "method":
         member = entry.get("unity_method", "")
+        py_member = entry.get("python_method")
     elif kind == "property":
         member = entry.get("unity_property", "")
+        py_member = entry.get("python_property")
     elif kind == "lifecycle":
         member = entry.get("unity_method", "")
+        py_member = entry.get("python_method")
     elif kind == "enum":
         member = entry.get("unity_value", "")
+        py_member = entry.get("python_value")
     else:
         member = ""
+        py_member = None
     return ParityRow(
         unity_class=unity_class,
         unity_member=member,
         kind=kind,
         python_class=entry.get("python_class"),
         python_module=entry.get("python_module"),
+        python_member=py_member,
         has_python_impl=False,
         has_parity_test=False,
     )
+
+
+def _instance_has_attr(cls: type, attr: str) -> bool:
+    """Fallback for instance-only attributes (set in __init__).
+
+    GameObject.layer, AudioSource.clip, etc. are assigned in __init__ and
+    don't appear via class-level hasattr. Try constructing the class with
+    no args; if it succeeds, check the instance.
+    """
+    import inspect
+    try:
+        sig = inspect.signature(cls)
+    except (TypeError, ValueError):
+        return False
+    for param in sig.parameters.values():
+        # Reject if any required positional/keyword arg lacks a default
+        if param.default is inspect.Parameter.empty and param.kind in (
+            inspect.Parameter.POSITIONAL_ONLY,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            inspect.Parameter.KEYWORD_ONLY,
+        ):
+            return False
+    try:
+        instance = cls()
+    except Exception:
+        return False
+    return hasattr(instance, attr)
 
 
 def _check_python_impl(row: ParityRow, class_module_index: dict[str, str]) -> bool:
     """Confirm the Python module imports and has the named class/member.
 
     Methods/properties/lifecycle entries don't carry python_module — we
-    look it up via the class index built from classes.json.
+    look it up via the class index. Lookup tries python_class first
+    (handles Unity superclasses like Object that map to GameObject),
+    then falls back to unity_class.
     """
     py_class = row.python_class or row.unity_class
-    py_module = row.python_module or class_module_index.get(row.unity_class)
+    py_module = (
+        row.python_module
+        or (row.python_class and class_module_index.get(row.python_class))
+        or class_module_index.get(row.unity_class)
+    )
     if not py_module or not py_class:
         return False
     try:
@@ -84,11 +124,23 @@ def _check_python_impl(row: ParityRow, class_module_index: dict[str, str]) -> bo
         return False
     if not row.unity_member:
         return True
-    py_attr = (
+    candidates: list[str] = []
+    if row.python_member:
+        candidates.append(row.python_member)
+    snake = (
         row.unity_member[0].lower()
         + "".join("_" + c.lower() if c.isupper() else c for c in row.unity_member[1:])
     )
-    return hasattr(cls, py_attr) or hasattr(cls, row.unity_member)
+    candidates.append(snake)
+    candidates.append(row.unity_member)
+    for c in candidates:
+        if hasattr(cls, c):
+            return True
+    # Instance-level fallback for attributes set in __init__
+    for c in candidates:
+        if _instance_has_attr(cls, c):
+            return True
+    return False
 
 
 def _check_parity_test(row: ParityRow, test_dir: Path) -> bool:

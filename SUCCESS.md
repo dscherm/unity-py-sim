@@ -38,7 +38,7 @@ The project is shipped when **all 5 criteria pass simultaneously** on the main b
 
 **Definition**: `CLAUDE.md`'s estimate of "~15-20% Unity API coverage" is replaced by a measured, dated number from a parity audit. The audit lists every Unity API claimed in `src/reference/mappings/`, marks which have a Python implementation, and marks which have a parity test.
 
-**Status (2026-04-25)**: **84 claimed APIs · 72.6% implemented (61/84) · 29.8% parity-tested (25/84)**. Audit tool: `python -m src.gates.parity_matrix` writes `data/metrics/parity_matrix.json`; `python tools/render_parity_matrix.py` emits `data/metrics/parity_matrix.md`. Snapshot integrates the totals so `data/metrics/dashboard.md` shows them as live trend columns. By kind: classes 26/26 (100%), properties 19/31 (61.3%), methods 8/13 (61.5%), lifecycle 8/14 (57.1%).
+**Status (2026-04-25)**: **87 claimed APIs · 100% implemented (87/87) · 31.0% parity-tested (27/87)**. Audit tool: `python -m src.gates.parity_matrix` writes `data/metrics/parity_matrix.json`; `python tools/render_parity_matrix.py` emits `data/metrics/parity_matrix.md`. Snapshot integrates the totals so `data/metrics/dashboard.md` shows them as live trend columns. By kind: classes 29/29 (100%), properties 31/31 (100%), methods 13/13 (100%), lifecycle 14/14 (100%). Audit-bug fixes (post-validator review): module index now resolves via `python_class` first, honors explicit `python_method`/`python_property` overrides, and falls back to instance-level `hasattr` for attributes set in `__init__`. Component, Time, and Input were missing from `classes.json` and were added so their members resolve.
 
 **Delivered by**: M-4 phase 1 (audit + matrix + 4 seed parity test files / 35 cases). Full parity test buildout to ≥90% is ASP-3, intentionally aspirational.
 
@@ -76,7 +76,7 @@ These define the project's *maturity*, not its *shipping*. Useful for prioritiza
 
 **Definition**: At least 90% of Unity APIs claimed in `src/reference/mappings/classes.json` + `methods.json` + `lifecycle.json` + `patterns.json` have a corresponding parity test in `tests/parity/`.
 
-**Status (2026-04-25)**: 29.8% (25/84). Seed tests landed in M-4 phase 1: Transform.position, GameObject.find/find_with_tag, MonoBehaviour lifecycle (Awake/Start/Update/FixedUpdate/LateUpdate/OnEnable/OnDisable/OnDestroy), Vector2/Vector3 static constants. Tracked live by `data/metrics/dashboard.md` `Parity Test` column.
+**Status (2026-04-25)**: 31.0% (27/87). Seed tests landed in M-4 phase 1: Transform.position, GameObject.find/find_with_tag, MonoBehaviour lifecycle (Awake/Start/Update/FixedUpdate/LateUpdate/OnEnable/OnDisable/OnDestroy), Vector2/Vector3 static constants. Tracked live by `data/metrics/dashboard.md` `Parity Test` column.
 
 **Delivered by**: M-4 phase 2 (post-audit expansion to ≥90%).
 
