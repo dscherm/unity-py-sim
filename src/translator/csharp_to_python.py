@@ -429,6 +429,28 @@ def _extract_condition(text: str) -> str:
     return text
 
 
+_STRING_LITERAL_RE = re.compile(r'"(?:[^"\\]|\\.)*"')
+
+
+def _sub_outside_strings(pattern: str | re.Pattern[str], repl, text: str) -> str:
+    """Apply ``re.sub(pattern, repl, ...)`` only to substrings outside C# string
+    literals. Splits on double-quoted spans (with escape handling) and rejoins.
+
+    Without this, regex-based keyword/literal stripping in _translate_literal
+    silently corrupts embedded text — e.g. ``"hello new world"`` would become
+    ``"hello world"`` after the ``\\bnew\\s+`` strip.
+    """
+    parts = _STRING_LITERAL_RE.split(text)
+    quoted = _STRING_LITERAL_RE.findall(text)
+    # parts has len == len(quoted) + 1; interleave: parts[0], quoted[0], parts[1], ...
+    rebuilt: list[str] = []
+    for i, p in enumerate(parts):
+        rebuilt.append(re.sub(pattern, repl, p))
+        if i < len(quoted):
+            rebuilt.append(quoted[i])
+    return "".join(rebuilt)
+
+
 def _translate_literal(value: str | None) -> str:
     """Translate a C# literal value to Python.
 
@@ -439,18 +461,22 @@ def _translate_literal(value: str | None) -> str:
     embedded ``new`` constructors and ``Nf`` / ``N.Nf`` float literals.
     Without these, Python emits ``new Vector2(0, 0.6f)`` and trips
     SyntaxError on parse-back (M-2 phase-2 fix for pairs 006, 009).
+
+    All regex passes that match identifiers / literals run via
+    _sub_outside_strings so that string contents (e.g. ``"the new way"``)
+    are not silently mangled.
     """
     if value is None:
         return "None"
     value = value.strip()
     # Strip embedded `new` keyword: `new Vector2(...)` -> `Vector2(...)`.
-    value = re.sub(r"\bnew\s+", "", value)
+    value = _sub_outside_strings(r"\bnew\s+", "", value)
     # Embedded float-suffix stripping (decimal first so `0.5f` doesn't
     # become `0.50` via the int rule).
-    value = re.sub(r"(\d+\.\d+)[fF]\b", r"\1", value)
-    value = re.sub(r"\b(\d+)[fF]\b", lambda m: m.group(1) + ".0", value)
+    value = _sub_outside_strings(r"(\d+\.\d+)[fF]\b", r"\1", value)
+    value = _sub_outside_strings(r"\b(\d+)[fF]\b", lambda m: m.group(1) + ".0", value)
     value = convert_float_literal(value)
     value = value.replace("true", "True").replace("false", "False")
-    value = re.sub(r"\bnull\b", "None", value)
+    value = _sub_outside_strings(r"\bnull\b", "None", value)
     value = re.sub(r'"([^"]*)"', r"'\1'", value)
     return value
