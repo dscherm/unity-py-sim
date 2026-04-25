@@ -2662,3 +2662,194 @@ API catalog: `data/reference/flappy_bird/api_catalog.md`
   "passes": true,
   "note": "Home-machine playtest completed 2026-04-22. Opened data/generated/flappy_bird_project/ in Unity 6, ran Tools -> Setup Generated Scene, pressed Play. Discovered 7 gaps during the session; all shipped at source (commits 7ab1399, 9430d2d, 3e58afc, cc8f289, e3b0dd5, f90e5c5, 332b6ac). Full catalog in data/lessons/flappy_bird_deploy.md. Effect: a clean regen of the pipeline (translate + scaffold + gen_flappy_coplay.py + Tools -> Setup Generated Scene) now produces a playable Flappy Bird with 0 code-level manual interventions — well under the <3 target. Bird flaps on Space, pipes spawn and scroll, background tiles, scoring works, gameplay loop plays. The only non-automated step is the user clicking the Tools menu item once after scene open. 2026-04-24 re-verify after FU-1/3/4 landed: still playable, 2 manual interventions (add com.coplaydev.coplay to manifest.json, re-wire Spawner.prefab to asset — gap 3 regression). Shipped 3 additional translator fixes this session: Python list-literal defaults on reference arrays emit null; `# public T name` trailing-comment override; translate_project default unity_version flipped 5 → 6."
 }
+```
+
+---
+
+## Phase: Coverage and Maturation — Missing 7 (2026-04-24)
+
+Driven by a discerning project review (2026-04-24): pipeline proven on Flappy Bird (N=1), translator handles real Unity idioms, but 7 gaps prevent the project from claiming durable maturity. Sequenced for fastest leverage: foundation (M-5/M-6) unlocks measurement; second E2E (M-1) proves N≥2; measurement layers (M-3/M-4) catch regressions; expansion (M-2/M-7) extends the pipeline.
+
+**Mid-phase checkpoints** (single phase, but with internal gates so the heavy translator/parity work doesn't silently swallow progress):
+- **Checkpoint α**: M-5 + M-6 + M-1 all green → "Pipeline ships ≥2 distinct games E2E with CI enforcing tests and SUCCESS.md as the source of truth for done." Estimated effort: ~15 hours.
+- **Checkpoint β**: M-3 + M-7 green → "Measurement and automation in place — accuracy dashboard live, home-machine deploy automated." Estimated effort: ~62 hours.
+- **Checkpoint γ**: M-2 + M-4 green → "Bidirectional and parity claims now measurable; aspirational language in CLAUDE.md replaced with measured numbers." Estimated effort: ~140 hours.
+
+Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can swallow weeks without intermediate signal; the α/β/γ checkpoints exist to surface that early.
+
+### Task M-5: Define success criteria + prune scope
+
+```json
+{
+  "id": "M-5",
+  "category": "docs",
+  "priority": 1,
+  "title": "Define success criteria + prune scope",
+  "description": "Stop scope creep. Write ≤5 concrete done-conditions to SUCCESS.md and tag plan.md phases as critical-path vs shelved. Without this, every new phase compounds debt.",
+  "steps": [
+    "Draft SUCCESS.md with ≤5 measurable criteria, each tagged MANDATORY or ASPIRATIONAL — e.g., MANDATORY: '≥2 games E2E with ≤5 manual interventions', 'CI green on every PR'; ASPIRATIONAL: '≥80% corpus roundtrip compile-equivalent', '90% engine API parity'",
+    "For M-2 percentage targets (80% compile-equivalent, 50% AST-equivalent) and M-4 percentage targets (90% API coverage, 80% dotnet pass, 70% CoPlay pass): explicitly bind each as MANDATORY or ASPIRATIONAL in SUCCESS.md so those tasks have a defined stopping condition",
+    "Audit plan.md phases — tag each phase as critical-path / measurement / shelved",
+    "Move shelved phases (Engine P3+, TextMeshPro-lite, Sprite Atlas, etc.) to SHELVED.md with rationale",
+    "Update CLAUDE.md to reference SUCCESS.md as the source of truth for 'done'",
+    "Run a manual review: do the M-1..M-7 tasks below match the criteria? Adjust if not."
+  ],
+  "passes": false,
+  "blocking_for": ["M-1", "M-2", "M-3", "M-4", "M-6", "M-7"],
+  "estimated_effort_hours": 1
+}
+```
+
+### Task M-6: CI pipeline (GitHub Actions)
+
+```json
+{
+  "id": "M-6",
+  "category": "infrastructure",
+  "priority": 2,
+  "title": "GitHub Actions CI for tests + gates",
+  "description": "3,142 passing tests do nothing if no one runs them on push. Add CI to prevent silent regressions. Force multiplier for M-3 (accuracy dashboard) and M-7 (cross-machine handoff).",
+  "steps": [
+    "Create .github/workflows/test.yml — pytest on push/PR with .venv setup + pip cache",
+    "Add ruff lint job",
+    "Add gate pipeline run (structural + convention + compilation gates) on a sampled corpus",
+    "Cache pip dependencies + .venv across runs",
+    "Add status badge to README.md",
+    "Optional: matrix over Python 3.11/3.12, OS Linux/Windows",
+    "Verify: PR triggers run; failing test blocks merge"
+  ],
+  "passes": false,
+  "depends_on": ["M-5"],
+  "estimated_effort_hours": 6
+}
+```
+
+### Task M-1: Second end-to-end game (Breakout)
+
+```json
+{
+  "id": "M-1",
+  "category": "validation",
+  "priority": 3,
+  "title": "E2E Breakout regen + home-machine playtest",
+  "description": "Prove pipeline isn't Flappy-Bird-specific. Breakout chosen over Pacman V1 because it's the simplest game (5 files, basic physics) and its generated artifacts were just deleted in commit 9e0a648 — making this also a regen-from-clean test of the pipeline's artifact discipline.",
+  "steps": [
+    "Run python -m src.pipeline --game breakout --output data/generated/breakout_project/ --validate",
+    "Confirm structural + convention + compilation gates pass before pushing",
+    "Push branch with regen artifacts; deploy to home machine; open in Unity 6",
+    "Run CoPlay scene reconstruction script; record any errors",
+    "Press Play; verify: paddle moves, ball bounces, bricks break, score updates, lives decrement, win/lose triggers",
+    "Log every manual intervention (Tools menu click counts as 1; per-component re-wire is 1 each); target ≤5 total",
+    "If gaps surface: fix at source (translator/scaffolder/coplay_generator), regen, redeploy until clean",
+    "Document in data/lessons/breakout_deploy.md with manual intervention list + commit hashes for fixes",
+    "Update SUCCESS.md (M-5) with the new game count: '2 of N games verified E2E'"
+  ],
+  "passes": false,
+  "depends_on": ["M-5"],
+  "estimated_effort_hours": 8,
+  "blocked_on": "home-machine availability"
+}
+```
+
+### Task M-3: Translation accuracy dashboard
+
+```json
+{
+  "id": "M-3",
+  "category": "infrastructure",
+  "priority": 4,
+  "title": "Translation accuracy dashboard with history",
+  "description": "Currently data/metrics/baseline.json is a static snapshot. Replace with timestamped snapshots in data/metrics/history/ and a generated dashboard showing trends. Catches regressions over time once CI runs it.",
+  "steps": [
+    "Define metrics: corpus compile %, structural gate pass %, convention gate pass %, contract test pass %, mutation test pass %, per-pair roundtrip score (when M-2 lands)",
+    "Build src/gates/snapshot.py — runs full gate pipeline on data/corpus/, emits data/metrics/history/<UTC-timestamp>.json",
+    "Add tools/render_dashboard.py — reads history/ dir, generates data/metrics/dashboard.md with trend tables and sparklines",
+    "Wire snapshot.py into CI (M-6) on every push to main",
+    "Verify: 3 consecutive snapshots produce a trend table with no parser errors"
+  ],
+  "passes": false,
+  "depends_on": ["M-6"],
+  "estimated_effort_hours": 12
+}
+```
+
+### Task M-2: Roundtrip translation gate (full bidirectional)
+
+```json
+{
+  "id": "M-2",
+  "category": "feature",
+  "priority": 5,
+  "title": "Full bidirectional C# <-> Python roundtrip gate",
+  "description": "Build the full bidirectional translator and roundtrip gate, not a pilot. CLAUDE.md claims bidirectional; this delivers it. Goal: every C# in data/corpus/ roundtrips to Python and back to equivalent C# (compile-equivalent at minimum, AST-equivalent for the green path). Lights up the corpus as a regression suite for translator changes.",
+  "steps": [
+    "Install tree_sitter_c_sharp into .venv (CLAUDE.md flags it as missing)",
+    "Audit existing src/translator/ for C# -> Python code paths; identify what works, what's stubbed, what's missing",
+    "Build out src/translator/csharp_to_python.py for every construct currently emitted by python_to_csharp.py: classes, methods, fields, enums, generics, coroutines, singletons, SerializeField, attributes, ternaries, tuple unpacking, dict/list/set membership, etc.",
+    "Define equivalence levels: token-equal (strict), AST-equivalent (loose), compile-equivalent (loosest)",
+    "Build src/gates/roundtrip_gate.py — input C#, run cs_to_py, run py_to_cs, score against original at all 3 levels",
+    "Run on every pair in data/corpus/ (37+ pairs); record scores in data/metrics/roundtrip_baseline.json",
+    "Identify constructs that fail roundtrip; ship translator fixes per construct (each as its own commit)",
+    "Iterate until ≥80% of corpus passes compile-equivalent and ≥50% passes AST-equivalent",
+    "Wire roundtrip gate into the gate pipeline (structural -> convention -> compilation -> roundtrip)",
+    "Wire into CI (M-6) so PRs that lower roundtrip score fail",
+    "Document the roundtrip API contract and supported construct set in src/reference/roundtrip_supported.md"
+  ],
+  "passes": false,
+  "depends_on": ["M-6"],
+  "estimated_effort_hours": 80
+}
+```
+
+### Task M-4: Engine ↔ Unity behavioral parity tests (CoPlay + dotnet run)
+
+```json
+{
+  "id": "M-4",
+  "category": "validation",
+  "priority": 6,
+  "title": "Engine ↔ Unity parity tests via CoPlay snapshots + dotnet run reference",
+  "description": "Two reference-truth sources for parity: (a) CoPlay-driven Unity Editor snapshots on home machine and (b) dotnet run against UnityEngine reference DLLs for headless behavioral assertions. Combined, they let CI catch 'compiles but doesn't behave like Unity' bugs that cost us all of fix_plan.md S2-S12.",
+  "steps": [
+    "Enumerate every Unity API in src/reference/mappings/ — produce data/metrics/parity_matrix.md",
+    "For each API, write a Python parity test in tests/parity/ that calls the engine implementation and asserts expected behavior",
+    "For each API, write a paired C# parity probe that exercises the real Unity API and emits a JSON result",
+    "dotnet path: ship UnityEngine reference DLLs in vendor/; build src/gates/dotnet_parity.py that runs the C# probe via dotnet, captures JSON, diffs against the Python parity test's expected output",
+    "CoPlay path: on home machine, run the C# probe inside Unity Editor via CoPlay execute_script, capture result JSON, push back to repo",
+    "Build src/gates/parity_gate.py — runs both paths (dotnet always, CoPlay when results JSON available), aggregates pass/fail/skip per API",
+    "Wire parity gate into CI (M-6) for the dotnet path; CoPlay path runs on the self-hosted runner (M-7)",
+    "Track parity coverage % over time in the dashboard (M-3)",
+    "Update CLAUDE.md '~15-20%' figure to a measured number; commit to growing it deliberately",
+    "Goal: 90%+ of claimed APIs have parity tests; 80%+ pass dotnet path; 70%+ pass CoPlay path"
+  ],
+  "passes": false,
+  "depends_on": ["M-5", "M-6"],
+  "estimated_effort_hours": 60
+}
+```
+
+### Task M-7: Cross-machine handoff automation (self-hosted runner now)
+
+```json
+{
+  "id": "M-7",
+  "category": "infrastructure",
+  "priority": 7,
+  "title": "Self-hosted GitHub Actions runner on home machine",
+  "description": "Eliminate the manual home-machine deploy ritual. On every push to main: home machine pulls, opens Unity in batchmode, runs CoPlay scene reconstruction, runs Play mode for N seconds, captures screenshots + logs, posts results back as a commit comment or PR check. Closes the FU-2-style 2-machine bottleneck.",
+  "steps": [
+    "Provision GitHub Actions self-hosted runner on home machine (runner registration token, systemd/Task Scheduler service)",
+    "Ship a minimal Unity-batch wrapper: tools/home_machine_deploy.sh (or .ps1) that takes a project path, opens Unity in -batchmode -nographics, runs CoPlay setup script via -executeMethod, returns exit code",
+    "Add Play-mode harness: tools/home_machine_playtest.cs (Unity editor script) that enters Play mode, runs for N seconds, captures screenshots to data/lessons/<game>_playtest_<timestamp>/, captures Unity console log",
+    "Build .github/workflows/home_machine.yml triggered on push to main — runs on self-hosted, executes deploy + playtest, uploads artifacts (screenshots, logs)",
+    "Wire failure detection: any console error / exception fails the workflow; null reference exceptions surface as workflow check failures",
+    "Add per-game matrix: workflow runs deploy+playtest on every game in data/generated/*_project/ that has a CoPlay setup script",
+    "Capture results in data/metrics/home_machine_runs/<timestamp>.json — feeds into accuracy dashboard (M-3)",
+    "Document setup in CROSS_MACHINE.md: runner registration, Unity license activation, secret management",
+    "Verify: a deliberate translator regression in a feature branch produces a red home-machine check on the PR"
+  ],
+  "passes": false,
+  "depends_on": ["M-6"],
+  "estimated_effort_hours": 50
+}
+```
