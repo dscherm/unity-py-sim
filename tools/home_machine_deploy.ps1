@@ -81,23 +81,33 @@ Write-Host "[deploy] Project: $absProject"
 Write-Host "[deploy] Method: $Method"
 Write-Host "[deploy] Log: $LogFile"
 
-$args = @(
+$unityArgs = @(
     "-batchmode"
     "-nographics"
-    "-projectPath"; $absProject
-    "-executeMethod"; $Method
-    "-logFile"; $LogFile
+    "-projectPath", $absProject
+    "-executeMethod", $Method
+    # `-logFile -` makes Unity stream the log to stdout, so we tee it
+    # into both the console (visible in CI) and a file artifact.
+    "-logFile", "-"
     "-quit"
 )
 
-& $UnityPath @args
-$exit = $LASTEXITCODE
-
-if (Test-Path $LogFile) {
-    Write-Host "----- Unity log -----"
-    Get-Content $LogFile | Write-Host
-    Write-Host "----- /Unity log -----"
+Write-Host "----- Unity log -----"
+# Don't use 2>&1: PowerShell 5.1 wraps native stderr in ErrorRecord and,
+# combined with ErrorActionPreference=Stop, aborts the script even on a
+# zero-exit Unity run. With `-logFile -` Unity writes everything we care
+# about to stdout; stderr only has cosmetic shutdown warnings.
+$prevPref = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+try {
+    & $UnityPath @unityArgs | Tee-Object -FilePath $LogFile
+} finally {
+    $ErrorActionPreference = $prevPref
 }
+$exit = $LASTEXITCODE
+if ($null -eq $exit) { $exit = 0 }
+Write-Host "----- /Unity log -----"
 
 Write-Host "[deploy] exit code: $exit"
+Write-Host "[deploy] log saved: $LogFile"
 exit $exit
