@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'cd \"$CLAUDE_PROJECT_DIR\" 2>/dev/null || exit 0; git diff --cached --quiet 2>/dev/null && exit 0; files=$(git diff --cached --name-only | head -3 | paste -sd \", \" -); count=$(git diff --cached --name-only | wc -l | tr -d \" \"); if [ \"$count\" -gt 3 ]; then files=\"$files +$((count-3)) more\"; fi; scope=$(git diff --cached --name-only | head -1 | awk -F/ \"{print \\$1\\\"/\\\"\\$2}\" | head -c 30); msg=\"chore(auto): ${files}\"; git -c commit.gpgsign=false commit -m \"$msg\" --quiet 2>&1 | head -3 >&2 || true; echo \"[auto-commit] $msg\" >&2'"
+          }
+        ]
+      }
+    ]
+  }
+}

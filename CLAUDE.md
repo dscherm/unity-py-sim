@@ -86,3 +86,12 @@ Before creating or modifying examples, read the relevant lesson files:
 1. This machine: Python development, simulator, translator, local gates
 2. Push to GitHub: `dscherm/unity-py-sim`
 3. Home machine: `dotnet build` on generated C#, Unity-MCP runtime testing (CoplayDev + IvanMurzak)
+
+## Auto-Commit Policy
+
+When work is complete and the test suite passes, stage the relevant files (`git add <paths>`) before ending your turn. The Stop hook in `.claude/settings.json` will auto-commit anything staged with a generated message — you do **not** need to ask the user before committing.
+
+- Only stage files that belong to the just-completed unit of work; never `git add -A`.
+- Never auto-commit `.claude/settings.local.json`, `.ralph/` runtime files, or generated `data/generated/**` artifacts (those need explicit user approval).
+- If tests fail, do **not** stage. Fix or surface the failure first.
+- Pushing to remote still requires explicit user approval.
