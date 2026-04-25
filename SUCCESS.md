@@ -34,13 +34,13 @@ The project is shipped when **all 5 criteria pass simultaneously** on the main b
 
 **Delivered by**: M-5 (this task) closes it; subsequent tasks must maintain it.
 
-### MAN-4 · Engine ↔ Unity API coverage measured (not estimated)
+### MAN-4 · Engine ↔ Unity API coverage measured (not estimated) ✅
 
 **Definition**: `CLAUDE.md`'s estimate of "~15-20% Unity API coverage" is replaced by a measured, dated number from a parity audit. The audit lists every Unity API claimed in `src/reference/mappings/`, marks which have a Python implementation, and marks which have a parity test.
 
-**Status (2026-04-24)**: not measured.
+**Status (2026-04-25)**: **84 claimed APIs · 72.6% implemented (61/84) · 29.8% parity-tested (25/84)**. Audit tool: `python -m src.gates.parity_matrix` writes `data/metrics/parity_matrix.json`; `python tools/render_parity_matrix.py` emits `data/metrics/parity_matrix.md`. Snapshot integrates the totals so `data/metrics/dashboard.md` shows them as live trend columns. By kind: classes 26/26 (100%), properties 19/31 (61.3%), methods 8/13 (61.5%), lifecycle 8/14 (57.1%).
 
-**Delivered by**: M-4 (audit step only — full parity test buildout is ASPIRATIONAL).
+**Delivered by**: M-4 phase 1 (audit + matrix + 4 seed parity test files / 35 cases). Full parity test buildout to ≥90% is ASP-3, intentionally aspirational.
 
 ### MAN-5 · CLAUDE.md auto-commit policy enforced
 
@@ -76,7 +76,9 @@ These define the project's *maturity*, not its *shipping*. Useful for prioritiza
 
 **Definition**: At least 90% of Unity APIs claimed in `src/reference/mappings/classes.json` + `methods.json` + `lifecycle.json` + `patterns.json` have a corresponding parity test in `tests/parity/`.
 
-**Delivered by**: M-4 (post-audit expansion).
+**Status (2026-04-25)**: 29.8% (25/84). Seed tests landed in M-4 phase 1: Transform.position, GameObject.find/find_with_tag, MonoBehaviour lifecycle (Awake/Start/Update/FixedUpdate/LateUpdate/OnEnable/OnDisable/OnDestroy), Vector2/Vector3 static constants. Tracked live by `data/metrics/dashboard.md` `Parity Test` column.
+
+**Delivered by**: M-4 phase 2 (post-audit expansion to ≥90%).
 
 ### ASP-4 · Parity tests ≥80% pass dotnet path, ≥70% pass CoPlay path
 

@@ -1,0 +1,939 @@
+{
+  "total_apis": 84,
+  "implemented": 61,
+  "with_parity_test": 25,
+  "implementation_pct": 0.726,
+  "parity_test_pct": 0.298,
+  "by_kind": {
+    "class": {
+      "total": 26,
+      "implemented": 26,
+      "with_parity_test": 5
+    },
+    "method": {
+      "total": 13,
+      "implemented": 8,
+      "with_parity_test": 4
+    },
+    "property": {
+      "total": 31,
+      "implemented": 19,
+      "with_parity_test": 9
+    },
+    "lifecycle": {
+      "total": 14,
+      "implemented": 8,
+      "with_parity_test": 7
+    }
+  },
+  "by_unity_class": {
+    "MonoBehaviour": {
+      "total": 15,
+      "implemented": 9,
+      "with_parity_test": 8
+    },
+    "GameObject": {
+      "total": 10,
+      "implemented": 8,
+      "with_parity_test": 8
+    },
+    "Transform": {
+      "total": 12,
+      "implemented": 12,
+      "with_parity_test": 2
+    },
+    "Rigidbody2D": {
+      "total": 8,
+      "implemented": 8,
+      "with_parity_test": 0
+    },
+    "BoxCollider2D": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "CircleCollider2D": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "Camera": {
+      "total": 3,
+      "implemented": 3,
+      "with_parity_test": 0
+    },
+    "SpriteRenderer": {
+      "total": 3,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "Vector2": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 1
+    },
+    "Vector3": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 1
+    },
+    "Quaternion": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "Mathf": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "PhysicsMaterial2D": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "Physics2D": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "RaycastHit2D": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "Debug": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "AudioClip": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "AudioSource": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "AudioListener": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "Canvas": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "RectTransform": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "Text": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "Image": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "Button": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "SceneManager": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "DOTween (Tween)": {
+      "total": 1,
+      "implemented": 1,
+      "with_parity_test": 0
+    },
+    "Component": {
+      "total": 4,
+      "implemented": 0,
+      "with_parity_test": 3
+    },
+    "Object": {
+      "total": 1,
+      "implemented": 0,
+      "with_parity_test": 1
+    },
+    "Input": {
+      "total": 3,
+      "implemented": 0,
+      "with_parity_test": 0
+    },
+    "Time": {
+      "total": 5,
+      "implemented": 0,
+      "with_parity_test": 1
+    }
+  },
+  "rows": [
+    {
+      "unity_class": "MonoBehaviour",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "MonoBehaviour",
+      "python_module": "src.engine.core",
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "GameObject",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "GameObject",
+      "python_module": "src.engine.core",
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "Transform",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "Transform",
+      "python_module": "src.engine.transform",
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "Rigidbody2D",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "Rigidbody2D",
+      "python_module": "src.engine.physics.rigidbody",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "BoxCollider2D",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "BoxCollider2D",
+      "python_module": "src.engine.physics.collider",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "CircleCollider2D",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "CircleCollider2D",
+      "python_module": "src.engine.physics.collider",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Camera",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "Camera",
+      "python_module": "src.engine.rendering.camera",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "SpriteRenderer",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "SpriteRenderer",
+      "python_module": "src.engine.rendering.renderer",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Vector2",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "Vector2",
+      "python_module": "src.engine.math.vector",
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "Vector3",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "Vector3",
+      "python_module": "src.engine.math.vector",
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "Quaternion",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "Quaternion",
+      "python_module": "src.engine.math.quaternion",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Mathf",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "Mathf",
+      "python_module": "src.engine.math.mathf",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "PhysicsMaterial2D",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "PhysicsMaterial2D",
+      "python_module": "src.engine.physics.collider",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Physics2D",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "Physics2D",
+      "python_module": "src.engine.physics.physics_manager",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "RaycastHit2D",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "RaycastHit2D",
+      "python_module": "src.engine.physics.physics_manager",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Debug",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "Debug",
+      "python_module": "src.engine.debug",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "AudioClip",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "AudioClip",
+      "python_module": "src.engine.audio",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "AudioSource",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "AudioSource",
+      "python_module": "src.engine.audio",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "AudioListener",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "AudioListener",
+      "python_module": "src.engine.audio",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Canvas",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "Canvas",
+      "python_module": "src.engine.ui",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "RectTransform",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "RectTransform",
+      "python_module": "src.engine.ui",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Text",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "Text",
+      "python_module": "src.engine.ui",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Image",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "Image",
+      "python_module": "src.engine.ui",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Button",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "Button",
+      "python_module": "src.engine.ui",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "SceneManager",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "SceneManager",
+      "python_module": "src.engine.scene",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "DOTween (Tween)",
+      "unity_member": "",
+      "kind": "class",
+      "python_class": "Tween",
+      "python_module": "src.engine.tweening",
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "GameObject",
+      "unity_member": "Find",
+      "kind": "method",
+      "python_class": "GameObject",
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "GameObject",
+      "unity_member": "FindWithTag",
+      "kind": "method",
+      "python_class": "GameObject",
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "GameObject",
+      "unity_member": "FindGameObjectsWithTag",
+      "kind": "method",
+      "python_class": "GameObject",
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "GameObject",
+      "unity_member": "AddComponent",
+      "kind": "method",
+      "python_class": "GameObject",
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "Component",
+      "unity_member": "GetComponent",
+      "kind": "method",
+      "python_class": "Component",
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Object",
+      "unity_member": "Destroy",
+      "kind": "method",
+      "python_class": "GameObject",
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "Transform",
+      "unity_member": "Translate",
+      "kind": "method",
+      "python_class": "Transform",
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Transform",
+      "unity_member": "Rotate",
+      "kind": "method",
+      "python_class": "Transform",
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Transform",
+      "unity_member": "LookAt",
+      "kind": "method",
+      "python_class": "Transform",
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Rigidbody2D",
+      "unity_member": "AddForce",
+      "kind": "method",
+      "python_class": "Rigidbody2D",
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Input",
+      "unity_member": "GetKey",
+      "kind": "method",
+      "python_class": "Input",
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Input",
+      "unity_member": "GetKeyDown",
+      "kind": "method",
+      "python_class": "Input",
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Input",
+      "unity_member": "GetAxis",
+      "kind": "method",
+      "python_class": "Input",
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Transform",
+      "unity_member": "position",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "Transform",
+      "unity_member": "rotation",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Transform",
+      "unity_member": "localScale",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Transform",
+      "unity_member": "parent",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Transform",
+      "unity_member": "forward",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Transform",
+      "unity_member": "right",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Transform",
+      "unity_member": "up",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Transform",
+      "unity_member": "childCount",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "GameObject",
+      "unity_member": "name",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "GameObject",
+      "unity_member": "tag",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "GameObject",
+      "unity_member": "layer",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "GameObject",
+      "unity_member": "activeSelf",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "GameObject",
+      "unity_member": "transform",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "Component",
+      "unity_member": "gameObject",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "Component",
+      "unity_member": "transform",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "Component",
+      "unity_member": "enabled",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "Rigidbody2D",
+      "unity_member": "velocity",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Rigidbody2D",
+      "unity_member": "angularVelocity",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Rigidbody2D",
+      "unity_member": "mass",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Rigidbody2D",
+      "unity_member": "drag",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Rigidbody2D",
+      "unity_member": "gravityScale",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Rigidbody2D",
+      "unity_member": "bodyType",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Camera",
+      "unity_member": "orthographicSize",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Camera",
+      "unity_member": "backgroundColor",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "SpriteRenderer",
+      "unity_member": "color",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "SpriteRenderer",
+      "unity_member": "sortingOrder",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Time",
+      "unity_member": "deltaTime",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Time",
+      "unity_member": "fixedDeltaTime",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Time",
+      "unity_member": "time",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "Time",
+      "unity_member": "frameCount",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "Time",
+      "unity_member": "timeScale",
+      "kind": "property",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "MonoBehaviour",
+      "unity_member": "Awake",
+      "kind": "lifecycle",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "MonoBehaviour",
+      "unity_member": "Start",
+      "kind": "lifecycle",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "MonoBehaviour",
+      "unity_member": "Update",
+      "kind": "lifecycle",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "MonoBehaviour",
+      "unity_member": "FixedUpdate",
+      "kind": "lifecycle",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "MonoBehaviour",
+      "unity_member": "LateUpdate",
+      "kind": "lifecycle",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "MonoBehaviour",
+      "unity_member": "OnDestroy",
+      "kind": "lifecycle",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "MonoBehaviour",
+      "unity_member": "OnEnable",
+      "kind": "lifecycle",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": true
+    },
+    {
+      "unity_class": "MonoBehaviour",
+      "unity_member": "OnDisable",
+      "kind": "lifecycle",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": true,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "MonoBehaviour",
+      "unity_member": "OnCollisionEnter2D",
+      "kind": "lifecycle",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "MonoBehaviour",
+      "unity_member": "OnCollisionExit2D",
+      "kind": "lifecycle",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "MonoBehaviour",
+      "unity_member": "OnTriggerEnter2D",
+      "kind": "lifecycle",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "MonoBehaviour",
+      "unity_member": "OnTriggerStay2D",
+      "kind": "lifecycle",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "MonoBehaviour",
+      "unity_member": "OnTriggerExit2D",
+      "kind": "lifecycle",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": false
+    },
+    {
+      "unity_class": "MonoBehaviour",
+      "unity_member": "OnCollisionStay2D",
+      "kind": "lifecycle",
+      "python_class": null,
+      "python_module": null,
+      "has_python_impl": false,
+      "has_parity_test": false
+    }
+  ]
+}

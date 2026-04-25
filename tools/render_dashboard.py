@@ -109,6 +109,8 @@ def render_dashboard(
         ("Avg using match", "avg_using", _fmt_num),
         ("Roundtrip compile %", "roundtrip_compile_pct", _fmt_pct),
         ("Roundtrip AST %", "roundtrip_ast_pct", _fmt_pct),
+        ("Unity API parity (impl)", "parity_implemented_pct", _fmt_pct),
+        ("Unity API parity (tested)", "parity_test_pct", _fmt_pct),
     ]
     lines.append("| Metric | Value | Δ |")
     lines.append("|---|---|---|")
@@ -118,8 +120,11 @@ def render_dashboard(
 
     lines.append(f"## Trend (last {len(recent)} snapshots)")
     lines.append("")
-    lines.append("| Time | Compile | Avg | Class | Method | Field | RT Compile | RT AST |")
-    lines.append("|---|---|---|---|---|---|---|---|")
+    lines.append(
+        "| Time | Compile | Avg | Class | Method | Field | RT Compile | RT AST | "
+        "Parity Impl | Parity Test |"
+    )
+    lines.append("|---|---|---|---|---|---|---|---|---|---|")
     for snap in recent:
         sm = snap.get("metrics", {}) or {}
         ts = str(snap.get("timestamp", ""))[:19]
@@ -131,7 +136,9 @@ def render_dashboard(
             f"{_fmt_num(sm.get('avg_method'))} | "
             f"{_fmt_num(sm.get('avg_field'))} | "
             f"{_fmt_pct(sm.get('roundtrip_compile_pct'))} | "
-            f"{_fmt_pct(sm.get('roundtrip_ast_pct'))} |"
+            f"{_fmt_pct(sm.get('roundtrip_ast_pct'))} | "
+            f"{_fmt_pct(sm.get('parity_implemented_pct'))} | "
+            f"{_fmt_pct(sm.get('parity_test_pct'))} |"
         )
     lines.append("")
 

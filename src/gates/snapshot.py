@@ -82,6 +82,7 @@ def take_snapshot(
     baseline = _read_json(metrics_dir / "baseline.json")
     compilation = _read_json(metrics_dir / "compilation_baseline.json")
     roundtrip = _read_json(metrics_dir / "roundtrip_baseline.json")
+    parity = _read_json(metrics_dir / "parity_matrix.json")
 
     # Derive roundtrip aggregates from per-pair scores when present.
     # `compile_pct` proxies "roundtrip didn't blow up at any parse layer" — a
@@ -117,6 +118,11 @@ def take_snapshot(
         "roundtrip_compile_pct": roundtrip_compile_pct,
         "roundtrip_ast_pct": roundtrip_ast_pct,
         "roundtrip_avg_overall": roundtrip.get("avg_overall"),
+        # Parity matrix: claimed Unity APIs vs implementation/test coverage.
+        # Source: data/metrics/parity_matrix.json (built by src.gates.parity_matrix).
+        "parity_total_apis": parity.get("total_apis"),
+        "parity_implemented_pct": parity.get("implementation_pct"),
+        "parity_test_pct": parity.get("parity_test_pct"),
     }
 
     by_game = baseline.get("by_game", {})

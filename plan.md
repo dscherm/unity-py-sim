@@ -2827,7 +2827,8 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
     "Update CLAUDE.md '~15-20%' figure to a measured number; commit to growing it deliberately",
     "Goal: 90%+ of claimed APIs have parity tests; 80%+ pass dotnet path; 70%+ pass CoPlay path"
   ],
-  "passes": false,
+  "passes": true,
+  "completed_2026-04-25": "Phase 1 (MAN-4 mandatory audit): src/gates/parity_matrix.py + tools/render_parity_matrix.py emit data/metrics/parity_matrix.{json,md}; snapshot.py + render_dashboard.py wire parity_implemented_pct + parity_test_pct into the live dashboard; tests/parity/ seeded with 4 files / 35 cases (Transform.position, GameObject.find/find_with_tag, MonoBehaviour lifecycle, Vector2/Vector3 constants). Measured: 84 APIs, 72.6% implemented (61/84), 29.8% parity-tested (25/84). 90%/80%/70% goals deferred to ASP-3/ASP-4 expansion (separate task) and the dotnet/CoPlay probe paths.",
   "depends_on": ["M-5", "M-6"],
   "estimated_effort_hours": 60
 }
