@@ -1,0 +1,54 @@
+{
+  "timestamp": "2026-04-25T18:51:08+00:00",
+  "git_commit": "96afc7f",
+  "git_branch": "feat/asset-pipeline-and-translator",
+  "metrics": {
+    "corpus_compile_pct": 0.189,
+    "corpus_pairs": 37,
+    "avg_overall": 0.771,
+    "avg_class": 0.86,
+    "avg_method": 0.757,
+    "avg_field": 0.709,
+    "avg_using": 0.705,
+    "roundtrip_compile_pct": null,
+    "roundtrip_ast_pct": null
+  },
+  "by_game": {
+    "angry_birds": {
+      "count": 8,
+      "avg_overall": 0.763,
+      "avg_class": 0.875,
+      "avg_method": 0.88,
+      "avg_field": 0.442
+    },
+    "breakout": {
+      "count": 5,
+      "avg_overall": 0.896,
+      "avg_class": 1.0,
+      "avg_method": 0.814,
+      "avg_field": 0.883
+    },
+    "fsm_platformer": {
+      "count": 20,
+      "avg_overall": 0.734,
+      "avg_class": 0.792,
+      "avg_method": 0.67,
+      "avg_field": 0.826
+    },
+    "pong": {
+      "count": 4,
+      "avg_overall": 0.815,
+      "avg_class": 1.0,
+      "avg_method": 0.875,
+      "avg_field": 0.438
+    }
+  },
+  "test_counts": {
+    "unit": 31,
+    "contracts": 53,
+    "integration": 46,
+    "mutation": 42,
+    "parity": 0
+  },
+  "notes": "M-3 wiring smoke test #1"
+}

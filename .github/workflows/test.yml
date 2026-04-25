@@ -78,3 +78,32 @@ jobs:
       - name: Run gate pipeline (quick mode)
         run: python -m tools.gate_pipeline --quick
         continue-on-error: true
+
+  snapshot:
+    name: metrics snapshot + dashboard
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Take snapshot
+        run: python -m src.gates.snapshot --notes "ci push ${{ github.sha }}"
+
+      - name: Render dashboard
+        run: python tools/render_dashboard.py
+
+      - name: Upload snapshot + dashboard
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrics-${{ github.sha }}
+          path: |
+            data/metrics/history/
+            data/metrics/dashboard.md
+          retention-days: 90

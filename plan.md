@@ -2768,9 +2768,11 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
     "Wire snapshot.py into CI (M-6) on every push to main",
     "Verify: 3 consecutive snapshots produce a trend table with no parser errors"
   ],
-  "passes": false,
+  "passes": true,
   "depends_on": ["M-6"],
-  "estimated_effort_hours": 12
+  "estimated_effort_hours": 12,
+  "completed_on": "2026-04-25",
+  "completion_note": "Shipped src/gates/snapshot.py + tools/render_dashboard.py + CI snapshot job. 3 consecutive snapshots produce a working trend table. Roundtrip metrics intentionally null until M-2."
 }
 ```
 
