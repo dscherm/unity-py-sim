@@ -87,6 +87,10 @@ Before creating or modifying examples, read the relevant lesson files:
 2. Push to GitHub: `dscherm/unity-py-sim`
 3. Home machine: `dotnet build` on generated C#, Unity-MCP runtime testing (CoplayDev + IvanMurzak)
 
+## Source of Truth for "Done"
+
+`SUCCESS.md` defines the 5 mandatory criteria + 6 aspirational criteria for unity-py-sim. `SHELVED.md` lists phases deliberately out of scope. When choosing what to work on, prefer tasks that close mandatory criteria. When asked to add a feature, check `SHELVED.md` first — if it's listed, don't pursue without an explicit `SUCCESS.md` criterion to anchor it. Update both files when criteria change.
+
 ## Auto-Commit Policy
 
 When work is complete and the test suite passes, stage the relevant files (`git add <paths>`) before ending your turn. The Stop hook in `.claude/settings.json` will auto-commit anything staged with a generated message — you do **not** need to ask the user before committing.
@@ -95,3 +99,11 @@ When work is complete and the test suite passes, stage the relevant files (`git 
 - Never auto-commit `.claude/settings.local.json`, `.ralph/` runtime files, or generated `data/generated/**` artifacts (those need explicit user approval).
 - If tests fail, do **not** stage. Fix or surface the failure first.
 - Pushing to remote still requires explicit user approval.
+
+
+<!-- unpossible-ralph: auto-injected context -->
+@.claude/.ralph-lessons.md
+@.claude/.ralph-spec.md
+@.claude/.ralph-pending-reviews.md
+@.claude/.ralph-handoff.md
+@.claude/.ralph-bridge-resume.md
