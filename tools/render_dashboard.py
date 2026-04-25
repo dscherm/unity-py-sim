@@ -109,7 +109,7 @@ def render_dashboard(
         ("Avg using match", "avg_using", _fmt_num),
         ("Roundtrip compile %", "roundtrip_compile_pct", _fmt_pct),
         ("Roundtrip AST %", "roundtrip_ast_pct", _fmt_pct),
-        ("Unity API parity (impl)", "parity_implemented_pct", _fmt_pct),
+        ("Unity API surface (static)", "parity_implemented_pct", _fmt_pct),
         ("Unity API parity (tested)", "parity_test_pct", _fmt_pct),
     ]
     lines.append("| Metric | Value | Δ |")
@@ -122,7 +122,7 @@ def render_dashboard(
     lines.append("")
     lines.append(
         "| Time | Compile | Avg | Class | Method | Field | RT Compile | RT AST | "
-        "Parity Impl | Parity Test |"
+        "API Surface | Parity Test |"
     )
     lines.append("|---|---|---|---|---|---|---|---|---|---|")
     for snap in recent:

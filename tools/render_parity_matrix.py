@@ -42,6 +42,14 @@ def render(matrix: dict[str, Any]) -> str:
         "API parity claim in CLAUDE.md._"
     )
     lines.append("")
+    lines.append(
+        "> **Static surface** = class-level `hasattr(cls, member)` after "
+        "import. Confirms the API name exists in code; does NOT verify "
+        "behavior. Behavioral parity lives in `tests/parity/` (the **Parity "
+        "Test** column). Instance-only attributes set in `__init__` are not "
+        "detected statically — they show up as parity-tested instead."
+    )
+    lines.append("")
 
     lines.append("## Summary")
     lines.append("")
@@ -51,7 +59,7 @@ def render(matrix: dict[str, Any]) -> str:
     lines.append("| Metric | Value |")
     lines.append("|---|---|")
     lines.append(f"| Total claimed APIs | {total} |")
-    lines.append(f"| Implementation coverage | {_pct(impl, total)} |")
+    lines.append(f"| Static API surface (class-level hasattr) | {_pct(impl, total)} |")
     lines.append(f"| Parity-test coverage | {_pct(tests, total)} |")
     lines.append("")
 
@@ -59,7 +67,7 @@ def render(matrix: dict[str, Any]) -> str:
     if by_kind:
         lines.append("## By Kind")
         lines.append("")
-        lines.append("| Kind | Implementation | Parity Tests |")
+        lines.append("| Kind | Static Surface | Parity Tests |")
         lines.append("|---|---|---|")
         for kind in ("class", "method", "property", "lifecycle", "enum", "pattern"):
             stats = by_kind.get(kind)
@@ -75,7 +83,7 @@ def render(matrix: dict[str, Any]) -> str:
     if by_class:
         lines.append("## By Unity Class")
         lines.append("")
-        lines.append("| Class | Members | Implemented | Parity-tested |")
+        lines.append("| Class | Members | Static Surface | Parity-tested |")
         lines.append("|---|---|---|---|")
         for cls in sorted(by_class):
             stats = by_class[cls]
@@ -89,7 +97,7 @@ def render(matrix: dict[str, Any]) -> str:
     if rows:
         lines.append("## Detailed Rows")
         lines.append("")
-        lines.append("| Class | Member | Kind | Implementation | Parity Test |")
+        lines.append("| Class | Member | Kind | Static Surface | Parity Test |")
         lines.append("|---|---|---|---|---|")
         # Sort: class A-Z, then member A-Z, with whole-class rows first
         sorted_rows = sorted(

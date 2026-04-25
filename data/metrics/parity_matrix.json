@@ -1,8 +1,8 @@
 {
   "total_apis": 87,
-  "implemented": 87,
+  "implemented": 83,
   "with_parity_test": 27,
-  "implementation_pct": 1.0,
+  "implementation_pct": 0.954,
   "parity_test_pct": 0.31,
   "by_kind": {
     "class": {
@@ -17,7 +17,7 @@
     },
     "property": {
       "total": 31,
-      "implemented": 31,
+      "implemented": 27,
       "with_parity_test": 9
     },
     "lifecycle": {
@@ -34,7 +34,7 @@
     },
     "GameObject": {
       "total": 10,
-      "implemented": 10,
+      "implemented": 8,
       "with_parity_test": 8
     },
     "Transform": {
@@ -64,7 +64,7 @@
     },
     "SpriteRenderer": {
       "total": 3,
-      "implemented": 3,
+      "implemented": 1,
       "with_parity_test": 0
     },
     "Vector2": {
@@ -706,7 +706,7 @@
       "python_class": null,
       "python_module": null,
       "python_member": "layer",
-      "has_python_impl": true,
+      "has_python_impl": false,
       "has_parity_test": true
     },
     {
@@ -716,7 +716,7 @@
       "python_class": null,
       "python_module": null,
       "python_member": "active",
-      "has_python_impl": true,
+      "has_python_impl": false,
       "has_parity_test": false
     },
     {
@@ -846,7 +846,7 @@
       "python_class": null,
       "python_module": null,
       "python_member": "color",
-      "has_python_impl": true,
+      "has_python_impl": false,
       "has_parity_test": false
     },
     {
@@ -856,7 +856,7 @@
       "python_class": null,
       "python_module": null,
       "python_member": "sorting_order",
-      "has_python_impl": true,
+      "has_python_impl": false,
       "has_parity_test": false
     },
     {

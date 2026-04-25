@@ -72,40 +72,18 @@ def _normalize(entry: dict[str, Any], kind: str) -> ParityRow | None:
     )
 
 
-def _instance_has_attr(cls: type, attr: str) -> bool:
-    """Fallback for instance-only attributes (set in __init__).
-
-    GameObject.layer, AudioSource.clip, etc. are assigned in __init__ and
-    don't appear via class-level hasattr. Try constructing the class with
-    no args; if it succeeds, check the instance.
-    """
-    import inspect
-    try:
-        sig = inspect.signature(cls)
-    except (TypeError, ValueError):
-        return False
-    for param in sig.parameters.values():
-        # Reject if any required positional/keyword arg lacks a default
-        if param.default is inspect.Parameter.empty and param.kind in (
-            inspect.Parameter.POSITIONAL_ONLY,
-            inspect.Parameter.POSITIONAL_OR_KEYWORD,
-            inspect.Parameter.KEYWORD_ONLY,
-        ):
-            return False
-    try:
-        instance = cls()
-    except Exception:
-        return False
-    return hasattr(instance, attr)
-
-
 def _check_python_impl(row: ParityRow, class_module_index: dict[str, str]) -> bool:
-    """Confirm the Python module imports and has the named class/member.
+    """Static check: does the named class expose this Unity-named member at the class level?
 
-    Methods/properties/lifecycle entries don't carry python_module — we
-    look it up via the class index. Lookup tries python_class first
-    (handles Unity superclasses like Object that map to GameObject),
-    then falls back to unity_class.
+    Static-only by design — no class instantiation, no side effects on
+    global registries. Resolves the Python module via row.python_module,
+    then the class index keyed on python_class (handles Unity supertypes
+    like Object → GameObject), then unity_class. The member name is taken
+    from row.python_member when set, otherwise camel→snake derived.
+
+    Limitation: instance-only attributes set in __init__ (e.g. GameObject.layer,
+    AudioSource.clip) are NOT detected — they are not class-level. Behavioral
+    coverage of those attributes lives in tests/parity/, not here.
     """
     py_class = row.python_class or row.unity_class
     py_module = (
@@ -132,13 +110,8 @@ def _check_python_impl(row: ParityRow, class_module_index: dict[str, str]) -> bo
         + "".join("_" + c.lower() if c.isupper() else c for c in row.unity_member[1:])
     )
     candidates.append(snake)
-    candidates.append(row.unity_member)
     for c in candidates:
         if hasattr(cls, c):
-            return True
-    # Instance-level fallback for attributes set in __init__
-    for c in candidates:
-        if _instance_has_attr(cls, c):
             return True
     return False
 
