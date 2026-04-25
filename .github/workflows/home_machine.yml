@@ -1,0 +1,117 @@
+name: Home Machine — Unity Deploy + Playtest
+
+# Runs on the self-hosted Windows runner with Unity 6 + CoPlay installed.
+# For every push to main, regenerates each game's CoPlay setup and runs
+# a short Play mode validation, capturing screenshots and console logs.
+# See CROSS_MACHINE.md for runner registration and license setup.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      games:
+        description: "Space-separated game names to playtest (default: all)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  playtest:
+    name: ${{ matrix.game }}
+    runs-on: [self-hosted, Windows, unity]
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        # Add a row here when a new game's project is regenerable.
+        game:
+          - breakout
+          - flappy_bird
+    env:
+      GAME: ${{ matrix.game }}
+      PROJECT_PATH: data/generated/${{ matrix.game }}_project
+      HOMEPT_FRAMES: "300"
+      HOMEPT_SCREENSHOT_EVERY: "60"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Skip if game not requested via dispatch
+        if: github.event_name == 'workflow_dispatch' && inputs.games != ''
+        shell: pwsh
+        run: |
+          $requested = "${{ inputs.games }}".Split(' ')
+          if (-not ($requested -contains "${env:GAME}")) {
+            Write-Host "::notice::Skipping ${env:GAME} (not in dispatch list)"
+            exit 78  # neutral skip
+          }
+
+      - name: Verify project exists
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:PROJECT_PATH}")) {
+            Write-Error "Project path ${env:PROJECT_PATH} not present in checkout"
+            exit 1
+          }
+          if (-not (Test-Path "${env:PROJECT_PATH}/Assets/Editor/GeneratedSceneSetup.cs")) {
+            Write-Error "GeneratedSceneSetup.cs missing — regenerate the project first"
+            exit 1
+          }
+
+      - name: Stage playtest harness in Assets/Editor
+        shell: pwsh
+        run: |
+          $dst = "${env:PROJECT_PATH}/Assets/Editor/HomeMachinePlaytest.cs"
+          Copy-Item tools/home_machine_playtest.cs $dst -Force
+          Write-Host "Staged $dst"
+
+      - name: Deploy CoPlay scene (batchmode)
+        shell: pwsh
+        run: pwsh tools/home_machine_deploy.ps1 -ProjectPath "${env:PROJECT_PATH}" -Method "GeneratedSceneSetup.Execute"
+
+      - name: Play mode validation
+        shell: pwsh
+        env:
+          HOMEPT_OUTPUT_DIR: ${{ github.workspace }}/data/lessons/${{ matrix.game }}_playtest_${{ github.run_id }}
+        run: pwsh tools/home_machine_deploy.ps1 -ProjectPath "${env:PROJECT_PATH}" -Method "HomeMachinePlaytest.Run"
+
+      - name: Aggregate results JSON
+        if: always()
+        shell: pwsh
+        env:
+          HOMEPT_OUTPUT_DIR: ${{ github.workspace }}/data/lessons/${{ matrix.game }}_playtest_${{ github.run_id }}
+        run: |
+          $summary = Join-Path "${env:HOMEPT_OUTPUT_DIR}" "summary.json"
+          $resultsDir = "data/metrics/home_machine_runs"
+          New-Item -ItemType Directory -Force -Path $resultsDir | Out-Null
+          $ts = (Get-Date).ToUniversalTime().ToString("yyyyMMddTHHmmssZ")
+          $dst = Join-Path $resultsDir "${env:GAME}_${ts}.json"
+          if (Test-Path $summary) {
+            Copy-Item $summary $dst -Force
+            Write-Host "Wrote $dst"
+          } else {
+            Write-Warning "summary.json not produced — Unity likely failed to enter Play mode"
+            $stub = @{ game = "${env:GAME}"; status = "no_summary"; commit = "${env:GITHUB_SHA}"; run_id = "${env:GITHUB_RUN_ID}" } | ConvertTo-Json
+            Set-Content -Path $dst -Value $stub -Encoding utf8
+          }
+
+      - name: Upload screenshots + log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.game }}-playtest-${{ github.run_id }}
+          path: |
+            data/lessons/${{ matrix.game }}_playtest_${{ github.run_id }}/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Cleanup staged playtest harness
+        if: always()
+        shell: pwsh
+        run: |
+          Remove-Item -ErrorAction SilentlyContinue "${env:PROJECT_PATH}/Assets/Editor/HomeMachinePlaytest.cs"
+          Remove-Item -ErrorAction SilentlyContinue "${env:PROJECT_PATH}/Assets/Editor/HomeMachinePlaytest.cs.meta"
