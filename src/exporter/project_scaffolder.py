@@ -38,6 +38,12 @@ _DEFAULT_PACKAGES: dict[str, str] = {
     "com.unity.modules.ui": "1.0.0",
     "com.unity.modules.uielements": "1.0.0",
     "com.unity.modules.imgui": "1.0.0",
+    # CoPlay MCP plugin — required for the generated Editor scripts
+    # (GeneratedSceneSetup.cs / GeneratedSceneValidation.cs) to run via
+    # the CoPlay tools menu and for MCP scene-reconstruction. Adding here
+    # so home-machine deploy doesn't need the manual manifest edit that
+    # FU-2 hit on Flappy Bird.
+    "com.coplaydev.coplay": "https://github.com/CoplayDev/unity-plugin.git#beta",
 }
 
 # Well-known optional packages and their versions
