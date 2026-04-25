@@ -72,8 +72,9 @@ def _make_snapshot_dict(ts: str, *, avg: float = 0.7) -> dict:
 def test_mutation_drop_roundtrip_compile_pct_breaks_contract(tmp_path):
     """Removing roundtrip_compile_pct must cause the snapshot contract check to fail."""
     src = SNAPSHOT_SRC.read_text(encoding="utf-8")
-    # Mutate: drop the roundtrip_compile_pct line from the metrics dict.
-    needle = '"roundtrip_compile_pct": None,'
+    # Mutate: drop the roundtrip_compile_pct entry from the metrics dict (the line
+    # in take_snapshot that maps the key to its computed value).
+    needle = '"roundtrip_compile_pct": roundtrip_compile_pct,'
     assert needle in src, "expected sentinel string not found — mutation source out of date"
     mutated = src.replace(needle, "", 1)
     assert needle not in mutated, "mutation did not actually drop the line"

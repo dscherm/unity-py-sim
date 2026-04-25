@@ -2800,7 +2800,9 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
   ],
   "passes": false,
   "depends_on": ["M-6"],
-  "estimated_effort_hours": 80
+  "estimated_effort_hours": 80,
+  "phase_1_completed_on": "2026-04-25",
+  "phase_1_note": "Foundation shipped: tools/run_roundtrip_baseline.py runs the existing roundtrip_gate over all 37 pairs; src/gates/snapshot.py + dashboard now surface RT-compile-% and RT-AST-% with Δ trends; CI snapshot job runs the baseline before snapshotting. Baseline as of 2026-04-25: RT compile 62.2% (23/37 pass parse layer), RT AST 37.8% (14/37 score 1.0). Targets per SUCCESS.md ASP-1 (≥80% compile) and ASP-2 (≥50% AST) — 22pp / 13pp gap. Remaining work: per-construct fixes for the 5 hard parse-error pairs (002, 006, 008, 009, 018) and the long tail in fsm_platformer."
 }
 ```
 

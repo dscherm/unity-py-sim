@@ -1,0 +1,517 @@
+{
+  "total_pairs": 37,
+  "succeeded": 37,
+  "failed": 0,
+  "avg_overall": 0.586,
+  "by_game": {
+    "pong": {
+      "count": 4,
+      "avg_overall": 0.73
+    },
+    "breakout": {
+      "count": 5,
+      "avg_overall": 0.4
+    },
+    "angry_birds": {
+      "count": 8,
+      "avg_overall": 1.0
+    },
+    "fsm_platformer": {
+      "count": 20,
+      "avg_overall": 0.439
+    }
+  },
+  "pairs": [
+    {
+      "id": "002_ball_controller",
+      "game": "pong",
+      "overall": 0.0,
+      "structural": 0.0,
+      "type": 0.0,
+      "naming": 0.0,
+      "original_classes": 1,
+      "roundtrip_classes": 0,
+      "details": [
+        "Python parse error: invalid syntax (<unknown>, line 40)"
+      ],
+      "error": null
+    },
+    {
+      "id": "006_ball_controller",
+      "game": "breakout",
+      "overall": 0.0,
+      "structural": 0.0,
+      "type": 0.0,
+      "naming": 0.0,
+      "original_classes": 1,
+      "roundtrip_classes": 0,
+      "details": [
+        "Python parse error: invalid decimal literal (<unknown>, line 20)"
+      ],
+      "error": null
+    },
+    {
+      "id": "008_game_manager",
+      "game": "breakout",
+      "overall": 0.0,
+      "structural": 0.0,
+      "type": 0.0,
+      "naming": 0.0,
+      "original_classes": 1,
+      "roundtrip_classes": 0,
+      "details": [
+        "Python parse error: invalid syntax (<unknown>, line 20)"
+      ],
+      "error": null
+    },
+    {
+      "id": "009_powerup",
+      "game": "breakout",
+      "overall": 0.0,
+      "structural": 0.0,
+      "type": 0.0,
+      "naming": 0.0,
+      "original_classes": 1,
+      "roundtrip_classes": 0,
+      "details": [
+        "Python parse error: invalid decimal literal (<unknown>, line 13)"
+      ],
+      "error": null
+    },
+    {
+      "id": "018_fsm",
+      "game": "fsm_platformer",
+      "overall": 0.0,
+      "structural": 0.0,
+      "type": 0.0,
+      "naming": 0.0,
+      "original_classes": 1,
+      "roundtrip_classes": 0,
+      "details": [
+        "Python parse error: invalid syntax (<unknown>, line 9)"
+      ],
+      "error": null
+    },
+    {
+      "id": "020_player_idle_state",
+      "game": "fsm_platformer",
+      "overall": 0.0,
+      "structural": 0.0,
+      "type": 0.0,
+      "naming": 0.0,
+      "original_classes": 1,
+      "roundtrip_classes": 0,
+      "details": [
+        "Python parse error: invalid syntax (<unknown>, line 11)"
+      ],
+      "error": null
+    },
+    {
+      "id": "021_player_running_state",
+      "game": "fsm_platformer",
+      "overall": 0.0,
+      "structural": 0.0,
+      "type": 0.0,
+      "naming": 0.0,
+      "original_classes": 1,
+      "roundtrip_classes": 0,
+      "details": [
+        "Python parse error: invalid syntax (<unknown>, line 8)"
+      ],
+      "error": null
+    },
+    {
+      "id": "022_player_jumping_state",
+      "game": "fsm_platformer",
+      "overall": 0.0,
+      "structural": 0.0,
+      "type": 0.0,
+      "naming": 0.0,
+      "original_classes": 1,
+      "roundtrip_classes": 0,
+      "details": [
+        "Python parse error: invalid syntax (<unknown>, line 11)"
+      ],
+      "error": null
+    },
+    {
+      "id": "023_player_falling_state",
+      "game": "fsm_platformer",
+      "overall": 0.0,
+      "structural": 0.0,
+      "type": 0.0,
+      "naming": 0.0,
+      "original_classes": 1,
+      "roundtrip_classes": 0,
+      "details": [
+        "Python parse error: invalid syntax (<unknown>, line 8)"
+      ],
+      "error": null
+    },
+    {
+      "id": "024_player_landing_state",
+      "game": "fsm_platformer",
+      "overall": 0.0,
+      "structural": 0.0,
+      "type": 0.0,
+      "naming": 0.0,
+      "original_classes": 1,
+      "roundtrip_classes": 0,
+      "details": [
+        "Python parse error: invalid syntax (<unknown>, line 11)"
+      ],
+      "error": null
+    },
+    {
+      "id": "027_jump_transition",
+      "game": "fsm_platformer",
+      "overall": 0.0,
+      "structural": 0.0,
+      "type": 0.0,
+      "naming": 0.0,
+      "original_classes": 1,
+      "roundtrip_classes": 0,
+      "details": [
+        "Python parse error: invalid syntax (<unknown>, line 11)"
+      ],
+      "error": null
+    },
+    {
+      "id": "033_player_input_handler",
+      "game": "fsm_platformer",
+      "overall": 0.0,
+      "structural": 0.0,
+      "type": 0.0,
+      "naming": 0.0,
+      "original_classes": 1,
+      "roundtrip_classes": 0,
+      "details": [
+        "Python parse error: invalid syntax (<unknown>, line 79)"
+      ],
+      "error": null
+    },
+    {
+      "id": "034_enemy_idle_state",
+      "game": "fsm_platformer",
+      "overall": 0.0,
+      "structural": 0.0,
+      "type": 0.0,
+      "naming": 0.0,
+      "original_classes": 1,
+      "roundtrip_classes": 0,
+      "details": [
+        "Python parse error: invalid syntax (<unknown>, line 11)"
+      ],
+      "error": null
+    },
+    {
+      "id": "035_enemy_walk_state",
+      "game": "fsm_platformer",
+      "overall": 0.0,
+      "structural": 0.0,
+      "type": 0.0,
+      "naming": 0.0,
+      "original_classes": 1,
+      "roundtrip_classes": 0,
+      "details": [
+        "Python parse error: invalid syntax (<unknown>, line 15)"
+      ],
+      "error": null
+    },
+    {
+      "id": "030_landing_timer_transition",
+      "game": "fsm_platformer",
+      "overall": 0.68,
+      "structural": 0.95,
+      "type": 0.0,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [
+        "LandingTimerTransition: missing fields: {'LandingDuration'}",
+        "Return type mismatch: LandingTimerTransition.IsValid: bool -> object"
+      ],
+      "error": null
+    },
+    {
+      "id": "025_input_transition",
+      "game": "fsm_platformer",
+      "overall": 0.85,
+      "structural": 1.0,
+      "type": 0.5,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [
+        "Return type mismatch: InputTransition.IsValid: bool -> object"
+      ],
+      "error": null
+    },
+    {
+      "id": "026_no_input_transition",
+      "game": "fsm_platformer",
+      "overall": 0.85,
+      "structural": 1.0,
+      "type": 0.5,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [
+        "Return type mismatch: NoInputTransition.IsValid: bool -> object"
+      ],
+      "error": null
+    },
+    {
+      "id": "028_fall_transition",
+      "game": "fsm_platformer",
+      "overall": 0.85,
+      "structural": 1.0,
+      "type": 0.5,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [
+        "Return type mismatch: FallTransition.IsValid: bool -> object"
+      ],
+      "error": null
+    },
+    {
+      "id": "029_grounded_transition",
+      "game": "fsm_platformer",
+      "overall": 0.85,
+      "structural": 1.0,
+      "type": 0.5,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [
+        "Return type mismatch: GroundedTransition.IsValid: bool -> object"
+      ],
+      "error": null
+    },
+    {
+      "id": "036_time_transition",
+      "game": "fsm_platformer",
+      "overall": 0.85,
+      "structural": 1.0,
+      "type": 0.5,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [
+        "Return type mismatch: TimeTransition.IsValid: bool -> object"
+      ],
+      "error": null
+    },
+    {
+      "id": "031_jump_command",
+      "game": "fsm_platformer",
+      "overall": 0.9,
+      "structural": 1.0,
+      "type": 0.667,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [
+        "Return type mismatch: JumpCommand.IsValid: bool -> object"
+      ],
+      "error": null
+    },
+    {
+      "id": "003_score_manager",
+      "game": "pong",
+      "overall": 0.92,
+      "structural": 0.95,
+      "type": 0.8,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [
+        "ScoreManager: missing fields: {'WinScore'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "019_command",
+      "game": "fsm_platformer",
+      "overall": 0.94,
+      "structural": 1.0,
+      "type": 0.8,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [
+        "Return type mismatch: Command.IsValid: bool -> void"
+      ],
+      "error": null
+    },
+    {
+      "id": "001_paddle_controller",
+      "game": "pong",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "004_game_manager",
+      "game": "pong",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "005_paddle_controller",
+      "game": "breakout",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "007_brick",
+      "game": "breakout",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "010_constants",
+      "game": "angry_birds",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 0,
+      "roundtrip_classes": 0,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "011_enums",
+      "game": "angry_birds",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 0,
+      "roundtrip_classes": 0,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "012_bird",
+      "game": "angry_birds",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 0,
+      "roundtrip_classes": 0,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "013_slingshot",
+      "game": "angry_birds",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 0,
+      "roundtrip_classes": 0,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "014_brick",
+      "game": "angry_birds",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 0,
+      "roundtrip_classes": 0,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "015_pig",
+      "game": "angry_birds",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 0,
+      "roundtrip_classes": 0,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "016_destroyer",
+      "game": "angry_birds",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 0,
+      "roundtrip_classes": 0,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "017_game_manager",
+      "game": "angry_birds",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 0,
+      "roundtrip_classes": 0,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "032_walk_command",
+      "game": "fsm_platformer",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "037_enemy_behaviour",
+      "game": "fsm_platformer",
+      "overall": 1.0,
+      "structural": 1.0,
+      "type": 1.0,
+      "naming": 1.0,
+      "original_classes": 1,
+      "roundtrip_classes": 1,
+      "details": [],
+      "error": null
+    }
+  ]
+}

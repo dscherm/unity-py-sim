@@ -81,6 +81,27 @@ def take_snapshot(
 
     baseline = _read_json(metrics_dir / "baseline.json")
     compilation = _read_json(metrics_dir / "compilation_baseline.json")
+    roundtrip = _read_json(metrics_dir / "roundtrip_baseline.json")
+
+    # Derive roundtrip aggregates from per-pair scores when present.
+    # `compile_pct` proxies "roundtrip didn't blow up at any parse layer" — a
+    # pair scores >0 only if both py-parse-after-cs2py and cs-parse-after-py2cs
+    # succeeded. `ast_pct` is the strict bar: structural+type+naming all
+    # match (overall == 1.0).
+    rt_pairs_raw = roundtrip.get("pairs")
+    rt_pairs: list[Any] = rt_pairs_raw if isinstance(rt_pairs_raw, list) else []
+    rt_total = len(rt_pairs)
+
+    def _scored(p: Any) -> bool:
+        return isinstance(p, dict) and p.get("error") is None and p.get("overall", 0) > 0
+
+    def _perfect(p: Any) -> bool:
+        return isinstance(p, dict) and p.get("error") is None and p.get("overall", 0) >= 0.999
+
+    rt_compile_pairs = sum(1 for p in rt_pairs if _scored(p))
+    rt_perfect_pairs = sum(1 for p in rt_pairs if _perfect(p))
+    roundtrip_compile_pct = (rt_compile_pairs / rt_total) if rt_total else None
+    roundtrip_ast_pct = (rt_perfect_pairs / rt_total) if rt_total else None
 
     metrics: dict[str, float | int | None] = {
         "corpus_compile_pct": compilation.get("pass_rate"),
@@ -90,9 +111,12 @@ def take_snapshot(
         "avg_method": baseline.get("avg_method"),
         "avg_field": baseline.get("avg_field"),
         "avg_using": baseline.get("avg_using"),
-        # Roundtrip metrics — populated once M-2 ships
-        "roundtrip_compile_pct": None,
-        "roundtrip_ast_pct": None,
+        # Roundtrip metrics — populated once roundtrip_baseline.json exists.
+        # compile_pct = pairs that successfully roundtripped without parser/translator
+        # errors; ast_pct = pairs that scored 1.0 overall (structural+type+naming all match).
+        "roundtrip_compile_pct": roundtrip_compile_pct,
+        "roundtrip_ast_pct": roundtrip_ast_pct,
+        "roundtrip_avg_overall": roundtrip.get("avg_overall"),
     }
 
     by_game = baseline.get("by_game", {})

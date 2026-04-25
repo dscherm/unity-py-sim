@@ -93,6 +93,15 @@ jobs:
           python-version: '3.11'
           cache: pip
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Refresh roundtrip baseline
+        run: python tools/run_roundtrip_baseline.py
+        continue-on-error: true
+
       - name: Take snapshot
         run: python -m src.gates.snapshot --notes "ci push ${{ github.sha }}"
 
