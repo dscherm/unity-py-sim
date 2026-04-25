@@ -53,9 +53,13 @@ assumes the license is already activated and persists between runs.
    Invoke-WebRequest -Uri https://github.com/actions/runner/releases/download/v2.319.1/actions-runner-win-x64-2.319.1.zip `
      -OutFile actions-runner.zip
    Expand-Archive -Path actions-runner.zip -DestinationPath . -Force
+   # Paste the one-time token GitHub printed on the runner page into $token.
+   # Do NOT use angle brackets in PowerShell — `<` is a reserved redirection
+   # operator and will fail with "The '<' operator is reserved for future use."
+   $token = "PASTE_THE_TOKEN_HERE"
    .\config.cmd `
      --url https://github.com/dscherm/unity-py-sim `
-     --token <PASTE_TOKEN> `
+     --token $token `
      --name home-unity `
      --labels self-hosted,Windows,unity `
      --work _work
