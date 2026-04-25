@@ -259,8 +259,14 @@ def generate_scene_script(
             unity_path = info.get("unity_path", "")
             sprite_name = info.get("sprite_name")
             if sprite_name:
+                # Try named sub-sprite first (Multiple sprite-sheet mode), then
+                # fall back to the main sprite asset (Single sprite mode). The
+                # texture importer's spriteMode determines which works; the
+                # scaffolder writes Single-mode .meta files so the fallback is
+                # the common path.
                 lines.append(f"        var {var_name} = AssetDatabase.LoadAllAssetsAtPath(\"{_escape_cs_string(unity_path)}\")")
-                lines.append(f"            .OfType<Sprite>().FirstOrDefault(s => s.name == \"{_escape_cs_string(sprite_name)}\");")
+                lines.append(f"            .OfType<Sprite>().FirstOrDefault(s => s.name == \"{_escape_cs_string(sprite_name)}\")")
+                lines.append(f"            ?? AssetDatabase.LoadAssetAtPath<Sprite>(\"{_escape_cs_string(unity_path)}\");")
             else:
                 lines.append(f"        var {var_name} = AssetDatabase.LoadAssetAtPath<Sprite>(\"{_escape_cs_string(unity_path)}\");")
         lines.append("")
@@ -703,9 +709,16 @@ def _generate_component(
             lines.append(f"        {{")
             lines.append(f"            var so = new SerializedObject({go_var}.GetComponent<{ns_prefix}{ctype}>());")
             for cs_field, field_val in numeric_fields.items():
-                suffix = "f" if isinstance(field_val, float) else ""
+                # Dispatch on Python type — Python int → C# int (intValue), Python
+                # float → C# float (floatValue). Using floatValue against an Integer-
+                # typed SerializedProperty throws "Integer is not a supported float
+                # value" and silently drops the assignment.
+                if isinstance(field_val, float):
+                    setter, suffix = "floatValue", "f"
+                else:
+                    setter, suffix = "intValue", ""
                 lines.append(f"            var prop_{cs_field} = so.FindProperty(\"{cs_field}\");")
-                lines.append(f"            if (prop_{cs_field} != null) prop_{cs_field}.floatValue = {field_val}{suffix};")
+                lines.append(f"            if (prop_{cs_field} != null) prop_{cs_field}.{setter} = {field_val}{suffix};")
             lines.append(f"            so.ApplyModifiedProperties();")
             lines.append(f"        }}")
 

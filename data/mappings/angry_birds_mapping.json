@@ -1,7 +1,7 @@
 {
   "sprites": {
     "bird_red": {
-      "unity_path": "Assets/Sprites/angry_birds_ocs_sprites__update__by_jared33-d5mg197.png",
+      "unity_path": "Assets/Art/Sprites/angry_birds_ocs_sprites__update__by_jared33-d5mg197.png",
       "sprite_name": "angry_birds_ocs_sprites__update__by_jared33-d5mg197_0",
       "ppu": 150,
       "material": "Sprite-Unlit-Default",
@@ -9,7 +9,7 @@
       "notes": "Sprite sheet — first sub-sprite is the red bird"
     },
     "pig_normal": {
-      "unity_path": "Assets/Sprites/small_helmet_pig_sprites_by_chinzapep-d57z4bs.png",
+      "unity_path": "Assets/Art/Sprites/small_helmet_pig_sprites_by_chinzapep-d57z4bs.png",
       "sprite_name": "small_helmet_pig_sprites_by_chinzapep-d57z4bs_0",
       "ppu": 150,
       "material": "Sprite-Unlit-Default",
@@ -17,7 +17,7 @@
       "notes": "Sprite sheet — first sub-sprite is the normal pig"
     },
     "brick_wood": {
-      "unity_path": "Assets/Sprites/Blocks/INGAME_BLOCKS_WOOD_1.png",
+      "unity_path": "Assets/Art/Sprites/Blocks/INGAME_BLOCKS_WOOD_1.png",
       "sprite_name": "INGAME_BLOCKS_WOOD_1_0",
       "ppu": 150,
       "material": "Sprite-Unlit-Default",
@@ -25,7 +25,7 @@
       "notes": "Sprite sheet — 30 block variants, use _0 for default"
     },
     "slingshot": {
-      "unity_path": "Assets/Sprites/slingshot.png",
+      "unity_path": "Assets/Art/Sprites/slingshot.png",
       "sprite_name": "slingshot_0",
       "ppu": 150,
       "material": "Sprite-Unlit-Default",
@@ -33,7 +33,7 @@
       "notes": "Two-sprite sheet: slingshot_0 (left fork), slingshot_1 (right fork). Requires two child GameObjects."
     },
     "ground_grass": {
-      "unity_path": "Assets/Sprites/forest/forest-2.png",
+      "unity_path": "Assets/Art/Sprites/forest/forest-2.png",
       "sprite_name": "forest-2_6",
       "ppu": 128,
       "material": "Sprite-Unlit-Default",

@@ -1,7 +1,7 @@
 {
   "sprites": {
     "paddle": {
-      "unity_path": "Assets/Sprites/paddle.png",
+      "unity_path": "Assets/Art/Sprites/paddle.png",
       "sprite_name": "paddle_0",
       "ppu": 100,
       "material": "Sprite-Unlit-Default",
@@ -9,7 +9,7 @@
       "notes": "color_hint=[200, 200, 220], size=[2.0, 0.4]"
     },
     "ball": {
-      "unity_path": "Assets/Sprites/ball.png",
+      "unity_path": "Assets/Art/Sprites/ball.png",
       "sprite_name": "ball_0",
       "ppu": 100,
       "material": "Sprite-Unlit-Default",
@@ -17,7 +17,7 @@
       "notes": "color_hint=[255, 255, 100], size=[0.4, 0.4]"
     },
     "brick": {
-      "unity_path": "Assets/Sprites/brick.png",
+      "unity_path": "Assets/Art/Sprites/brick.png",
       "sprite_name": "brick_0",
       "ppu": 100,
       "material": "Sprite-Unlit-Default",

@@ -14,9 +14,9 @@ The project is shipped when **all 5 criteria pass simultaneously** on the main b
 
 **Definition**: At least 2 distinct games regenerated from `python -m src.pipeline --game <name>` deploy to a real Unity 6 project, run via CoPlay scene reconstruction, and reach a playable state with **≤5 manual interventions per game**. A "manual intervention" is any post-deploy human action: clicking the CoPlay Tools menu counts as 1; per-component re-wires count as 1 each; package-manifest edits count as 1.
 
-**Status (2026-04-24)**: 1 of 2 (Flappy Bird ✅, FU-2 verified at 2 interventions). Breakout pending via M-1.
+**Status (2026-04-25)**: 2 of 2 ✅ (Flappy Bird at 2 interventions, Breakout at 1: GameManager.cs camelCase patch for Gap B2; the rest was source-fix + MCP automation). See `data/lessons/breakout_deploy.md` for the manual-intervention ledger.
 
-**Delivered by**: M-1 (Breakout E2E), plus Flappy Bird already shipped.
+**Delivered by**: M-1 (Breakout E2E) — done; Flappy Bird shipped previously.
 
 ### MAN-2 · CI green on every PR
 

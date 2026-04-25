@@ -2744,10 +2744,11 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
     "Document in data/lessons/breakout_deploy.md with manual intervention list + commit hashes for fixes",
     "Update SUCCESS.md (M-5) with the new game count: '2 of N games verified E2E'"
   ],
-  "passes": false,
+  "passes": true,
   "depends_on": ["M-5"],
   "estimated_effort_hours": 8,
-  "blocked_on": "home-machine availability"
+  "completed_on": "2026-04-25",
+  "completion_note": "Home-machine deploy succeeded at 1 manual intervention. Source fixes shipped: B4 (sprite path), B5 (sprite_name fallback), B6 (int vs float SerializedProperty). See data/lessons/breakout_deploy.md."
 }
 ```
 
