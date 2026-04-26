@@ -2,15 +2,15 @@ using UnityEngine;
 public class GhostFrightened : GhostBehavior
 {
     public bool eaten = false;
-    public pygame.Surface? blueSprite = null;
-    public pygame.Surface? whiteSprite = null;
-    public SpriteRenderer? BodySr = null;
-    public pygame.Surface? OriginalSprite = null;
-    public SpriteRenderer? EyesSr = null;
-    public AnimatedSprite? BodyAnim = null;
-    public void Enable(float duration)
+    public Sprite blueSprite = null;
+    public Sprite whiteSprite = null;
+    public SpriteRenderer bodySr = null;
+    public Sprite originalSprite = null;
+    public SpriteRenderer eyesSr = null;
+    public AnimatedSprite bodyAnim = null;
+    public void Enable(float duration = -1.0f)
     {
-        super().Enable(duration);
+        base.Enable(duration);
         eaten = false;
         if (bodyAnim == null && ghost != null)
         {
@@ -24,10 +24,10 @@ public class GhostFrightened : GhostBehavior
         {
             bodySr = ghost.gameObject.GetComponent<SpriteRenderer>();
         }
-        if (bodySr != null && blue_sprite != null)
+        if (bodySr != null && blueSprite != null)
         {
             originalSprite = bodySr.sprite;
-            bodySr.sprite = blue_sprite;
+            bodySr.sprite = blueSprite;
             // Ensure the renderer is visible (AnimatedSprite.on_disable hides it)
             bodySr.enabled = true;
         }
@@ -36,19 +36,19 @@ public class GhostFrightened : GhostBehavior
             var eyesSr = ghost.eyes.GetComponent<SpriteRenderer>();
             if (eyesSr != null)
             {
-                eyesSr = eyesSr;
+                this.eyesSr = eyesSr;
                 eyesSr.enabled = false;
             }
         }
         if (duration > 0)
         {
             CancelInvoke("flash");
-            invoke("flash", duration / 2);
+            Invoke("flash", duration / 2);
         }
     }
     public void Disable()
     {
-        super().Disable();
+        base.Disable();
         eaten = false;
         if (bodySr != null && originalSprite != null)
         {
@@ -66,9 +66,9 @@ public class GhostFrightened : GhostBehavior
     }
     public void Flash()
     {
-        if (bodySr != null && white_sprite != null)
+        if (bodySr != null && whiteSprite != null)
         {
-            bodySr.sprite = white_sprite;
+            bodySr.sprite = whiteSprite;
         }
     }
      void OnEnable()
@@ -89,7 +89,7 @@ public class GhostFrightened : GhostBehavior
     }
      void OnTriggerEnter2D(Collider2D other)
     {
-        var otherGo = getattr(other.gameObject, "gameObject", other.gameObject);
+        var otherGo = other.gameObject;
         var node = otherGo.GetComponent<Node>();
         if (node == null || !enabled)
         {
@@ -145,7 +145,7 @@ public class GhostFrightened : GhostBehavior
                 }
                 ghost.home.Enable();
             }
-            disable();
+            Disable();
         }
     }
 }

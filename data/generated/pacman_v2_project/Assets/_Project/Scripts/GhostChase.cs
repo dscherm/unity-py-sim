@@ -10,7 +10,7 @@ public class GhostChase : GhostBehavior
     }
      void OnTriggerEnter2D(Collider2D other)
     {
-        var otherGo = getattr(other.gameObject, "gameObject", other.gameObject);
+        var otherGo = other.gameObject;
         var node = otherGo.GetComponent<Node>();
         if (node == null || !enabled)
         {
@@ -33,7 +33,7 @@ public class GhostChase : GhostBehavior
         }
         var targetPos = target.transform.position;
         var bestDir = available[0];
-        var minDist = (float)("inf");
+        var minDist = float.PositiveInfinity;
         foreach (var d in available)
         {
             // Don't reverse

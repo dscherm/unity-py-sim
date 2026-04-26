@@ -1,9 +1,10 @@
+using System.Collections;
 using UnityEngine;
 public class GhostHome : GhostBehavior
 {
     private const int OBSTACLE_LAYER = 6;
-    public GameObject? inside = null;
-    public GameObject? outside = null;
+    public GameObject inside = null;
+    public GameObject outside = null;
      void OnEnable()
     {
         StopAllCoroutines();
@@ -17,7 +18,7 @@ public class GhostHome : GhostBehavior
     }
      void OnCollisionEnter2D(Collision2D collision)
     {
-        var otherGo = getattr(collision, "gameObject", collision);
+        var otherGo = collision.gameObject;
         if (enabled && otherGo != null && otherGo.layer == OBSTACLE_LAYER)
         {
             if (ghost != null && ghost.movement != null)
@@ -32,7 +33,7 @@ public class GhostHome : GhostBehavior
         var movement = ghost != null ? ghost.movement : null;
         if (movement == null)
         {
-            return;
+            yield break;
         }
         movement.SetDirection(new Vector2(0, 1), true);
         if (movement.rb != null)
@@ -68,13 +69,13 @@ public class GhostHome : GhostBehavior
         if (outside != null)
         {
             Vector2 insidePos = new Vector2(ghostGo.transform.position.x, ghostGo.transform.position.y);
-            target = outside.transform.position;
-            elapsed = 0.0f;
+            var target = outside.transform.position;
+            var elapsed = 0.0f;
             while (elapsed < 0.5f)
             {
-                t = elapsed / 0.5f;
-                x = insidePos.x + (target.x - insidePos.x) * t;
-                y = insidePos.y + (target.y - insidePos.y) * t;
+                var t = elapsed / 0.5f;
+                var x = insidePos.x + (target.x - insidePos.x) * t;
+                var y = insidePos.y + (target.y - insidePos.y) * t;
                 ghostGo.transform.position = new Vector2(x, y);
                 if (movement.rb != null)
                 {

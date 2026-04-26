@@ -1,13 +1,19 @@
 using UnityEngine;
 public class PowerPellet : Pellet
 {
+    [SerializeField] private GameManager gameManager;
     public int points = 50;
     public float duration = 8.0f;
     public void Eat()
     {
-        if (GameManager.instance != null)
+        if (gameManager != null)
         {
-            GameManager.instance.PowerPelletEaten(this);
+            gameManager.PowerPelletEaten(this);
         }
+    }
+
+    void Awake()
+    {
+        if (gameManager == null) gameManager = FindObjectOfType<GameManager>();
     }
 }

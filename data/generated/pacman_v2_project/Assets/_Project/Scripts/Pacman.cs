@@ -5,14 +5,13 @@ using UnityEngine;
 public class Pacman : MonoBehaviour
 {
     [SerializeField] private AnimatedSprite deathSequence;
-    [SerializeField] private SpriteRenderer SpriteRenderer;
-    [SerializeField] private CircleCollider2D Collider;
-    [SerializeField] private Movement movement;
-    public bool enabled;
+    public SpriteRenderer spriteRenderer;
+    [SerializeField] private CircleCollider2D collider;
+    public Movement movement;
      void Awake()
     {
-        SpriteRenderer = GetComponent<SpriteRenderer>();
-        Collider = GetComponent<CircleCollider2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        collider = GetComponent<CircleCollider2D>();
         movement = GetComponent<Movement>();
     }
      void Update()
@@ -37,19 +36,19 @@ public class Pacman : MonoBehaviour
         if (direction.x != 0 || direction.y != 0)
         {
             var angle = Mathf.Atan2(direction.y, direction.x);
-            transform.rotationZ = math.Degrees(angle);
+            transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Rad2Deg * (angle));
         }
     }
     public void ResetState()
     {
         enabled = true;
-        if (SpriteRenderer != null)
+        if (spriteRenderer != null)
         {
-            SpriteRenderer.enabled = true;
+            spriteRenderer.enabled = true;
         }
-        if (Collider != null)
+        if (collider != null)
         {
-            Collider.enabled = true;
+            collider.enabled = true;
         }
         if (movement != null)
         {
@@ -64,13 +63,13 @@ public class Pacman : MonoBehaviour
     public void DeathSequenceStart()
     {
         enabled = false;
-        if (SpriteRenderer != null)
+        if (spriteRenderer != null)
         {
-            SpriteRenderer.enabled = false;
+            spriteRenderer.enabled = false;
         }
-        if (Collider != null)
+        if (collider != null)
         {
-            Collider.enabled = false;
+            collider.enabled = false;
         }
         if (movement != null)
         {

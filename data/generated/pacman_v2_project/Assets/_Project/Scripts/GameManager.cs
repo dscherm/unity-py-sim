@@ -1,33 +1,31 @@
 using System.Collections.Generic;
-using System;
 using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public int score = 0;
     public int lives = 3;
     public int ghostMultiplier = 1;
-    public float DeferredTimer = 0.0f;
-    [SerializeField] private GameManager instance;
-    [SerializeField] private List<Ghost> ghosts;
+    public float deferredTimer = 0.0f;
+    [SerializeField] private List<Ghost> ghosts = new List<Ghost>();
     [SerializeField] private Pacman pacman;
-    [SerializeField] private List<Pellet> AllPellets;
-    public string DeferredAction;
-    [SerializeField] private List<Ghost> ghosts;
-    [SerializeField] private List<Pellet> AllPellets;
+    [SerializeField] private List<Pellet> allPellets = new List<Pellet>();
+    public string deferredAction;
+    // Singleton — wire via Inspector [SerializeField] on dependents
+    public static GameManager Instance = null;
      void Awake()
     {
-        GameManager.instance = this;
+        GameManager.Instance = this;
     }
      void Update()
     {
-        if (DeferredAction != null)
+        if (deferredAction != null)
         {
-            DeferredTimer -= Time.deltaTime;
-            if (DeferredTimer <= 0)
+            deferredTimer -= Time.deltaTime;
+            if (deferredTimer <= 0)
             {
-                var action = DeferredAction;
-                DeferredAction = null;
-                getattr(this, action)();
+                var action = deferredAction;
+                deferredAction = null;
+                this.SendMessage(action);
             }
         }
     }
@@ -43,7 +41,7 @@ public class GameManager : MonoBehaviour
     }
     public void NewRound()
     {
-        foreach (var pellet in AllPellets)
+        foreach (var pellet in allPellets)
         {
             pellet.gameObject.SetActive(true);
         }
@@ -82,8 +80,8 @@ public class GameManager : MonoBehaviour
             {
                 pacman.gameObject.SetActive(false);
             }
-            DeferredAction = "NewRound";
-            DeferredTimer = 3.0f;
+            deferredAction = "NewRound";
+            deferredTimer = 3.0f;
         }
     }
     public void PowerPelletEaten(PowerPellet pellet)
@@ -120,18 +118,18 @@ public class GameManager : MonoBehaviour
         lives -= 1;
         if (lives > 0)
         {
-            DeferredAction = "ResetState";
-            DeferredTimer = 3.0f;
+            deferredAction = "ResetState";
+            deferredTimer = 3.0f;
         }
         else
         {
-            DeferredAction = "GameOver";
-            DeferredTimer = 3.0f;
+            deferredAction = "GameOver";
+            deferredTimer = 3.0f;
         }
     }
     public bool HasRemainingPellets()
     {
-        foreach (var pellet in AllPellets)
+        foreach (var pellet in allPellets)
         {
             if (pellet.gameObject.activeSelf)
             {
@@ -143,17 +141,12 @@ public class GameManager : MonoBehaviour
     public void SetScore(int value)
     {
         score = value;
-        try
-        {
-            pygame.display.SetCaption($"Pacman V2 — Score: {score}  Lives: {lives}");
-            /* pass */
-        }
     }
     public void RegisterPellet(Pellet pellet)
     {
-        if (!AllPellets.Contains(pellet))
+        if (!allPellets.Contains(pellet))
         {
-            AllPellets.Add(pellet);
+            allPellets.Add(pellet);
         }
     }
     public void RegisterGhost(Ghost ghost)

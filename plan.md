@@ -2855,7 +2855,8 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
     "Verify: a deliberate translator regression in a feature branch produces a red home-machine check on the PR"
   ],
   "passes": true,
-  "completed_2026-04-25": "v1 (deploy-only) shipped. Self-hosted Windows runner registered + Unity 6 license activated on home machine. tools/home_machine_deploy.ps1 wraps Unity batchmode `-executeMethod` with -logFile - + Tee-Object (avoids the PS5.1 NativeCommandError trap on stderr). .github/workflows/home_machine.yml triggers on push to main + workflow_dispatch, per-game matrix (breakout, flappy_bird), runs GeneratedSceneSetup.Execute, uploads Unity log artifact, writes per-run JSON to data/metrics/home_machine_runs/. CROSS_MACHINE.md documents runner registration + license activation + smoke test + failure-mode table. Phase 2 (PlayMode validation) intentionally deferred — see M-7-phase-2 below; the original tools/home_machine_playtest.cs is preserved in tree for the rewrite to reference.",
+  "completed_2026-04-25": "v1 (deploy-only) shipped. Self-hosted Windows runner registered + Unity 6 license activated on home machine. tools/home_machine_deploy.ps1 wraps Unity batchmode `-executeMethod` with -logFile - + Tee-Object (avoids the PS5.1 NativeCommandError trap on stderr). .github/workflows/home_machine.yml triggers on push to master + workflow_dispatch, per-game matrix (breakout, flappy_bird), runs GeneratedSceneSetup.Execute, uploads Unity log artifact, writes per-run JSON to data/metrics/home_machine_runs/. CROSS_MACHINE.md documents runner registration + license activation + smoke test + failure-mode table. Phase 2 (PlayMode validation) intentionally deferred — see M-7-phase-2 below; the original tools/home_machine_playtest.cs is preserved in tree for the rewrite to reference.",
+  "verified_2026-04-26": "First end-to-end live run (workflow 24945292331): flappy_bird ✅ deployed in 3m11s, breakout ❌ caught a real translator regression (Gap B2 — `inst.<attr>` PascalCase emission emits `inst.ScoreText` while the field was declared as `scoreText`). The red-on-regression case is therefore proven without a contrived test: M-7 v1 surfaces a Gap B2 bug that was previously masked by a manual Inspector hand-edit. Gap B2 fix tracked separately as task `B2-translator-pascal-case-attr`.",
   "depends_on": ["M-6"],
   "estimated_effort_hours": 50
 }
@@ -2881,5 +2882,31 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
   "passes": false,
   "depends_on": ["M-7"],
   "estimated_effort_hours": 6
+}
+```
+
+### Task B2-translator-pascal-case-attr: Fix `inst.<attr>` PascalCase emission via class symbol table
+
+```json
+{
+  "id": "B2-translator-pascal-case-attr",
+  "category": "translator",
+  "priority": 6,
+  "title": "Translator: respect declared field casing on cross-instance attribute access",
+  "description": "Surfaced by the first live M-7 v1 home-machine run (workflow 24945292331): the breakout deploy went red with CS1061 because `python_to_csharp.py` emits `inst.ScoreText` (PascalCase) when the C# field was declared as `scoreText` (camelCase). For local field reads the translator already preserves casing, but for cross-instance attribute access on a typed local (e.g. `gameManager.score_text`) it falls back to a bare PascalCase rule without consulting the target class's symbol table. The fix is to look up the receiver's class (already available via SerializeField/[SerializeField] type annotations and constructor inference) and emit the actual member name. Until this lands, Breakout requires a manual hand-patch (currently the only manual intervention recorded in the MAN-1 ledger).",
+  "steps": [
+    "Add a failing translator test: Python class with `[SerializeField] private GameManager game_manager` and a method that does `self.game_manager.score_text.text = 'x'` should emit `gameManager.scoreText.text = \"x\"`, NOT `gameManager.ScoreText.text`",
+    "In python_to_csharp.py, extend the attribute-emission path to look up the receiver's declared class from the local symbol table (already populated for SerializeField + assignment-from-constructor cases) and resolve member casing from that class's field/property table rather than applying the bare PascalCase rule",
+    "Cover three cases in tests/translator/: (a) local var typed via SerializeField, (b) local var assigned from `GameObject.Find` + GetComponent, (c) parameter typed via type annotation",
+    "Regenerate data/generated/breakout_project — confirm the manual GameManager.cs camelCase patch now appears in the regen automatically",
+    "Re-trigger the home_machine.yml workflow on master — confirm both breakout and flappy_bird go green",
+    "Spawn a separate validation agent (no isolation, no reading existing translator tests) to derive Unity-doc-driven contract tests for cross-instance member access casing",
+    "Update data/lessons/breakout_deploy.md manual-intervention ledger: drop the GameManager.cs camelCase patch row (now zero interventions for Breakout)"
+  ],
+  "passes": false,
+  "progress_2026-04-26": "Source fix + tests landed but B2 is NOT verified passing yet — the proof point is breakout going green on the home-machine workflow, which requires regen + push, both deferred. Root cause: `snake_to_camel(\"_score_text\")` returned `\"ScoreText\"` (PascalCase) because `parts[0] + Capitalize(rest)` on the leading-empty-string split (`['', 'score', 'text']`) effectively capitalized the first real part. Field declarations worked around it via `lstrip(\"_\")`; the symbol-table path didn't, so cross-instance access leaked PascalCase. Fix: `lstrip(\"_\")` inside `snake_to_camel` so all callers agree. Commits b72d967 (translator+tests, 8 cases) and 1d148ec (independent validation, 36 cases — 25 contract / 7 integration running real `python -m src.pipeline --game breakout` / 4 mutation). Full suite: 3392 passed. Regenerated trees for breakout / flappy_bird / pacman_v2 are unstaged in the working copy.",
+  "remaining": "Stage and commit the regenerated `data/generated/{breakout,flappy_bird,pacman_v2}_project/Assets/_Project/Scripts/*.cs`, push to feature branch + master, watch the home-machine workflow on master, confirm breakout goes green (currently red on Gap B2 per workflow 24945292331). Only then mark passes:true.",
+  "depends_on": ["M-7"],
+  "estimated_effort_hours": 4
 }
 ```

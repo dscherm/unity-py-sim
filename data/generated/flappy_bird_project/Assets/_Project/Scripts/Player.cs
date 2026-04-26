@@ -13,7 +13,7 @@ public class Player : MonoBehaviour
     [SerializeField] private SpriteRenderer spriteRenderer;
      void Awake()
     {
-        if (gameManager == null) gameManager = GameManager.Instance;
+        if (gameManager == null) gameManager = FindObjectOfType<GameManager>();
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
      void Start()

@@ -3,65 +3,65 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class GhostEyes : MonoBehaviour
 {
-    public pygame.Surface spriteUp;
-    public pygame.Surface spriteDown;
-    public pygame.Surface spriteLeft;
-    public pygame.Surface spriteRight;
-    [SerializeField] private SpriteRenderer SpriteRenderer;
-    [SerializeField] private Movement Movement;
-    [SerializeField] private GameObject ParentGo;
+    public Sprite spriteUp;
+    public Sprite spriteDown;
+    public Sprite spriteLeft;
+    public Sprite spriteRight;
+    public SpriteRenderer spriteRenderer;
+    [SerializeField] private Movement movement;
+    [SerializeField] private GameObject parentGo;
      void Awake()
     {
-        SpriteRenderer = GetComponent<SpriteRenderer>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
         var parent = transform.parent;
         if (parent != null)
         {
-            ParentGo = parent.gameObject;
-            Movement = parent.gameObject.GetComponent<Movement>();
+            parentGo = parent.gameObject;
+            movement = parent.gameObject.GetComponent<Movement>();
         }
     }
      void Update()
     {
-        if (ParentGo != null && !ParentGo.activeSelf)
+        if (parentGo != null && !parentGo.activeSelf)
         {
-            if (SpriteRenderer != null)
+            if (spriteRenderer != null)
             {
-                SpriteRenderer.enabled = false;
+                spriteRenderer.enabled = false;
             }
             return;
         }
-        else if (ParentGo != null && ParentGo.activeSelf)
+        else if (parentGo != null && parentGo.activeSelf)
         {
-            if (SpriteRenderer != null && !SpriteRenderer.enabled)
+            if (spriteRenderer != null && !spriteRenderer.enabled)
             {
-                SpriteRenderer.enabled = true;
+                spriteRenderer.enabled = true;
             }
         }
-        if (ParentGo != null)
+        if (parentGo != null)
         {
-            transform.position.x = ParentGo.transform.position.x;
-            transform.position.y = ParentGo.transform.position.y;
+            transform.position = new Vector3(parentGo.transform.position.x, transform.position.y, transform.position.z);
+            transform.position = new Vector3(transform.position.x, parentGo.transform.position.y, transform.position.z);
         }
-        if (SpriteRenderer == null || Movement == null)
+        if (spriteRenderer == null || movement == null)
         {
             return;
         }
-        var d = Movement.direction;
+        var d = movement.direction;
         if (d.y > 0)
         {
-            SpriteRenderer.sprite = spriteUp;
+            spriteRenderer.sprite = spriteUp;
         }
         else if (d.y < 0)
         {
-            SpriteRenderer.sprite = spriteDown;
+            spriteRenderer.sprite = spriteDown;
         }
         else if (d.x < 0)
         {
-            SpriteRenderer.sprite = spriteLeft;
+            spriteRenderer.sprite = spriteLeft;
         }
         else if (d.x > 0)
         {
-            SpriteRenderer.sprite = spriteRight;
+            spriteRenderer.sprite = spriteRight;
         }
     }
 }

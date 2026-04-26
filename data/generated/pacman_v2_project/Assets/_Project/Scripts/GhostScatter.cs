@@ -10,7 +10,7 @@ public class GhostScatter : GhostBehavior
     }
      void OnTriggerEnter2D(Collider2D other)
     {
-        var otherGo = getattr(other.gameObject, "gameObject", other.gameObject);
+        var otherGo = other.gameObject;
         var node = otherGo.GetComponent<Node>();
         if (node == null || !enabled)
         {
@@ -30,11 +30,11 @@ public class GhostScatter : GhostBehavior
         {
             return;
         }
-        var direction = /* Random.choice */ available);
+        var direction = available[Random.Range(0, available.Count)];
         Vector2 reverse = new Vector2(-movement.direction.x, -movement.direction.y);
         if (direction.x == reverse.x && direction.y == reverse.y && available.Count > 1)
         {
-            var idx = available.Index(direction);
+            var idx = available.IndexOf(direction);
             direction = available[(idx + 1) % available.Count];
         }
         movement.SetDirection(direction);
