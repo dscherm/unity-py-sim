@@ -1,25 +1,28 @@
 using UnityEngine;
-public class Brick : MonoBehaviour
+namespace Breakout
 {
-    public int points = 10;
-    public int health = 1;
-     void OnCollisionEnter2D(Collision2D collision)
+    public class Brick : MonoBehaviour
     {
-        if (collision.gameObject.tag == "Ball" || collision.gameObject.name == "Ball")
+        public int points = 10;
+        public int health = 1;
+         void OnCollisionEnter2D(Collision2D collision)
         {
-            health -= 1;
-            if (health <= 0)
+            if (collision.gameObject.tag == "Ball" || collision.gameObject.name == "Ball")
             {
-                DestroyInstance();
+                health -= 1;
+                if (health <= 0)
+                {
+                    DestroyInstance();
+                }
             }
         }
-    }
-    public void DestroyInstance()
-    {
-        GameManager.AddScore(points);
-        Powerup.MaybeSpawnPowerup(transform.position);
-        gameObject.SetActive(false);
-        BoxCollider2D collider = GetComponent<BoxCollider2D>();
-        GameManager.OnBrickDestroyed();
+        public void DestroyInstance()
+        {
+            GameManager.AddScore(points);
+            Powerup.MaybeSpawnPowerup(transform.position);
+            gameObject.SetActive(false);
+            BoxCollider2D collider = GetComponent<BoxCollider2D>();
+            GameManager.OnBrickDestroyed();
+        }
     }
 }

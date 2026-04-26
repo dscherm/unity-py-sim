@@ -1,101 +1,104 @@
 using System.Collections;
 using UnityEngine;
-public class GhostHome : GhostBehavior
+namespace PacmanV2
 {
+    public class GhostHome : GhostBehavior
+    {
     private const int OBSTACLE_LAYER = 6;
-    public GameObject inside = null;
-    public GameObject outside = null;
-     void OnEnable()
-    {
-        StopAllCoroutines();
-    }
-     void OnDisable()
-    {
-        if (ghost != null && gameObject.activeSelf)
+        public GameObject inside = null;
+        public GameObject outside = null;
+         void OnEnable()
         {
-            StartCoroutine(ExitTransition());
+            StopAllCoroutines();
         }
-    }
-     void OnCollisionEnter2D(Collision2D collision)
-    {
-        var otherGo = collision.gameObject;
-        if (enabled && otherGo != null && otherGo.layer == OBSTACLE_LAYER)
+         void OnDisable()
         {
-            if (ghost != null && ghost.movement != null)
+            if (ghost != null && gameObject.activeSelf)
             {
-                var movement = ghost.movement;
-                movement.SetDirection( new Vector2(-movement.direction.x, -movement.direction.y), true);
+                StartCoroutine(ExitTransition());
             }
         }
-    }
-    public IEnumerator ExitTransition()
-    {
-        var movement = ghost != null ? ghost.movement : null;
-        if (movement == null)
+         void OnCollisionEnter2D(Collision2D collision)
         {
-            yield break;
-        }
-        movement.SetDirection(new Vector2(0, 1), true);
-        if (movement.rb != null)
-        {
-            movement.rb.isKinematic = true;
-        }
-        movement.enabled = false;
-        var ghostGo = ghost.gameObject;
-        Vector2 startPos = new Vector2(ghostGo.transform.position.x, ghostGo.transform.position.y);
-        if (inside != null)
-        {
-            var target = inside.transform.position;
-            var elapsed = 0.0f;
-            while (elapsed < 0.5f)
+            var otherGo = collision.gameObject;
+            if (enabled && otherGo != null && otherGo.layer == OBSTACLE_LAYER)
             {
-                var t = elapsed / 0.5f;
-                var x = startPos.x + (target.x - startPos.x) * t;
-                var y = startPos.y + (target.y - startPos.y) * t;
-                ghostGo.transform.position = new Vector2(x, y);
-                if (movement.rb != null)
+                if (ghost != null && ghost.movement != null)
                 {
-                    movement.rb.MovePosition(new Vector2(x, y));
+                    var movement = ghost.movement;
+                    movement.SetDirection( new Vector2(-movement.direction.x, -movement.direction.y), true);
                 }
-                elapsed += Time.deltaTime;
-                yield return null;
             }
-            ghostGo.transform.position = new Vector2(target.x, target.y);
+        }
+        public IEnumerator ExitTransition()
+        {
+            var movement = ghost != null ? ghost.movement : null;
+            if (movement == null)
+            {
+                yield break;
+            }
+            movement.SetDirection(new Vector2(0, 1), true);
             if (movement.rb != null)
             {
-                movement.rb.MovePosition(new Vector2(target.x, target.y));
+                movement.rb.isKinematic = true;
             }
-        }
-        if (outside != null)
-        {
-            Vector2 insidePos = new Vector2(ghostGo.transform.position.x, ghostGo.transform.position.y);
-            var target = outside.transform.position;
-            var elapsed = 0.0f;
-            while (elapsed < 0.5f)
+            movement.enabled = false;
+            var ghostGo = ghost.gameObject;
+            Vector2 startPos = new Vector2(ghostGo.transform.position.x, ghostGo.transform.position.y);
+            if (inside != null)
             {
-                var t = elapsed / 0.5f;
-                var x = insidePos.x + (target.x - insidePos.x) * t;
-                var y = insidePos.y + (target.y - insidePos.y) * t;
-                ghostGo.transform.position = new Vector2(x, y);
+                var target = inside.transform.position;
+                var elapsed = 0.0f;
+                while (elapsed < 0.5f)
+                {
+                    var t = elapsed / 0.5f;
+                    var x = startPos.x + (target.x - startPos.x) * t;
+                    var y = startPos.y + (target.y - startPos.y) * t;
+                    ghostGo.transform.position = new Vector2(x, y);
+                    if (movement.rb != null)
+                    {
+                        movement.rb.MovePosition(new Vector2(x, y));
+                    }
+                    elapsed += Time.deltaTime;
+                    yield return null;
+                }
+                ghostGo.transform.position = new Vector2(target.x, target.y);
                 if (movement.rb != null)
                 {
-                    movement.rb.MovePosition(new Vector2(x, y));
+                    movement.rb.MovePosition(new Vector2(target.x, target.y));
                 }
-                elapsed += Time.deltaTime;
-                yield return null;
             }
-            ghostGo.transform.position = new Vector2(target.x, target.y);
+            if (outside != null)
+            {
+                Vector2 insidePos = new Vector2(ghostGo.transform.position.x, ghostGo.transform.position.y);
+                var target = outside.transform.position;
+                var elapsed = 0.0f;
+                while (elapsed < 0.5f)
+                {
+                    var t = elapsed / 0.5f;
+                    var x = insidePos.x + (target.x - insidePos.x) * t;
+                    var y = insidePos.y + (target.y - insidePos.y) * t;
+                    ghostGo.transform.position = new Vector2(x, y);
+                    if (movement.rb != null)
+                    {
+                        movement.rb.MovePosition(new Vector2(x, y));
+                    }
+                    elapsed += Time.deltaTime;
+                    yield return null;
+                }
+                ghostGo.transform.position = new Vector2(target.x, target.y);
+                if (movement.rb != null)
+                {
+                    movement.rb.MovePosition(new Vector2(target.x, target.y));
+                }
+            }
+            var dirX = Random.value < 0.5f ? -1.0f : 1.0f;
+            movement.SetDirection(new Vector2(dirX, 0), true);
             if (movement.rb != null)
             {
-                movement.rb.MovePosition(new Vector2(target.x, target.y));
+                movement.rb.isKinematic = false;
             }
+            movement.enabled = true;
         }
-        var dirX = Random.value < 0.5f ? -1.0f : 1.0f;
-        movement.SetDirection(new Vector2(dirX, 0), true);
-        if (movement.rb != null)
-        {
-            movement.rb.isKinematic = false;
-        }
-        movement.enabled = true;
     }
 }
