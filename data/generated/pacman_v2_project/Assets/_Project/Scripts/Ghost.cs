@@ -7,18 +7,20 @@ using UnityEngine;
 [RequireComponent(typeof(Movement))]
 public class Ghost : MonoBehaviour
 {
+    [SerializeField] private GameManager gameManager;
     public int points = 200;
-    [SerializeField] private Movement movement;
-    [SerializeField] private GhostHome home;
-    [SerializeField] private GhostScatter scatter;
-    [SerializeField] private GhostChase chase;
-    [SerializeField] private GhostFrightened frightened;
-    [SerializeField] private GhostEyes eyes;
-    [SerializeField] private object initialBehavior;
-    [SerializeField] private GameObject target;
+    public Movement movement;
+    public GhostHome home;
+    public GhostScatter scatter;
+    public GhostChase chase;
+    public GhostFrightened frightened;
+    public GhostEyes eyes;
+    [SerializeField] private GhostBehavior initialBehavior;
+    public GameObject target;
     public static int PACMAN_LAYER = 3;
      void Awake()
     {
+        if (gameManager == null) gameManager = FindObjectOfType<GameManager>();
         movement = GetComponent<Movement>();
     }
      void Start()
@@ -27,12 +29,12 @@ public class Ghost : MonoBehaviour
         scatter = GetComponent<GhostScatter>();
         chase = GetComponent<GhostChase>();
         frightened = GetComponent<GhostFrightened>();
-        foreach (var child in transform.children)
+        foreach (Transform child in transform)
         {
             var eyes = child.gameObject.GetComponent<GhostEyes>();
             if (eyes != null)
             {
-                eyes = eyes;
+                this.eyes = eyes;
                 break;
             }
         }
@@ -71,23 +73,23 @@ public class Ghost : MonoBehaviour
     }
      void OnCollisionEnter2D(Collision2D collision)
     {
-        var otherGo = getattr(collision, "gameObject", collision);
+        var otherGo = collision.gameObject;
         if (otherGo.layer == PACMAN_LAYER)
         {
-            if (frightened != null && frightened.enabled && frightened.eaten == null)
+            if (frightened != null && frightened.enabled && !frightened.eaten)
             {
                 // Ghost is eaten by Pacman
-                if (GameManager.instance != null)
+                if (gameManager != null)
                 {
-                    GameManager.instance.GhostEaten(this);
+                    gameManager.GhostEaten(this);
                 }
             }
             else
             {
                 // Pacman is eaten by ghost
-                if (GameManager.instance != null)
+                if (gameManager != null)
                 {
-                    GameManager.instance.PacmanEaten();
+                    gameManager.PacmanEaten();
                 }
             }
         }

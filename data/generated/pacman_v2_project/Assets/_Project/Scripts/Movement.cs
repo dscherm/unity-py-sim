@@ -9,8 +9,7 @@ public class Movement : MonoBehaviour
     public Vector2 direction = new Vector2(0, 0);
     public Vector2 nextDirection = new Vector2(0, 0);
     public Vector2 startingPosition = new Vector2(0, 0);
-    [SerializeField] private Rigidbody2D rb;
-    public bool enabled;
+    public Rigidbody2D rb;
     public static int OBSTACLE_LAYER = 6;
     public static float CELL_SIZE = 1.0f;
     public static float GRID_OFFSET = 0.5f;
@@ -59,9 +58,10 @@ public class Movement : MonoBehaviour
         rb.MovePosition(newPos);
         transform.position = newPos;
     }
-    public void SetDirection(Vector2 direction, bool forced)
+    public void SetDirection(Vector2 direction, bool forced = false)
     {
-        if (forced != null)
+        Vector2 snapped = default;
+        if (forced)
         {
             this.direction = direction;
             nextDirection = Vector2.zero;
@@ -69,18 +69,18 @@ public class Movement : MonoBehaviour
         }
         var pos = transform.position;
         var changingAxis = ( (direction.x != 0 && this.direction.y != 0) || (direction.y != 0 && this.direction.x != 0) );
-        if (changingAxis != null)
+        if (changingAxis)
         {
             if (direction.x != 0)
             {
-                Vector2 snapped = new Vector2(pos.x, Mathf.Round(pos.y / CELL_SIZE) * CELL_SIZE);
+                snapped = new Vector2(pos.x, Mathf.Round(pos.y / CELL_SIZE) * CELL_SIZE);
             }
             else
             {
                 snapped = new Vector2( Mathf.Round((pos.x - GRID_OFFSET) / CELL_SIZE) * CELL_SIZE + GRID_OFFSET, pos.y);
             }
             Vector2 checkPos = new Vector2( snapped.x + direction.x * 1.0f, snapped.y + direction.y * 1.0f);
-            var hit = Physics2D.OverlapBox( point=checkPos, new Vector2(0.4f, 0.4f), 0.0f, 1 << obstacleLayer);
+            var hit = Physics2D.OverlapBox(checkPos, new Vector2(0.4f, 0.4f), 0.0f, 1 << obstacleLayer);
             if (hit == null)
             {
                 transform.position = snapped;
@@ -110,7 +110,7 @@ public class Movement : MonoBehaviour
     {
         var pos = transform.position;
         Vector2 checkPos = new Vector2( pos.x + direction.x * 0.5f, pos.y + direction.y * 0.5f);
-        var hit = Physics2D.OverlapBox( point=checkPos, new Vector2(0.25f, 0.25f), 0.0f, 1 << obstacleLayer);
+        var hit = Physics2D.OverlapBox(checkPos, new Vector2(0.25f, 0.25f), 0.0f, 1 << obstacleLayer);
         return hit != null;
     }
 }

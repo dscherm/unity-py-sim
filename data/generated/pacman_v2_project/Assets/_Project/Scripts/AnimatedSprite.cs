@@ -5,79 +5,70 @@ public class AnimatedSprite : MonoBehaviour
 {
     public float animationTime = 0.25f;
     public bool loop = true;
-    public int AnimationFrame = 0;
-    public float Timer = 0.0f;
-    public pygame.Surface[] sprites;
-    [SerializeField] private SpriteRenderer SpriteRenderer;
-    public pygame.Surface[] sprites;
-    public static object SPRITES_DIR = os.path.join(os.path.dirname(__file__), '..', 'sprites');
+    public int animationFrame = 0;
+    public float timer = 0.0f;
+    public Sprite[] sprites;
+    public SpriteRenderer spriteRenderer;
      void Awake()
     {
-        SpriteRenderer = GetComponent<SpriteRenderer>();
-        AnimationFrame = 0;
-        Timer = 0.0f;
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        animationFrame = 0;
+        timer = 0.0f;
     }
      void OnEnable()
     {
-        if (SpriteRenderer != null)
+        if (spriteRenderer != null)
         {
-            SpriteRenderer.enabled = true;
+            spriteRenderer.enabled = true;
         }
     }
      void OnDisable()
     {
-        if (SpriteRenderer != null)
+        if (spriteRenderer != null)
         {
-            SpriteRenderer.enabled = false;
+            spriteRenderer.enabled = false;
         }
     }
      void Update()
     {
-        Timer += Time.deltaTime;
-        if (Timer >= animationTime)
+        timer += Time.deltaTime;
+        if (timer >= animationTime)
         {
-            Timer -= animationTime;
+            timer -= animationTime;
             Advance();
         }
     }
     public void Advance()
     {
-        if (SpriteRenderer == null || !SpriteRenderer.enabled)
+        if (spriteRenderer == null || !spriteRenderer.enabled)
         {
             return;
         }
-        AnimationFrame += 1;
-        if (AnimationFrame >= sprites.Length && loop)
+        animationFrame += 1;
+        if (animationFrame >= sprites.Length && loop)
         {
-            AnimationFrame = 0;
+            animationFrame = 0;
         }
-        if (AnimationFrame >= 0 && AnimationFrame < sprites.Length)
+        if (animationFrame >= 0 && animationFrame < sprites.Length)
         {
-            SpriteRenderer.sprite = sprites[AnimationFrame];
+            spriteRenderer.sprite = sprites[animationFrame];
         }
     }
     public void Restart()
     {
-        AnimationFrame = -1;
-        Timer = 0.0f;
+        animationFrame = -1;
+        timer = 0.0f;
         Advance();
     }
-    public static pygame.Surface LoadSpriteFile(string name, int? sizePx)
+    public static Sprite LoadSpriteFile(string name, int? sizePx = null)
     {
-        if (!pygame.GetInit())
         {
-            pygame.Init();
         }
-        if (pygame.display.GetSurface() == null)
         {
-            pygame.display.SetMode((1, 1), pygame.NOFRAME);
         }
-        var path = os.path.Join(SPRITES_DIR, name);
-        var surf = pygame.image.Load(path).ConvertAlpha();
         if (sizePx != null)
         {
-            surf = pygame.transform.Scale(surf, (sizePx, sizePx));
         }
-        return surf;
+        return default;
     }
 }

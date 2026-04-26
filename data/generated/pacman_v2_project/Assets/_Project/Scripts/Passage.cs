@@ -1,10 +1,9 @@
+using System.Collections.Generic;
 using UnityEngine;
 public class Passage : MonoBehaviour
 {
-    // TODO: populate _recent_teleports with game data
-    private static readonly object[] _recent_teleports = new object[0];
     [SerializeField] private GameObject connection;
-    public static Dictionary<int, float> _recent_teleports = null;
+    public static Dictionary<int, float> recentTeleports = new Dictionary<int, float>();
     public static float _TELEPORT_COOLDOWN = 0.5f;
      void OnTriggerEnter2D(Collider2D other)
     {
@@ -12,8 +11,8 @@ public class Passage : MonoBehaviour
         {
             return;
         }
-        var otherGo = getattr(other.gameObject, "gameObject", other.gameObject);
-        var objId = id(otherGo);
+        var otherGo = other.gameObject;
+        var objId = otherGo.GetInstanceID();
         var now = Time.time;
         if (recentTeleports.ContainsKey(objId))
         {
