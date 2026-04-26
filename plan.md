@@ -2936,7 +2936,8 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
   ],
   "passes": false,
   "depends_on": ["M-7"],
-  "estimated_effort_hours": 3
+  "estimated_effort_hours": 3,
+  "evidence_2026-04-26": "Still reproducing on master. Two new Unity Editor crash dumps today: Crash_2026-04-26_131455139/ (correlates with master run at 13:07) and Crash_2026-04-26_153847992/ (correlates with master run at 15:31). Feat-branch runs from this session (24965492310, 24966990254, 24967295767) all reached PlayMode-tests step OK on breakout — so the crash is intermittent and may be cold-start / cache-state dependent. Not autonomously diagnosable; remains a real follow-up."
 }
 ```
 
