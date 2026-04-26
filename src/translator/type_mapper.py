@@ -173,8 +173,17 @@ def snake_to_pascal(name: str) -> str:
 
 
 def snake_to_camel(name: str) -> str:
-    """Convert snake_case to camelCase."""
-    parts = name.split("_")
+    """Convert snake_case to camelCase.
+
+    Leading underscores are Python's privacy convention; in C# the equivalent
+    is just camelCase with no prefix. So `_score_text` becomes `scoreText`,
+    not `ScoreText` (the latter would be PascalCase and break consistency
+    with the field-declaration path that already does `lstrip("_")` first).
+    """
+    stripped = name.lstrip("_")
+    if not stripped:
+        return name  # e.g. "_" stays "_" — discard-loop handler deals with it
+    parts = stripped.split("_")
     return parts[0] + "".join(word.capitalize() for word in parts[1:])
 
 
