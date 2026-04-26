@@ -2939,3 +2939,45 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
   "estimated_effort_hours": 3
 }
 ```
+
+### Task B3-coplay-namespace-using: Emit `using <Namespace>;` in CoPlay editor scripts when translator wraps classes
+
+```json
+{
+  "id": "B3-coplay-namespace-using",
+  "category": "translator",
+  "priority": 8,
+  "title": "CoPlay generator must emit `using <Namespace>;` when translator wraps classes in a per-game namespace",
+  "description": "Surfaced by M-7 phase 2 home-machine workflow run 24965492310 (2026-04-26): flappy_bird deploy step fails with CS0246 because `Assets/Editor/GeneratedSceneSetup.cs` and `GeneratedSceneValidation.cs` reference `Player`, `Pipes`, `Spawner`, `Parallax`, `GameManager` unqualified, while the translator wraps those classes in `namespace FlappyBird { ... }` per commit `f3bc74d fix(regen): re-regen with tools/pipeline.py to restore namespace wrappers`. Breakout doesn't hit this because Breakout's classes aren't namespaced. Fix is in `src/exporter/coplay_generator.py`: when emitting GeneratedSceneSetup.cs / GeneratedSceneValidation.cs, prepend `using <Namespace>;` for every distinct namespace observed across the translator-output classes referenced in the script. Until this lands, flappy_bird is blocked from going green on home_machine workflow.",
+  "steps": [
+    "Add a failing test under `tests/exporter/`: regenerate flappy_bird, grep `data/generated/flappy_bird_project/Assets/Editor/GeneratedSceneSetup.cs` for `using FlappyBird;` — must be present.",
+    "In `src/exporter/coplay_generator.py`, collect the set of namespaces from translator output (or from the class registry) for every type referenced in the emitted scene-setup/validation script.",
+    "Emit `using <Namespace>;` lines at the top of GeneratedSceneSetup.cs and GeneratedSceneValidation.cs alongside the existing `using UnityEngine;` etc.",
+    "Verify the test passes; regen flappy_bird; trigger `gh workflow run home_machine.yml --ref <branch>` and confirm flappy_bird's deploy step reaches Run PlayMode tests (no CS0246).",
+    "Optional: pacman_v2 same check if the translator namespaces it too."
+  ],
+  "passes": false,
+  "depends_on": ["M-7-phase-2"],
+  "estimated_effort_hours": 2
+}
+```
+
+### Task home-machine-yml-skip-step-exit-code: Replace `exit 78` with proper conditional skip
+
+```json
+{
+  "id": "home-machine-yml-skip-step-exit-code",
+  "category": "infrastructure",
+  "priority": 9,
+  "title": "home_machine.yml `Skip if game not requested via dispatch` must not fail the job on neutral skip",
+  "description": "The skip step in `.github/workflows/home_machine.yml` does `exit 78` to signal a neutral skip when a matrix game isn't in the workflow_dispatch `games` input. GitHub Actions `run` steps treat any non-zero exit as failure (the `78 = neutral` convention only applies to container/Docker actions, not run steps). Result: dispatching `games=breakout` makes the flappy_bird job's status be ❌ failure on the GitHub UI even though the intent was to skip it cleanly — false-red noise on every targeted dispatch. Fix is to replace the exit-78 pattern with either (a) a per-step `if:` guard on each subsequent step that checks the requested game list, or (b) a job-level `if:` that decides whether the whole job should run, or (c) emit a notice + `exit 0` and let downstream `if: always()` artifact uploads still run.",
+  "steps": [
+    "Pick approach: probably (b) job-level `if: github.event_name != 'workflow_dispatch' || inputs.games == '' || contains(inputs.games, matrix.game)` — cleanest, the whole job is skipped (gray dot, not X).",
+    "Update `.github/workflows/home_machine.yml`: remove the inline 'Skip if game not requested via dispatch' step, add the `if:` guard at the job level.",
+    "Verify: dispatch with `games=breakout`, confirm flappy_bird job is GRAY (skipped) not RED, breakout still runs."
+  ],
+  "passes": false,
+  "depends_on": ["M-7"],
+  "estimated_effort_hours": 1
+}
+```
