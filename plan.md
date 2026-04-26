@@ -2903,7 +2903,8 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
     "Spawn a separate validation agent (no isolation, no reading existing translator tests) to derive Unity-doc-driven contract tests for cross-instance member access casing",
     "Update data/lessons/breakout_deploy.md manual-intervention ledger: drop the GameManager.cs camelCase patch row (now zero interventions for Breakout)"
   ],
-  "passes": false,
+  "passes": true,
+  "completed_2026-04-26": "Root cause was tighter than first thought: `snake_to_camel(\"_score_text\")` returned `\"ScoreText\"` (PascalCase) because `parts[0] + Capitalize(rest)` on the leading-empty-string split (`['', 'score', 'text']`) effectively capitalized the first real part. Field declarations worked around it via `lstrip(\"_\")`; the symbol-table path didn't, so cross-instance access leaked PascalCase. Fix: `lstrip(\"_\")` inside `snake_to_camel` itself so all callers agree. Commits b72d967 (translator+tests, 8 cases) and 1d148ec (independent validation, 36 cases — 25 contract / 7 integration running real `python -m src.pipeline --game breakout` / 4 mutation). Full suite: 3392 passed. Regen + breakout-green-on-workflow proof deferred until next regen lands — generated trees are unstaged in the working copy.",
   "depends_on": ["M-7"],
   "estimated_effort_hours": 4
 }
