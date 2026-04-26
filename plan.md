@@ -2719,9 +2719,11 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
     "Optional: matrix over Python 3.11/3.12, OS Linux/Windows",
     "Verify: PR triggers run; failing test blocks merge"
   ],
-  "passes": false,
+  "passes": true,
   "depends_on": ["M-5"],
-  "estimated_effort_hours": 6
+  "estimated_effort_hours": 6,
+  "completed_on": "2026-04-26",
+  "completion_note": "Workflow `test.yml` (pytest + ruff + gate pipeline + snapshot) green end-to-end on PR #6 run 24964969344 (pytest 2m2s, gate pipeline 55s, ruff lint 11s). Required ~700-error ruff cleanup: pyproject.toml [tool.ruff] config with per-file-ignores for legitimate sys.path patterns and forward-reference idioms; auto-fix of F401/F541/E401/F811 (~381 changes); manual E731+E702 fixes (16 sites). Companion fix in ralph-universal smart_gate.py: C# linter false positives on `.None` enum access and namespace-only stub files. README badge + matrix step deferred (no README in tree)."
 }
 ```
 
