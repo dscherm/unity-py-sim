@@ -2957,7 +2957,9 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
     "Verify the test passes; regen flappy_bird; trigger `gh workflow run home_machine.yml --ref <branch>` and confirm flappy_bird's deploy step reaches Run PlayMode tests (no CS0246).",
     "Optional: pacman_v2 same check if the translator namespaces it too."
   ],
-  "passes": false,
+  "passes": true,
+  "completed_on": "2026-04-26",
+  "verified_2026-04-26": "Centralized GAME_NAMESPACES into src/translator/project_translator.py; tools/pipeline.py imports from there. tools/gen_flappy_coplay.py defaults --namespace to GAME_NAMESPACES['flappy_bird'] ('FlappyBird'); tools/gen_coplay.py auto-derives default from runner stem (run_<game>.py). Regenerated data/generated/flappy_bird_project/Assets/Editor/GeneratedSceneSetup.cs + GeneratedSceneValidation.cs both now declare `using FlappyBird;` and qualified component refs (FlappyBird.Player, FlappyBird.Pipes, etc.). New contract test tests/exporter/test_coplay_namespace_emission.py (5 tests; was 3 red on default invocation, now all green). Updated test_flappy_coplay_generation.py: removed stale test_generator_no_namespace_prefix_by_default, added test_generator_emits_using_directive_for_default_namespace, strengthened test_generator_honors_explicit_namespace. Full suite green: 3412 passed, 2 skipped, 2 xfailed. End-to-end home_machine.yml verification deferred to next dispatch run.",
   "depends_on": ["M-7-phase-2"],
   "estimated_effort_hours": 2
 }

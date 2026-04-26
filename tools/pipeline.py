@@ -31,16 +31,11 @@ _GAME_PATHS = {
     "flappy_bird": "examples/flappy_bird/flappy_bird_python",
 }
 
-_NAMESPACES = {
-    "pong": "Pong",
-    "breakout": "Breakout",
-    "space_invaders": "SpaceInvaders",
-    "angry_birds": "AngryBirds",
-    "fsm_platformer": "FSMPlatformer",
-    "pacman": "Pacman",
-    "pacman_v2": "PacmanV2",
-    "flappy_bird": "FlappyBird",
-}
+# GAME_NAMESPACES lives in src.translator.project_translator so the
+# CoPlay generators can also default to the same per-game namespace
+# without duplicating the table.  Keep `_NAMESPACES` as a local alias
+# so the rest of this script reads naturally.
+from src.translator.project_translator import GAME_NAMESPACES as _NAMESPACES  # noqa: E402
 
 
 def main() -> int:

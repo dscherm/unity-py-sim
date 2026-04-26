@@ -31,6 +31,23 @@ from src.translator.type_mapper import snake_to_camel, snake_to_pascal
 from src.translator.semantic_layer import transform as semantic_transform
 
 
+# Per-game C# namespace the translator wraps emitted MonoBehaviours in.
+# Single source of truth — pipeline (`tools/pipeline.py`) and CoPlay
+# generators (`tools/gen_coplay.py`, `tools/gen_flappy_coplay.py`) all
+# read from here so a no-flag regen produces a `using <Namespace>;`
+# directive that matches what `translate_project` emits.
+GAME_NAMESPACES: dict[str, str] = {
+    "pong": "Pong",
+    "breakout": "Breakout",
+    "space_invaders": "SpaceInvaders",
+    "angry_birds": "AngryBirds",
+    "fsm_platformer": "FSMPlatformer",
+    "pacman": "Pacman",
+    "pacman_v2": "PacmanV2",
+    "flappy_bird": "FlappyBird",
+}
+
+
 def translate_project(
     directory: str | Path,
     *,
