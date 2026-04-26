@@ -2979,7 +2979,9 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
     "Update `.github/workflows/home_machine.yml`: remove the inline 'Skip if game not requested via dispatch' step, add the `if:` guard at the job level.",
     "Verify: dispatch with `games=breakout`, confirm flappy_bird job is GRAY (skipped) not RED, breakout still runs."
   ],
-  "passes": false,
+  "passes": true,
+  "completed_on": "2026-04-26",
+  "verified_2026-04-26": "Removed inline `Skip if game not requested via dispatch` step from .github/workflows/home_machine.yml. Replaced with job-level `if: github.event_name != 'workflow_dispatch' || inputs.games == '' || contains(format(' {0} ', inputs.games), format(' {0} ', matrix.game))`. Space-padded `contains()` enforces word-boundary matching so future game names sharing a substring (e.g. flappy_bird vs flappy_bird_v2) don't false-positive. Added tests/contracts/test_home_machine_workflow.py — 8 tests pin: job-level if guard exists, handles non-dispatch events + empty games input + word-boundary contains, no `exit 78` in any step, no skip-step regression, deploy + PlayMode test steps still present. All 8 pass. End-to-end dispatch verification deferred to next workflow run.",
   "depends_on": ["M-7"],
   "estimated_effort_hours": 1
 }

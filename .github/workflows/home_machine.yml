@@ -26,6 +26,18 @@ jobs:
     name: ${{ matrix.game }}
     runs-on: [self-hosted, Windows, unity]
     timeout-minutes: 25
+    # Skip the whole matrix entry (gray, not red) when the user dispatches
+    # with an explicit `games` list that omits this matrix.game.  Previously
+    # the equivalent check ran as an inline `exit 78` step, which GitHub
+    # Actions treats as a failed step on `run:` (only `uses:` honors the
+    # neutral-skip exit code), turning every non-target row red.
+    # Space-padded `contains` enforces word-boundary matching so future
+    # game names that share a substring (e.g. `flappy_bird_v2`) don't
+    # accidentally match `flappy_bird`.
+    if: >-
+      github.event_name != 'workflow_dispatch'
+      || inputs.games == ''
+      || contains(format(' {0} ', inputs.games), format(' {0} ', matrix.game))
     strategy:
       fail-fast: false
       matrix:
@@ -50,15 +62,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Skip if game not requested via dispatch
-        if: github.event_name == 'workflow_dispatch' && inputs.games != ''
-        run: |
-          $requested = "${{ inputs.games }}".Split(' ')
-          if (-not ($requested -contains "${env:GAME}")) {
-            Write-Host "::notice::Skipping ${env:GAME} (not in dispatch list)"
-            exit 78  # neutral skip
-          }
 
       - name: Verify project exists
         run: |
