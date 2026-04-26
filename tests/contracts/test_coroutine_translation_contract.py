@@ -8,10 +8,9 @@ Written by independent validation agent — no existing test files were consulte
 """
 
 import ast
-import pytest
 
 from src.translator.python_parser import (
-    PyMethod, PyField, PyClass, PyFile,
+    PyMethod, PyClass, PyFile,
     _has_yield, parse_python,
 )
 from src.translator.python_to_csharp import translate

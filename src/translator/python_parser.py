@@ -5,9 +5,7 @@ from __future__ import annotations
 import ast
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
 
-from src.translator.type_mapper import snake_to_pascal, snake_to_camel
 
 
 # ── IR Dataclasses (mirrors C# IR) ──────────────────────────

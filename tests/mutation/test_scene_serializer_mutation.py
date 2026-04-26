@@ -5,11 +5,10 @@ then verify the output changes in detectable ways.
 """
 
 import json
-import math
 
 import pytest
 
-from src.engine.core import _clear_registry, GameObject, MonoBehaviour
+from src.engine.core import _clear_registry, GameObject
 from src.engine.lifecycle import LifecycleManager
 from src.engine.physics.physics_manager import PhysicsManager
 from src.engine.physics.rigidbody import Rigidbody2D
@@ -22,8 +21,6 @@ import src.exporter.scene_serializer as serializer_module
 from src.exporter.scene_serializer import (
     serialize_scene,
     serialize_scene_json,
-    _serialize_component,
-    _sanitize_for_json,
 )
 
 

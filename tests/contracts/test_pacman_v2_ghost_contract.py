@@ -10,7 +10,7 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from src.engine.core import GameObject, MonoBehaviour, _clear_registry
+from src.engine.core import GameObject, _clear_registry
 from src.engine.lifecycle import LifecycleManager
 from src.engine.physics.physics_manager import PhysicsManager
 from src.engine.math.vector import Vector2

@@ -21,7 +21,7 @@ SI_ROOT = os.path.join(PROJECT_ROOT, "examples", "space_invaders")
 if SI_ROOT not in sys.path:
     sys.path.insert(0, SI_ROOT)
 
-from src.engine.core import GameObject, _clear_registry, MonoBehaviour
+from src.engine.core import GameObject, _clear_registry
 from src.engine.lifecycle import LifecycleManager
 from src.engine.physics.physics_manager import PhysicsManager
 from src.engine.time_manager import Time

@@ -5,11 +5,9 @@ These tests monkeypatch the translator to verify that:
 2. Always emitting 'this.' still produces valid (if verbose) C# for non-shadowed cases
 """
 
-import re
 import textwrap
 from unittest.mock import patch
 
-import pytest
 
 from src.translator.python_parser import parse_python
 from src.translator.python_to_csharp import translate

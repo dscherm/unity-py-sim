@@ -13,14 +13,9 @@ from __future__ import annotations
 
 import importlib.util
 import json
-import shutil
-import sys
-import tempfile
-import textwrap
 from pathlib import Path
 from types import ModuleType
 
-import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 GEN_PATH = REPO_ROOT / "src" / "exporter" / "coplay_generator.py"

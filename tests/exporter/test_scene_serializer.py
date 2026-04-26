@@ -1,11 +1,11 @@
 """Tests for scene_serializer — captures running scene to portable JSON."""
 
 from src.engine.core import GameObject, MonoBehaviour, _game_objects
-from src.engine.math.vector import Vector2, Vector3
+from src.engine.math.vector import Vector3
 from src.engine.rendering.renderer import SpriteRenderer
 from src.engine.physics.rigidbody import Rigidbody2D
 from src.engine.physics.collider import BoxCollider2D
-from src.exporter.scene_serializer import serialize_scene, _serialize_component
+from src.exporter.scene_serializer import serialize_scene
 
 
 def setup_function():

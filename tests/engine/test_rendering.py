@@ -5,7 +5,7 @@ import pytest
 from src.engine.core import GameObject, _clear_registry
 from src.engine.math.vector import Vector2
 from src.engine.rendering.camera import Camera
-from src.engine.rendering.renderer import SpriteRenderer, RenderManager
+from src.engine.rendering.renderer import SpriteRenderer
 from src.engine.rendering.display import DisplayManager
 
 

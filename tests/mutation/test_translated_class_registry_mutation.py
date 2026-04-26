@@ -26,9 +26,8 @@ from src.engine.physics.physics_manager import PhysicsManager
 from src.engine.rendering.renderer import SpriteRenderer
 from src.engine.rendering.camera import Camera
 from src.engine.audio import AudioListener
-from src.engine.transform import Transform
 
-from src.exporter.scene_serializer import serialize_scene, _serialize_component
+from src.exporter.scene_serializer import serialize_scene
 from src.translator.project_translator import get_translated_class_names
 
 

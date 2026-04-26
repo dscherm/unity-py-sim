@@ -14,11 +14,8 @@ Captures:
 """
 
 import sys
-import os
-import io
 import json
 import subprocess
-import traceback
 import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
@@ -58,7 +55,7 @@ def run_playtest(example: str, extra_args: list[str]) -> dict:
 
     ts = datetime.now(timezone.utc).isoformat()
     print(f"[playtest] Starting {example} at {ts}")
-    print(f"[playtest] Errors will be auto-recorded to data/lessons/")
+    print("[playtest] Errors will be auto-recorded to data/lessons/")
     print()
 
     # Run the example, capturing stderr for errors
@@ -102,11 +99,11 @@ def run_playtest(example: str, extra_args: list[str]) -> dict:
 
         # Auto-append to gotchas.md
         append_gotchas(errors, example, ts)
-        print(f"\n[playtest] Errors recorded to:")
+        print("\n[playtest] Errors recorded to:")
         print(f"  {ERROR_LOG}")
         print(f"  {GOTCHAS_FILE}")
     else:
-        print(f"\n[playtest] Clean run — no errors detected.")
+        print("\n[playtest] Clean run — no errors detected.")
 
     # Emit observation record for ralph-universal sync
     emit_observation(session, errors)
@@ -207,7 +204,7 @@ def append_gotchas(errors: list[dict], example: str, ts: str):
         new_entries.append(entry)
 
     if new_entries:
-        section = f"\n## Playtest Errors (auto-recorded)\n" + "\n".join(new_entries) + "\n"
+        section = "\n## Playtest Errors (auto-recorded)\n" + "\n".join(new_entries) + "\n"
         # Check if section already exists
         if "## Playtest Errors" in existing:
             # Append to existing section

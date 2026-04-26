@@ -13,9 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import re
-from pathlib import Path
 
-import pytest
 
 from src.exporter.project_scaffolder import (
     _ASSETS_ROOT,

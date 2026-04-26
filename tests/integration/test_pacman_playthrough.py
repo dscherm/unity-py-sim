@@ -26,9 +26,6 @@ from src.engine.rendering.display import DisplayManager
 from src.engine.math.vector import Vector2
 
 from pacman_python.game_manager import GameManager
-from pacman_python.movement import Movement
-from pacman_python.pacman import Pacman
-from pacman_python.ghost import Ghost
 from pacman_python.passage import _recent_teleports
 
 
@@ -313,7 +310,7 @@ def test_ghost_exits_home():
             any_exited = True
             break
     assert any_exited, (
-        f"At least one ghost should exit home. Positions: "
+        "At least one ghost should exit home. Positions: "
         + ", ".join(
             f"{n}: start={result['ghost_start_positions'][n]}, end={result['ghost_positions'][n]}"
             for n in home_ghosts

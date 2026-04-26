@@ -34,7 +34,7 @@ class TestEventBus:
 
     def test_unsubscribe_removes_handler(self):
         received = []
-        handler = lambda e: received.append(e)
+        def handler(e): received.append(e)
         EventBus.subscribe(ScoreChanged, handler)
         EventBus.unsubscribe(ScoreChanged, handler)
         EventBus.publish(ScoreChanged(new_score=50, delta=5))
@@ -94,7 +94,7 @@ class TestUnityEvent:
 
     def test_remove_listener(self):
         called = []
-        handler = lambda: called.append(True)
+        def handler(): called.append(True)
         ev = UnityEvent()
         ev.add_listener(handler)
         ev.remove_listener(handler)

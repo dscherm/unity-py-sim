@@ -8,7 +8,6 @@ Tests derived from Unity C# conventions and actual Space Invaders translation bu
 5. Local variables without underscores (like 'gm') added to symbol table
 """
 
-import pytest
 
 from src.translator.python_to_csharp import translate
 from src.translator.python_parser import parse_python
@@ -197,7 +196,7 @@ class Invader(MonoBehaviour):
         decl_lines = [l for l in lines if "var gm" in l or l.startswith("var gm")]
         # At most one declaration
         assert len(decl_lines) <= 1, (
-            f"Variable 'gm' declared multiple times:\n" +
+            "Variable 'gm' declared multiple times:\n" +
             "\n".join(decl_lines)
         )
 

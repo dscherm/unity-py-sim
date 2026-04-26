@@ -14,7 +14,7 @@ Unity contracts tested:
 
 import pytest
 
-from src.engine.core import GameObject, MonoBehaviour, _clear_registry
+from src.engine.core import GameObject, _clear_registry
 from src.engine.math.vector import Vector2
 from src.engine.physics.collider import BoxCollider2D, CircleCollider2D
 from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
@@ -406,7 +406,7 @@ class TestMazeData:
     def test_cell_to_world_origin_cell(self):
         """Row 0, col 0 should map to top-left of centered maze."""
         from examples.pacman.pacman_python.maze_data import (
-            cell_to_world, MAZE_COLS, MAZE_ROWS, MAZE_OFFSET_X, MAZE_OFFSET_Y,
+            cell_to_world, MAZE_OFFSET_X, MAZE_OFFSET_Y,
         )
         x, y = cell_to_world(0, 0)
         assert abs(x - MAZE_OFFSET_X) < 0.001

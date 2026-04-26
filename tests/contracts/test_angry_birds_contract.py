@@ -4,7 +4,6 @@ These tests derive expectations from Unity's documented behavior, not from
 what the code happens to do.
 """
 
-import math
 import pytest
 
 from src.engine.core import GameObject, _clear_registry
@@ -26,7 +25,7 @@ from src.engine.trajectory import predict_trajectory
 from examples.angry_birds.angry_birds_python.bird import Bird
 from examples.angry_birds.angry_birds_python.slingshot import Slingshot
 from examples.angry_birds.angry_birds_python.constants import Constants
-from examples.angry_birds.angry_birds_python.enums import BirdState, SlingshotState
+from examples.angry_birds.angry_birds_python.enums import BirdState
 
 
 @pytest.fixture(autouse=True)

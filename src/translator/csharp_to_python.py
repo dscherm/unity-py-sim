@@ -6,9 +6,9 @@ import json
 import re
 from pathlib import Path
 
-from src.translator.csharp_parser import CSharpFile, CSharpClass, CSharpField, CSharpMethod, parse_csharp_file
+from src.translator.csharp_parser import CSharpFile, CSharpClass, CSharpMethod, parse_csharp_file
 from src.translator.type_mapper import (
-    TypeMapper, pascal_to_snake, camel_to_snake, convert_float_literal,
+    TypeMapper, camel_to_snake, convert_float_literal,
 )
 
 _RULES_DIR = Path(__file__).parent / "rules"

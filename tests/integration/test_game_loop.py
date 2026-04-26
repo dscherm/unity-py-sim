@@ -10,7 +10,6 @@ import pytest
 
 from src.engine.app import run
 from src.engine.core import (
-    Component,
     GameObject,
     MonoBehaviour,
     _clear_registry,
@@ -22,7 +21,6 @@ from src.engine.physics.collider import BoxCollider2D, CircleCollider2D
 from src.engine.input_manager import Input
 from src.engine.math.vector import Vector2
 from src.engine.time_manager import Time
-from src.engine.transform import Transform
 from src.engine.scene import SceneManager
 
 

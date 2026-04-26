@@ -2,9 +2,8 @@
 
 import pytest
 
-from src.engine.core import Component, MonoBehaviour, GameObject, _clear_registry
+from src.engine.core import Component, MonoBehaviour, GameObject
 from src.engine.transform import Transform
-from src.engine.math.vector import Vector3
 
 
 class TestComponent:

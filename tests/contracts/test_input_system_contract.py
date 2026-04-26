@@ -12,10 +12,10 @@ ROOT CAUSE OF 60+ EXISTING TEST FAILURES:
     instead of `pass` in the if-block.
 """
 
-import pytest
 from src.translator.python_parser import parse_python
 from src.translator.python_to_csharp import translate, translate_file
-import tempfile, os
+import tempfile
+import os
 
 
 # ── Helpers ──────────────────────────────────────────────────────────

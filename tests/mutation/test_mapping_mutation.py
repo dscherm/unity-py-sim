@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from src.assets.mapping import AssetMapping, validate_mapping
+from src.assets.mapping import validate_mapping
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_MAPPINGS = PROJECT_ROOT / "data" / "mappings"

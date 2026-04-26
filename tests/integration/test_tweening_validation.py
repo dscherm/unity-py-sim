@@ -13,7 +13,6 @@ the implementation's own tests. Covers:
 - Edge cases (zero duration, None target, dot-notation properties)
 """
 
-import math
 import pytest
 
 from src.engine.tweening import (
@@ -22,7 +21,6 @@ from src.engine.tweening import (
     Sequence,
     Tween,
     TweenManager,
-    _EASE_FUNCS,
     _lerp_value,
     evaluate_ease,
 )

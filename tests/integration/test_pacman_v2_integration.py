@@ -8,13 +8,13 @@ Tests run actual scene setup and game loop frames to verify:
 
 import sys
 import os
-import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "examples", "pacman_v2"))
 
 from src.engine.core import GameObject
 from src.engine.math.vector import Vector2
+from pacman_v2_python.ghost_eyes import GhostEyes
 
 
 # ── Helpers ──────────────────────────────────────────────────────
@@ -36,7 +36,6 @@ def _setup_minimal_scene():
     from pacman_v2_python.ghost_scatter import GhostScatter
     from pacman_v2_python.ghost_chase import GhostChase
     from pacman_v2_python.ghost_frightened import GhostFrightened
-    from pacman_v2_python.ghost_eyes import GhostEyes
     from pacman_v2_python.game_manager import GameManager
     from src.engine.rendering.renderer import SpriteRenderer
 
@@ -258,5 +257,4 @@ from pacman_v2_python.ghost_home import GhostHome
 from pacman_v2_python.ghost_scatter import GhostScatter
 from pacman_v2_python.ghost_chase import GhostChase
 from pacman_v2_python.ghost_frightened import GhostFrightened
-from pacman_v2_python.ghost_eyes import GhostEyes
 from pacman_v2_python.game_manager import GameManager

@@ -4,7 +4,6 @@ Unity uses Mathf (UnityEngine.Mathf) for math operations, not System.Math.
 Mathf operates on floats and is the standard in Unity scripts.
 """
 
-import pytest
 from src.translator.python_to_csharp import translate
 from src.translator.python_parser import parse_python
 

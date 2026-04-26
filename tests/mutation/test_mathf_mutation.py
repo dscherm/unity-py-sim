@@ -4,8 +4,6 @@ Each test monkeypatches _translate_py_expression's regex substitutions to
 simulate a bug, then asserts the contract would detect it.
 """
 
-import re
-import pytest
 from unittest.mock import patch
 from src.translator.python_to_csharp import translate, _translate_py_expression
 from src.translator.python_parser import parse_python

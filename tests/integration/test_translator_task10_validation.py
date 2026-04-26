@@ -14,9 +14,9 @@ import re
 import pytest
 from pathlib import Path
 
-from src.translator.python_to_csharp import translate, translate_file, _config, _translate_new_input_system
+from src.translator.python_to_csharp import translate, translate_file
 from src.translator.python_parser import (
-    PyFile, PyClass, PyField, PyMethod, PyParameter, parse_python_file,
+    PyFile, PyClass, PyMethod,
 )
 
 

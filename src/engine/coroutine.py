@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Generator, Any
+from typing import Generator
 
 
 class YieldInstruction:

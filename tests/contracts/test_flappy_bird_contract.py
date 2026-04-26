@@ -6,13 +6,10 @@ implementation details of any particular game script.
 
 import pytest
 
-from src.engine.core import MonoBehaviour, GameObject, Component, _clear_registry
+from src.engine.core import MonoBehaviour, GameObject, _clear_registry
 from src.engine.lifecycle import LifecycleManager
 from src.engine.time_manager import Time
-from src.engine.transform import Transform
 from src.engine.math.vector import Vector3
-from src.engine.math.quaternion import Quaternion
-from src.engine.coroutine import WaitForSeconds
 from src.engine.rendering.camera import Camera
 from src.engine.random import Random
 

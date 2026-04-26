@@ -6,7 +6,6 @@ Derived from Unity Pacman specs (zigurous tutorial), NOT from existing tests.
 
 import os
 import sys
-import pytest
 
 # Ensure project root on path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))

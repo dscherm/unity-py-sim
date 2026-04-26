@@ -11,27 +11,25 @@ Tests verify:
 
 import sys
 import os
-import types
 import inspect
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
 import pytest
 
 # Ensure project root on path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from src.engine.core import GameObject, MonoBehaviour, _clear_registry
+from src.engine.core import GameObject, _clear_registry
 from src.engine.lifecycle import LifecycleManager
 from src.engine.physics.physics_manager import PhysicsManager
-from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
-from src.engine.physics.collider import BoxCollider2D, CircleCollider2D, PhysicsMaterial2D
+from src.engine.physics.collider import BoxCollider2D, CircleCollider2D
 from src.engine.math.vector import Vector2
 from src.engine.time_manager import Time
 from src.engine.input_manager import Input
 from src.engine.debug import Debug
 from src.engine.audio import AudioSource
 from src.engine.ui import Canvas, Text, RectTransform, TextAnchor
-from src.engine.coroutine import WaitForSeconds, Coroutine
+from src.engine.coroutine import WaitForSeconds
 
 
 @pytest.fixture(autouse=True)

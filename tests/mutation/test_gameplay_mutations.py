@@ -10,11 +10,9 @@ import pytest
 from src.engine.core import GameObject, _clear_registry
 from src.engine.lifecycle import LifecycleManager
 from src.engine.physics.physics_manager import PhysicsManager, Collision2D
-from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
+from src.engine.physics.rigidbody import Rigidbody2D
 from src.engine.physics.collider import (
-    BoxCollider2D,
     CircleCollider2D,
-    PhysicsMaterial2D,
 )
 from src.engine.rendering.camera import Camera
 from src.engine.rendering.display import DisplayManager
@@ -30,8 +28,7 @@ from examples.angry_birds.angry_birds_python.destroyer import Destroyer
 from examples.angry_birds.angry_birds_python.game_manager import GameManager
 from examples.angry_birds.angry_birds_python.slingshot import Slingshot
 from examples.angry_birds.angry_birds_python.bird import Bird
-from examples.angry_birds.angry_birds_python.enums import GameState, SlingshotState
-from examples.angry_birds.angry_birds_python.constants import Constants
+from examples.angry_birds.angry_birds_python.enums import GameState
 
 
 @pytest.fixture(autouse=True)

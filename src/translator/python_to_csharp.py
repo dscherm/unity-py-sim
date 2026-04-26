@@ -2865,9 +2865,9 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
                 return f"new {csharp_type}()"
             if csharp_type.endswith("[]"):
                 return f"new {csharp_type[:-2]}[0]"
-            return f"new List<object>()"
+            return "new List<object>()"
         elif factory == "dict":
-            return f"new Dictionary<string, object>()"
+            return "new Dictionary<string, object>()"
         else:
             return f"new {factory}()"
 
@@ -2946,7 +2946,8 @@ def _py_value_to_csharp(value: str | None, csharp_type: str) -> str | None:
         # (the strings were asset-name tokens that get wired at runtime by
         # CoPlay / Resources.Load; emitting them verbatim produces invalid
         # C# like `Sprite[] s = ['a', 'b'];`).  FU-2 home-machine compile fix.
-        string_literal = lambda e: re.match(r"^\s*['\"][^'\"]*['\"]\s*$", e)
+        def string_literal(e):
+            return re.match(r"^\s*['\"][^'\"]*['\"]\s*$", e)
         if elements and all(string_literal(e) for e in elements):
             elem_type = csharp_type[:-2]
             if elem_type == "string":

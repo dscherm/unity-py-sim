@@ -22,10 +22,10 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from src.translator.python_parser import parse_python_file, PyFile, PyClass, PyField
+from src.translator.python_parser import parse_python_file, PyFile
 from src.translator.python_to_csharp import (
-    translate, _current_symbols, _build_symbol_table, _infer_field_types,
-    _config, _TranslationConfig, detect_required_packages,
+    translate, _infer_field_types,
+    detect_required_packages,
 )
 from src.translator.type_mapper import snake_to_camel, snake_to_pascal
 from src.translator.semantic_layer import transform as semantic_transform

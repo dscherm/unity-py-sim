@@ -1,7 +1,7 @@
 """Mutation tests for Angry Birds — break things and verify detection."""
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from src.engine.core import GameObject, _clear_registry
 from src.engine.lifecycle import LifecycleManager
@@ -13,7 +13,7 @@ from src.engine.time_manager import Time
 from src.engine.debug import Debug
 from src.engine.scene import SceneManager
 from src.engine.audio import AudioSource
-from src.engine.ui import Canvas, Text
+from src.engine.ui import Canvas
 
 
 @pytest.fixture(autouse=True)
@@ -108,7 +108,6 @@ class TestMutateLevelProgression:
         _setup_and_start()
 
         from examples.angry_birds.angry_birds_python.game_manager import GameManager
-        from examples.angry_birds.angry_birds_python.enums import GameState
 
         gm_go = GameObject.find("GameManager")
         gm = gm_go.get_component(GameManager)

@@ -82,7 +82,35 @@ def _extract_name(name_expr: ast.expr | None) -> str:
             else:
                 parts.append("{...}")
         return "".join(parts)
-    return ast.dump(name_expr)
+    # S7-4: never return `ast.dump(...)` — the raw repr ``Name(id='name', ctx=Load())``
+    # was leaking into prefab filenames in breakout debug 2026-04-13.
+    if isinstance(name_expr, ast.Name):
+        # Variable reference — use the variable name as the prefab stem
+        return name_expr.id.capitalize() or "Unknown"
+    if isinstance(name_expr, ast.Attribute):
+        return name_expr.attr.capitalize() or "Unknown"
+    if isinstance(name_expr, ast.Call):
+        # e.g. str(x), use the callable's name if resolvable
+        func = name_expr.func
+        if isinstance(func, ast.Name):
+            return func.id.capitalize()
+        if isinstance(func, ast.Attribute):
+            return func.attr.capitalize()
+    return "Unknown"
+
+
+# Characters disallowed in generated prefab class names / filenames.
+# ``ast.dump`` output always contains at least one of these, so rejecting them
+# guards against any future AST-repr leakage.
+_UNSAFE_NAME_CHARS = set("()=',:[]<>\\/\"")
+
+
+def _sanitize_class_name(name: str) -> str:
+    """Guard: reject names containing AST-repr characters, return safe fallback."""
+    if not name or any(ch in _UNSAFE_NAME_CHARS for ch in name):
+        return "Unknown"
+    # Also strip whitespace runs to single char — Unity prefab paths can't have spaces reliably
+    return name.strip().replace(" ", "_") or "Unknown"
 
 
 def _derive_class_name(name_expr: ast.expr | None) -> str:
@@ -90,13 +118,15 @@ def _derive_class_name(name_expr: ast.expr | None) -> str:
 
     For f-strings like ``f"Brick_{row}_{col}"``, extracts ``Brick``.
     For plain strings, returns the string as-is.
+    For variable refs, uses the variable name. For unknown expressions,
+    returns ``Unknown`` (never the raw ``ast.dump`` repr — see S7-4).
     """
     raw = _extract_name(name_expr)
     # Strip dynamic f-string parts: "Brick_{...}_{...}" -> "Brick"
     base = raw.split("_{")[0]
     if base != raw:
-        return base
-    return raw
+        return _sanitize_class_name(base)
+    return _sanitize_class_name(raw)
 
 
 # ── AST Analysis ─────────────────────────────────────────────────

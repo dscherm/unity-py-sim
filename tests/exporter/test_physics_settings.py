@@ -6,8 +6,6 @@ a valid ProjectSettings/Physics2DSettings.asset in Unity YAML format.
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
 
 import pytest
 

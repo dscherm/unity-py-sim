@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.engine.core import GameObject, _clear_registry
+from src.engine.core import GameObject
 from src.engine.scene import SceneManager, dont_destroy_on_load
 
 

@@ -121,7 +121,7 @@ def main() -> int:
     # Step 3: Validate
     failed_steps = []
     if args.validate:
-        print(f"\n--- Step 3: Structural Gate ---")
+        print("\n--- Step 3: Structural Gate ---")
         from src.gates.structural_gate import validate_csharp
         total_errors = 0
         for name, code in cs_only.items():
@@ -133,7 +133,7 @@ def main() -> int:
         if total_errors > 0:
             failed_steps.append("structural")
 
-        print(f"\n--- Step 4: Convention Gate ---")
+        print("\n--- Step 4: Convention Gate ---")
         from src.gates.convention_gate import check_conventions
         total_violations = 0
         total_checks = 0
@@ -151,7 +151,7 @@ def main() -> int:
     if failed_steps:
         print(f"PIPELINE FAILED — {', '.join(failed_steps)}")
     else:
-        print(f"PIPELINE PASSED")
+        print("PIPELINE PASSED")
     print(f"Elapsed: {elapsed:.1f}s")
     print(f"{'=' * 60}")
 

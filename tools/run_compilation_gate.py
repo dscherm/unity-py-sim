@@ -95,7 +95,7 @@ def run_all():
     (metrics_dir / "compilation_baseline.json").write_text(
         json.dumps(output, indent=2) + "\n"
     )
-    print(f"Wrote data/metrics/compilation_baseline.json")
+    print("Wrote data/metrics/compilation_baseline.json")
 
 
 if __name__ == "__main__":

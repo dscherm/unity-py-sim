@@ -4,7 +4,6 @@ Bug: Python ternary `x if condition else y` was translated with condition
 replaced by `true` because hasattr() replacement ran before ternary parsing.
 """
 
-import pytest
 from src.translator.python_to_csharp import _translate_py_expression
 
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from src.translator.csharp_parser import parse_csharp, parse_csharp_file, CSharpFile, CSharpClass
+from src.translator.csharp_parser import parse_csharp, CSharpFile, CSharpClass
 from src.translator.csharp_to_python import translate as cs_to_py_translate
 from src.translator.python_parser import parse_python
 from src.translator.python_to_csharp import translate as py_to_cs_translate

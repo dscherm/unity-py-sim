@@ -69,7 +69,6 @@ class TestInvaderRowConfigIntegration:
         try:
             from examples.space_invaders.space_invaders_python.invaders import (
                 Invaders,
-                InvaderRowConfig,
             )
             from src.engine.math.vector import Vector2
 

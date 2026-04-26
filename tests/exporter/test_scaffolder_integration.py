@@ -53,7 +53,7 @@ class TestBreakoutScaffoldPipeline:
                 failures.append(f"{cs_file.name}: {result.errors[:3]}")
 
         assert not failures, (
-            f"Structural gate failures in scaffolded project:\n"
+            "Structural gate failures in scaffolded project:\n"
             + "\n".join(failures)
         )
 

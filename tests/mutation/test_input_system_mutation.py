@@ -4,7 +4,6 @@ These tests monkeypatch the translator internals to verify that
 the contract tests would catch real bugs (wrong API, wrong key mapping).
 """
 
-import pytest
 from unittest.mock import patch
 from src.translator.python_parser import parse_python
 from src.translator.python_to_csharp import translate

@@ -7,7 +7,6 @@ src/gates/compilation_gate.py, tools/score_baseline.py, and tools/build_corpus.p
 """
 
 import json
-import re
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -21,9 +20,8 @@ from src.gates.compilation_gate import (
     CompilationResult,
     check_syntax,
     _PYTHON_ARTIFACTS,
-    _SYNTAX_CHECKS,
 )
-from tools.score_baseline import score_pair, PairScore
+from tools.score_baseline import score_pair
 
 CORPUS_INDEX_PATH = ROOT / "data" / "corpus" / "corpus_index.json"
 PAIRS_DIR = ROOT / "data" / "corpus" / "pairs"

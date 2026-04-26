@@ -5,7 +5,6 @@ monkeypatching them to be no-ops and verifying that tests detect the breakage.
 """
 
 import pytest
-import pymunk
 
 from src.engine.core import GameObject, MonoBehaviour, _clear_registry
 from src.engine.lifecycle import LifecycleManager

@@ -4,7 +4,6 @@ These tests verify that serialize_scene() produces the expected JSON-compatible
 structure for each component type, independent of implementation details.
 """
 
-import math
 
 import pytest
 
@@ -17,12 +16,10 @@ from src.engine.rendering.camera import Camera
 from src.engine.rendering.renderer import SpriteRenderer
 from src.engine.audio import AudioSource, AudioListener
 from src.engine.math.vector import Vector2, Vector3
-from src.engine.transform import Transform
 
 from src.exporter.scene_serializer import (
     serialize_scene,
     serialize_from_setup,
-    _serialize_component,
     _sanitize_for_json,
 )
 

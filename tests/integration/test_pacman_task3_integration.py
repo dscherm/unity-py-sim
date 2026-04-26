@@ -19,8 +19,6 @@ from src.engine.core import GameObject, _clear_registry
 from src.engine.lifecycle import LifecycleManager
 from src.engine.physics.physics_manager import PhysicsManager
 from pacman_python.game_manager import GameManager
-from pacman_python.pellet import Pellet
-from pacman_python.power_pellet import PowerPellet
 
 
 @pytest.fixture(autouse=True)

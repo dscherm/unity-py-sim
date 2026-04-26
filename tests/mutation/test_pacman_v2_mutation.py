@@ -141,7 +141,7 @@ class TestMutationMovementSpeedZero:
         end_y = go.transform.position.y
 
         assert end_x == start_x, f"X should not change with speed=0, moved from {start_x} to {end_x}"
-        assert end_y == start_y, f"Y should not change with speed=0"
+        assert end_y == start_y, "Y should not change with speed=0"
 
 
 class TestMutationPelletPointsZero:

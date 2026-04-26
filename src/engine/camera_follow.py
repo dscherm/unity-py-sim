@@ -15,7 +15,6 @@ Usage:
 from __future__ import annotations
 
 import math
-import random
 
 from src.engine.core import Component
 from src.engine.math.vector import Vector2

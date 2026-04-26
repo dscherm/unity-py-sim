@@ -23,11 +23,9 @@ from src.engine.physics.collider import (
 from src.engine.math.vector import Vector2
 from src.engine.time_manager import Time
 from src.engine.coroutine import (
-    CoroutineManager,
-    Coroutine,
     WaitForSeconds,
 )
-from src.engine.scene import SceneManager, dont_destroy_on_load
+from src.engine.scene import SceneManager
 from src.engine.ui import RectTransform, Button
 from src.engine.debug import Debug
 from src.engine.rendering.display import DisplayManager

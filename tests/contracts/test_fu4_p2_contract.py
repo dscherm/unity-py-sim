@@ -14,7 +14,6 @@ from __future__ import annotations
 import re
 import textwrap
 
-import pytest
 
 from src.translator.python_parser import parse_python_file, PyFile
 from src.translator.python_to_csharp import translate
@@ -27,7 +26,8 @@ from src.exporter.coplay_generator import generate_scene_script, generate_valida
 
 def _parse(source: str) -> PyFile:
     """Parse a Python source string into a PyFile IR via a temp file."""
-    import tempfile, os
+    import tempfile
+    import os
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False, encoding="utf-8") as f:
         f.write(source)
         tmp = f.name

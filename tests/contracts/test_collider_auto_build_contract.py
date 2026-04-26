@@ -18,7 +18,6 @@ from src.engine.math.vector import Vector2
 from src.engine.physics.collider import (
     BoxCollider2D,
     CircleCollider2D,
-    Collider2D,
     PhysicsMaterial2D,
 )
 from src.engine.physics.physics_manager import PhysicsManager

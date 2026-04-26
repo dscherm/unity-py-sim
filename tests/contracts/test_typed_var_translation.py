@@ -11,15 +11,15 @@ from pathlib import Path
 
 import pytest
 
-from src.translator.python_to_csharp import translate_file, translate
-from src.translator.python_parser import parse_python_file
+from src.translator.python_to_csharp import translate_file
 
 
 # ── Helpers ──────────────────────────────────────────────────────
 
 def _translate_snippet(python_code: str) -> str:
     """Write a temp Python file and translate it, returning C# output."""
-    import tempfile, os
+    import tempfile
+    import os
     code = textwrap.dedent(python_code).strip()
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
         f.write(code)

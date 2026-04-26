@@ -9,7 +9,7 @@ import pytest
 
 from src.engine.core import GameObject, MonoBehaviour, _clear_registry
 from src.engine.lifecycle import LifecycleManager
-from src.engine.math.vector import Vector2, Vector3
+from src.engine.math.vector import Vector2
 from src.engine.prefab import Instantiate, PrefabRegistry
 from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
 from src.engine.physics.collider import BoxCollider2D

@@ -10,7 +10,7 @@ from src.engine.core import GameObject, _clear_registry
 from src.engine.lifecycle import LifecycleManager
 from src.engine.physics.physics_manager import PhysicsManager
 from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
-from src.engine.physics.collider import CircleCollider2D, PhysicsMaterial2D
+from src.engine.physics.collider import CircleCollider2D
 from src.engine.rendering.camera import Camera
 from src.engine.rendering.display import DisplayManager
 from src.engine.math.vector import Vector2
@@ -22,7 +22,7 @@ from src.engine.trajectory import predict_trajectory
 from examples.angry_birds.angry_birds_python.bird import Bird
 from examples.angry_birds.angry_birds_python.slingshot import Slingshot
 from examples.angry_birds.angry_birds_python.constants import Constants
-from examples.angry_birds.angry_birds_python.enums import BirdState, SlingshotState
+from examples.angry_birds.angry_birds_python.enums import BirdState
 
 
 @pytest.fixture(autouse=True)
