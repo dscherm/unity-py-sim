@@ -67,7 +67,7 @@ jobs:
             exit 1
           }
           if (-not (Test-Path "${env:PROJECT_PATH}/Assets/Editor/GeneratedSceneSetup.cs")) {
-            Write-Error "GeneratedSceneSetup.cs missing — regenerate the project first"
+            Write-Error "GeneratedSceneSetup.cs missing -- regenerate the project first"
             exit 1
           }
 
