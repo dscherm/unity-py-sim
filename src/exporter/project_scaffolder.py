@@ -442,10 +442,14 @@ def _write_playmode_test(output_dir: Path, game_name: str) -> None:
     _write_cs_meta(tests_dir / "PlayModeTests.cs.meta", "PlayModeTests")
 
     # PlayModeTests.asmdef + .meta
-    # `includePlatforms: ["Editor"]` keeps the assembly out of player builds,
-    # which is critical because the test references UnityEditor.SceneManagement.
-    # `defineConstraints: ["UNITY_INCLUDE_TESTS"]` ties compilation to the
-    # test framework's marker so production builds skip it cleanly.
+    # IMPORTANT: includePlatforms must be EMPTY for PlayMode test discovery.
+    # `["Editor"]` would scope the assembly to Edit-mode tests and the
+    # `-runTests -testPlatform PlayMode` filter silently skips it ("No tests
+    # were executed."). The test's editor-only references (UnityEditor.*) are
+    # guarded with `#if UNITY_EDITOR` in the .cs.j2 template so cross-platform
+    # compile still works.
+    # `defineConstraints: ["UNITY_INCLUDE_TESTS"]` keeps the assembly out of
+    # production player builds — that flag is set by the test framework only.
     asmdef = {
         "name": "PlayModeTests",
         "rootNamespace": "",
@@ -453,7 +457,7 @@ def _write_playmode_test(output_dir: Path, game_name: str) -> None:
             "UnityEngine.TestRunner",
             "UnityEditor.TestRunner",
         ],
-        "includePlatforms": ["Editor"],
+        "includePlatforms": [],
         "excludePlatforms": [],
         "allowUnsafeCode": False,
         "overrideReferences": True,

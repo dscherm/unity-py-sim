@@ -74,8 +74,10 @@ class TestScaffoldedFiles:
         assert "UnityEngine.TestRunner" in data["references"]
         assert "UnityEditor.TestRunner" in data["references"]
         assert "nunit.framework.dll" in data["precompiledReferences"]
-        # Editor-only — references UnityEditor.SceneManagement
-        assert data["includePlatforms"] == ["Editor"]
+        # MUST be empty for PlayMode test discovery (`["Editor"]` would
+        # scope it to Edit-mode tests and `-testPlatform PlayMode` would
+        # report "No tests were executed.").
+        assert data["includePlatforms"] == []
         # Tests must compile only when the test framework activates them,
         # otherwise prod player builds blow up trying to resolve nunit.
         assert "UNITY_INCLUDE_TESTS" in data["defineConstraints"]
