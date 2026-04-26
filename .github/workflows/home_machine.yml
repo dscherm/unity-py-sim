@@ -38,13 +38,21 @@ jobs:
     env:
       GAME: ${{ matrix.game }}
       PROJECT_PATH: data/generated/${{ matrix.game }}_project
+      # Deterministic log path so the deploy step writes here and the
+      # upload step finds it without juggling step outputs.
+      DEPLOY_LOG: deploy_logs/${{ matrix.game }}.log
+    # Use built-in Windows PowerShell 5.1 (`shell: powershell`) — pwsh
+    # (PowerShell 7) isn't installed on the runner. The deploy script
+    # is written to be PS5.1-compatible.
+    defaults:
+      run:
+        shell: powershell
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Skip if game not requested via dispatch
         if: github.event_name == 'workflow_dispatch' && inputs.games != ''
-        shell: pwsh
         run: |
           $requested = "${{ inputs.games }}".Split(' ')
           if (-not ($requested -contains "${env:GAME}")) {
@@ -53,7 +61,6 @@ jobs:
           }
 
       - name: Verify project exists
-        shell: pwsh
         run: |
           if (-not (Test-Path "${env:PROJECT_PATH}")) {
             Write-Error "Project path ${env:PROJECT_PATH} not present in checkout"
@@ -64,27 +71,25 @@ jobs:
             exit 1
           }
 
-      - name: Deploy CoPlay scene (batchmode)
-        id: deploy
-        shell: pwsh
+      - name: Prepare deploy log directory
         run: |
-          $logFile = Join-Path $env:RUNNER_TEMP "${env:GAME}_deploy.log"
-          pwsh tools/home_machine_deploy.ps1 `
+          New-Item -ItemType Directory -Force -Path "deploy_logs" | Out-Null
+
+      - name: Deploy CoPlay scene (batchmode)
+        run: |
+          & tools/home_machine_deploy.ps1 `
             -ProjectPath "${env:PROJECT_PATH}" `
             -Method "GeneratedSceneSetup.Execute" `
-            -LogFile $logFile
-          # Surface the saved log path to subsequent steps for upload
-          "log_file=$logFile" >> $env:GITHUB_OUTPUT
+            -LogFile "${env:DEPLOY_LOG}"
 
       - name: Record run metadata
         if: always()
-        shell: pwsh
         run: |
           $resultsDir = "data/metrics/home_machine_runs"
           New-Item -ItemType Directory -Force -Path $resultsDir | Out-Null
           $ts = (Get-Date).ToUniversalTime().ToString("yyyyMMddTHHmmssZ")
           $dst = Join-Path $resultsDir "${env:GAME}_${ts}.json"
-          $status = if ("${{ steps.deploy.outcome }}" -eq "success") { "deployed" } else { "deploy_failed" }
+          $status = if ("${{ job.status }}" -eq "success") { "deployed" } else { "deploy_failed" }
           $payload = @{
             game = "${env:GAME}"
             status = $status
@@ -101,6 +106,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.game }}-deploy-${{ github.run_id }}
-          path: ${{ steps.deploy.outputs.log_file }}
+          path: ${{ env.DEPLOY_LOG }}
           if-no-files-found: warn
           retention-days: 14
