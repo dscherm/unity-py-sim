@@ -3,7 +3,7 @@
 This doc covers everything needed to bring the home Windows machine
 online as a self-hosted GitHub Actions runner so the Unity deploy
 workflow (`.github/workflows/home_machine.yml`) runs automatically on
-every push to `main`. M-7 of `SUCCESS.md` lives here.
+every push to `master`. M-7 of `SUCCESS.md` lives here.
 
 ## What v1 covers
 
@@ -92,7 +92,7 @@ assumes the license is already activated and persists between runs.
 Trigger the workflow manually before relying on push triggers:
 
 ```powershell
-gh workflow run home_machine.yml --ref main
+gh workflow run home_machine.yml --ref master
 gh run watch
 ```
 
