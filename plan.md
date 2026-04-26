@@ -2882,9 +2882,12 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
     "Add a `playtest` job (or step) to .github/workflows/home_machine.yml that runs after `deploy`, parses the JUnit-style test results JSON, fails the check on any test failure, uploads test results + Editor.log as artifacts",
     "Verify on home machine: introduce a deliberate NullRef in a generated MonoBehaviour Awake on a feature branch, confirm the playtest job goes red on the PR"
   ],
-  "passes": false,
+  "passes": true,
   "depends_on": ["M-7"],
-  "estimated_effort_hours": 6
+  "estimated_effort_hours": 6,
+  "completed_on": "2026-04-26",
+  "completion_note": "Shipped scaffolder emission of Assets/Tests/PlayMode/PlayModeTests.{cs,asmdef,*.meta} from tools/home_machine_playmode_test.cs.j2 (single [UnityTest] that loads the scene via EditorSceneManager.LoadSceneAsyncInPlayMode, ticks 180 frames, asserts no Error/Exception/Assert log events). com.unity.test-framework declared explicitly in manifest. tools/home_machine_run_tests.ps1 wraps Unity -batchmode -runTests -testPlatform PlayMode. .github/workflows/home_machine.yml chains the step after deploy + uploads JUnit XML/log per game. 8 contract tests in tests/exporter/test_playmode_test_scaffold.py.",
+  "verified_2026-04-26": "verify-red proven on workflow run 24967295767 (commit fe0178d on verify-red/m7-phase2): deliberate NullRef in PaddleController.Start fired during PlayMode, the LogMessageReceived handler caught LogType.Exception, test failed, workflow went red on the PlayMode tests step. Required mid-flight fix df5fb01 — the initial asmdef shipped with `includePlatforms: [\"Editor\"]` which scoped it to Edit-mode tests; `-testPlatform PlayMode` then logged 'No tests were executed.' and exit 0. Empty includePlatforms is the correct setting for PlayMode test discovery. First successful end-to-end run was 24965492310 (e84b58f, no NullRef): breakout deploy + PlayMode tests both green in 3m14s. Flappy Bird deploy is failing with a pre-existing translator/CoPlay-generator regression (`namespace FlappyBird` types unresolved in GeneratedSceneSetup.cs) tracked separately."
 }
 ```
 
