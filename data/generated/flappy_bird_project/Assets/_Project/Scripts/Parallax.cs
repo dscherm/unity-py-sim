@@ -1,21 +1,24 @@
 using UnityEngine;
-public class Parallax : MonoBehaviour
+namespace FlappyBird
 {
-    public float animationSpeed = 1.0f;
-    public float wrapWidth = 20.0f;
-    public float startX = 0.0f;
-     void Awake()
+    public class Parallax : MonoBehaviour
     {
-        startX = transform.position.x;
-    }
-     void Update()
-    {
-        var pos = transform.position;
-        var newX = pos.x - animationSpeed * Time.deltaTime;
-        if (newX < startX - wrapWidth)
+        public float animationSpeed = 1.0f;
+        public float wrapWidth = 20.0f;
+        public float startX = 0.0f;
+         void Awake()
         {
-            newX += wrapWidth;
+            startX = transform.position.x;
         }
-        transform.position = new Vector3(newX, pos.y, pos.z);
+         void Update()
+        {
+            var pos = transform.position;
+            var newX = pos.x - animationSpeed * Time.deltaTime;
+            if (newX < startX - wrapWidth)
+            {
+                newX += wrapWidth;
+            }
+            transform.position = new Vector3(newX, pos.y, pos.z);
+        }
     }
 }

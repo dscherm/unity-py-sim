@@ -2694,7 +2694,8 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
     "Update CLAUDE.md to reference SUCCESS.md as the source of truth for 'done'",
     "Run a manual review: do the M-1..M-7 tasks below match the criteria? Adjust if not."
   ],
-  "passes": false,
+  "passes": true,
+  "completed_2026-04-24": "SUCCESS.md ships 5 mandatory + 6 aspirational criteria. SHELVED.md collects out-of-scope work (Pacman V1 E2E, full engine parity, 3D, editor extensions, in-place ralph). CLAUDE.md references SUCCESS.md as the source of truth for 'done'. Each subsequent task block now has explicit criteria binding (MAN-1..MAN-5 and ASP-1..ASP-6). Bridge state was lagging on this — flagged 2026-04-26 when re-reading plan.md.",
   "blocking_for": ["M-1", "M-2", "M-3", "M-4", "M-6", "M-7"],
   "estimated_effort_hours": 1
 }

@@ -1,151 +1,154 @@
 using UnityEngine;
-public class GhostFrightened : GhostBehavior
+namespace PacmanV2
 {
-    public bool eaten = false;
-    public Sprite blueSprite = null;
-    public Sprite whiteSprite = null;
-    public SpriteRenderer bodySr = null;
-    public Sprite originalSprite = null;
-    public SpriteRenderer eyesSr = null;
-    public AnimatedSprite bodyAnim = null;
-    public void Enable(float duration = -1.0f)
+    public class GhostFrightened : GhostBehavior
     {
-        base.Enable(duration);
-        eaten = false;
-        if (bodyAnim == null && ghost != null)
+        public bool eaten = false;
+        public Sprite blueSprite = null;
+        public Sprite whiteSprite = null;
+        public SpriteRenderer bodySr = null;
+        public Sprite originalSprite = null;
+        public SpriteRenderer eyesSr = null;
+        public AnimatedSprite bodyAnim = null;
+        public void Enable(float duration = -1.0f)
         {
-            bodyAnim = ghost.gameObject.GetComponent<AnimatedSprite>();
+            base.Enable(duration);
+            eaten = false;
+            if (bodyAnim == null && ghost != null)
+            {
+                bodyAnim = ghost.gameObject.GetComponent<AnimatedSprite>();
+            }
+            if (bodyAnim != null)
+            {
+                bodyAnim.enabled = false;
+            }
+            if (bodySr == null && ghost != null)
+            {
+                bodySr = ghost.gameObject.GetComponent<SpriteRenderer>();
+            }
+            if (bodySr != null && blueSprite != null)
+            {
+                originalSprite = bodySr.sprite;
+                bodySr.sprite = blueSprite;
+                // Ensure the renderer is visible (AnimatedSprite.on_disable hides it)
+                bodySr.enabled = true;
+            }
+            if (ghost != null && ghost.eyes != null)
+            {
+                var eyesSr = ghost.eyes.GetComponent<SpriteRenderer>();
+                if (eyesSr != null)
+                {
+                    this.eyesSr = eyesSr;
+                    eyesSr.enabled = false;
+                }
+            }
+            if (duration > 0)
+            {
+                CancelInvoke("flash");
+                Invoke("flash", duration / 2);
+            }
         }
-        if (bodyAnim != null)
+        public void Disable()
         {
-            bodyAnim.enabled = false;
-        }
-        if (bodySr == null && ghost != null)
-        {
-            bodySr = ghost.gameObject.GetComponent<SpriteRenderer>();
-        }
-        if (bodySr != null && blueSprite != null)
-        {
-            originalSprite = bodySr.sprite;
-            bodySr.sprite = blueSprite;
-            // Ensure the renderer is visible (AnimatedSprite.on_disable hides it)
-            bodySr.enabled = true;
-        }
-        if (ghost != null && ghost.eyes != null)
-        {
-            var eyesSr = ghost.eyes.GetComponent<SpriteRenderer>();
+            base.Disable();
+            eaten = false;
+            if (bodySr != null && originalSprite != null)
+            {
+                bodySr.sprite = originalSprite;
+            }
+            if (bodyAnim != null)
+            {
+                bodyAnim.enabled = true;
+            }
             if (eyesSr != null)
             {
-                this.eyesSr = eyesSr;
-                eyesSr.enabled = false;
+                eyesSr.enabled = true;
             }
-        }
-        if (duration > 0)
-        {
             CancelInvoke("flash");
-            Invoke("flash", duration / 2);
         }
-    }
-    public void Disable()
-    {
-        base.Disable();
-        eaten = false;
-        if (bodySr != null && originalSprite != null)
+        public void Flash()
         {
-            bodySr.sprite = originalSprite;
-        }
-        if (bodyAnim != null)
-        {
-            bodyAnim.enabled = true;
-        }
-        if (eyesSr != null)
-        {
-            eyesSr.enabled = true;
-        }
-        CancelInvoke("flash");
-    }
-    public void Flash()
-    {
-        if (bodySr != null && whiteSprite != null)
-        {
-            bodySr.sprite = whiteSprite;
-        }
-    }
-     void OnEnable()
-    {
-        if (ghost != null && ghost.movement != null)
-        {
-            ghost.movement.speedMultiplier = 0.5f;
-        }
-        eaten = false;
-    }
-     void OnDisable()
-    {
-        if (ghost != null && ghost.movement != null)
-        {
-            ghost.movement.speedMultiplier = 1.0f;
-        }
-        eaten = false;
-    }
-     void OnTriggerEnter2D(Collider2D other)
-    {
-        var otherGo = other.gameObject;
-        var node = otherGo.GetComponent<Node>();
-        if (node == null || !enabled)
-        {
-            return;
-        }
-        var movement = ghost != null ? ghost.movement : null;
-        var target = ghost != null ? ghost.target : null;
-        if (movement == null || target == null)
-        {
-            return;
-        }
-        var available = node.availableDirections;
-        if (available == null)
-        {
-            return;
-        }
-        var targetPos = target.transform.position;
-        var bestDir = available[0];
-        var maxDist = -1.0f;
-        foreach (var d in available)
-        {
-            if (d.x == -movement.direction.x && d.y == -movement.direction.y)
+            if (bodySr != null && whiteSprite != null)
             {
-                continue;
-            }
-            var pos = transform.position;
-            var newX = pos.x + d.x;
-            var newY = pos.y + d.y;
-            var dx = targetPos.x - newX;
-            var dy = targetPos.y - newY;
-            var dist = dx * dx + dy * dy;
-            if (dist > maxDist)
-            {
-                maxDist = dist;
-                bestDir = d;
+                bodySr.sprite = whiteSprite;
             }
         }
-        movement.SetDirection(bestDir);
-    }
-    public void Eat()
-    {
-        eaten = true;
-        if (ghost != null)
+         void OnEnable()
         {
-            // Teleport to home position
-            if (ghost.home != null && ghost.home.inside != null)
+            if (ghost != null && ghost.movement != null)
             {
-                var homePos = ghost.home.inside.transform.position;
-                ghost.gameObject.transform.position = new Vector2(homePos.x, homePos.y);
-                if (ghost.movement != null && ghost.movement.rb != null)
+                ghost.movement.speedMultiplier = 0.5f;
+            }
+            eaten = false;
+        }
+         void OnDisable()
+        {
+            if (ghost != null && ghost.movement != null)
+            {
+                ghost.movement.speedMultiplier = 1.0f;
+            }
+            eaten = false;
+        }
+         void OnTriggerEnter2D(Collider2D other)
+        {
+            var otherGo = other.gameObject;
+            var node = otherGo.GetComponent<Node>();
+            if (node == null || !enabled)
+            {
+                return;
+            }
+            var movement = ghost != null ? ghost.movement : null;
+            var target = ghost != null ? ghost.target : null;
+            if (movement == null || target == null)
+            {
+                return;
+            }
+            var available = node.availableDirections;
+            if (available == null)
+            {
+                return;
+            }
+            var targetPos = target.transform.position;
+            var bestDir = available[0];
+            var maxDist = -1.0f;
+            foreach (var d in available)
+            {
+                if (d.x == -movement.direction.x && d.y == -movement.direction.y)
                 {
-                    ghost.movement.rb.MovePosition(new Vector2(homePos.x, homePos.y));
+                    continue;
                 }
-                ghost.home.Enable();
+                var pos = transform.position;
+                var newX = pos.x + d.x;
+                var newY = pos.y + d.y;
+                var dx = targetPos.x - newX;
+                var dy = targetPos.y - newY;
+                var dist = dx * dx + dy * dy;
+                if (dist > maxDist)
+                {
+                    maxDist = dist;
+                    bestDir = d;
+                }
             }
-            Disable();
+            movement.SetDirection(bestDir);
+        }
+        public void Eat()
+        {
+            eaten = true;
+            if (ghost != null)
+            {
+                // Teleport to home position
+                if (ghost.home != null && ghost.home.inside != null)
+                {
+                    var homePos = ghost.home.inside.transform.position;
+                    ghost.gameObject.transform.position = new Vector2(homePos.x, homePos.y);
+                    if (ghost.movement != null && ghost.movement.rb != null)
+                    {
+                        ghost.movement.rb.MovePosition(new Vector2(homePos.x, homePos.y));
+                    }
+                    ghost.home.Enable();
+                }
+                Disable();
+            }
         }
     }
 }

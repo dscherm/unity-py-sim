@@ -1,2 +1,5 @@
 
+namespace PacmanV2
+{
 
+}

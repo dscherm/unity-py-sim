@@ -1,19 +1,22 @@
 using UnityEngine;
-public class PowerPellet : Pellet
+namespace PacmanV2
 {
-    [SerializeField] private GameManager gameManager;
-    public int points = 50;
-    public float duration = 8.0f;
-    public void Eat()
+    public class PowerPellet : Pellet
     {
-        if (gameManager != null)
+    [SerializeField] private GameManager gameManager;
+        public int points = 50;
+        public float duration = 8.0f;
+        public void Eat()
         {
-            gameManager.PowerPelletEaten(this);
+            if (gameManager != null)
+            {
+                gameManager.PowerPelletEaten(this);
+            }
         }
-    }
 
     void Awake()
     {
         if (gameManager == null) gameManager = FindObjectOfType<GameManager>();
     }
+}
 }

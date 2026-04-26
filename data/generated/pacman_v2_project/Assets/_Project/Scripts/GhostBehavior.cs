@@ -1,26 +1,29 @@
 using UnityEngine;
-[RequireComponent(typeof(Ghost))]
-public class GhostBehavior : MonoBehaviour
+namespace PacmanV2
 {
-    public float duration = 0.0f;
-    [SerializeField] protected Ghost ghost;
-     void Awake()
+    [RequireComponent(typeof(Ghost))]
+    public class GhostBehavior : MonoBehaviour
     {
-        ghost = GetComponent<Ghost>();
-    }
-    public void Enable(float duration = -1.0f)
-    {
-        enabled = true;
-        if (duration < 0)
+        public float duration = 0.0f;
+        [SerializeField] protected Ghost ghost;
+         void Awake()
         {
-            duration = this.duration;
+            ghost = GetComponent<Ghost>();
         }
-        CancelInvoke();
-        Invoke("Disable", duration);
-    }
-    public void Disable()
-    {
-        enabled = false;
-        CancelInvoke();
+        public void Enable(float duration = -1.0f)
+        {
+            enabled = true;
+            if (duration < 0)
+            {
+                duration = this.duration;
+            }
+            CancelInvoke();
+            Invoke("Disable", duration);
+        }
+        public void Disable()
+        {
+            enabled = false;
+            CancelInvoke();
+        }
     }
 }
