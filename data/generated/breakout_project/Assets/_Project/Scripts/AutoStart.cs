@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -8,7 +9,16 @@ public class AutoStart : MonoBehaviour
 {
     void Start()
     {
-        var type = System.Type.GetType("GameManager");
+        System.Type type = null;
+        foreach (var asm in System.AppDomain.CurrentDomain.GetAssemblies())
+        {
+            try
+            {
+                type = asm.GetTypes().FirstOrDefault(t => t.Name == "GameManager");
+            }
+            catch (ReflectionTypeLoadException) { continue; }
+            if (type != null) break;
+        }
         if (type == null) return;
         var flags = BindingFlags.Public | BindingFlags.Static;
         var field = type.GetField("instance", flags) ?? type.GetField("Instance", flags);

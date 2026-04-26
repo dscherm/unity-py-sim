@@ -1,4 +1,5 @@
 using UnityEngine;
+using FlappyBird;
 
 // Hand-authored stub — was inline in examples/flappy_bird/run_flappy_bird.py
 // and is intentionally filtered out by the translator (gap 4 / FU-1). It

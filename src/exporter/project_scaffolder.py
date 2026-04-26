@@ -362,7 +362,11 @@ def _write_autostart(output_dir: Path) -> None:
     `instance` (or `Instance`) static field, and invokes its `Play()` method if
     present.  If any of those pieces don't exist, Start() returns silently.
     """
+    # Walk loaded assemblies for any type named GameManager — this dodges
+    # `Type.GetType("GameManager")` returning null when the translator wraps
+    # the class in a per-game namespace (e.g. FlappyBird.GameManager).
     autostart = (
+        "using System.Linq;\n"
         "using System.Reflection;\n"
         "using UnityEngine;\n"
         "\n"
@@ -373,7 +377,16 @@ def _write_autostart(output_dir: Path) -> None:
         "{\n"
         "    void Start()\n"
         "    {\n"
-        "        var type = System.Type.GetType(\"GameManager\");\n"
+        "        System.Type type = null;\n"
+        "        foreach (var asm in System.AppDomain.CurrentDomain.GetAssemblies())\n"
+        "        {\n"
+        "            try\n"
+        "            {\n"
+        "                type = asm.GetTypes().FirstOrDefault(t => t.Name == \"GameManager\");\n"
+        "            }\n"
+        "            catch (ReflectionTypeLoadException) { continue; }\n"
+        "            if (type != null) break;\n"
+        "        }\n"
         "        if (type == null) return;\n"
         "        var flags = BindingFlags.Public | BindingFlags.Static;\n"
         "        var field = type.GetField(\"instance\", flags) ?? type.GetField(\"Instance\", flags);\n"
