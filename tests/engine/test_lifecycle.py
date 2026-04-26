@@ -105,13 +105,20 @@ class TestLifecycleManager:
         assert OrderTracker.log == ["awake", "start", "fixed_update", "update", "late_update"]
 
     def test_disabled_component_skipped(self):
+        """Disabled components still get Awake() (Unity behavior) but NOT Start/Update."""
         lm = LifecycleManager.instance()
         go = GameObject("Test")
         tracker = go.add_component(OrderTracker)
         tracker.enabled = False
         lm.register_component(tracker)
         lm.process_awake_queue()
-        assert OrderTracker.log == []
+        # Unity calls Awake() regardless of enabled state
+        assert OrderTracker.log == ["awake"]
+        # But Start/Update should be skipped
+        lm.process_start_queue()
+        lm.run_update()
+        assert "start" not in OrderTracker.log
+        assert "update" not in OrderTracker.log
 
     def test_disabled_during_update(self):
         lm = LifecycleManager.instance()

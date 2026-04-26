@@ -27,6 +27,12 @@ def _clear_registry() -> None:
     _name_index.clear()
     _tag_index.clear()
     _next_instance_id = 0
+    # Reset coroutine manager (MonoBehaviour defined later in this module)
+    try:
+        if hasattr(MonoBehaviour, '_coroutine_manager'):
+            del MonoBehaviour._coroutine_manager
+    except NameError:
+        pass
 
 
 class Component:
@@ -34,7 +40,21 @@ class Component:
 
     def __init__(self) -> None:
         self._game_object: GameObject | None = None
-        self.enabled: bool = True
+        self._enabled: bool = True
+
+    @property
+    def enabled(self) -> bool:
+        return self._enabled
+
+    @enabled.setter
+    def enabled(self, value: bool) -> None:
+        if value == self._enabled:
+            return
+        self._enabled = value
+        if value:
+            self.on_enable()
+        else:
+            self.on_disable()
 
     @property
     def game_object(self) -> GameObject:
@@ -49,6 +69,12 @@ class Component:
         return self.game_object.get_component(cls)
 
     # Lifecycle stubs — overridden by MonoBehaviour subclasses
+    def on_enable(self) -> None:
+        pass
+
+    def on_disable(self) -> None:
+        pass
+
     def awake(self) -> None:
         pass
 
@@ -62,6 +88,88 @@ class Component:
 class MonoBehaviour(Component):
     """Base class for Unity scripts. Provides lifecycle methods."""
 
+    def start_coroutine(self, generator):
+        """Start a coroutine on this MonoBehaviour."""
+        from src.engine.coroutine import CoroutineManager
+        if not hasattr(MonoBehaviour, '_coroutine_manager'):
+            MonoBehaviour._coroutine_manager = CoroutineManager()
+        return MonoBehaviour._coroutine_manager.start_coroutine(self, generator)
+
+    def stop_coroutine(self, coroutine) -> None:
+        """Stop a specific coroutine."""
+        if hasattr(MonoBehaviour, '_coroutine_manager'):
+            MonoBehaviour._coroutine_manager.stop_coroutine(coroutine)
+
+    def stop_all_coroutines(self) -> None:
+        """Stop all coroutines owned by this MonoBehaviour."""
+        if hasattr(MonoBehaviour, '_coroutine_manager'):
+            MonoBehaviour._coroutine_manager.stop_all_coroutines(self)
+
+    # --- Invoke / CancelInvoke (Unity's delayed method calls) ---
+
+    def invoke(self, method_name: str, delay: float) -> None:
+        """Call a method by name after a delay (seconds).
+
+        Matches Unity's MonoBehaviour.Invoke(string methodName, float time).
+        Uses coroutine internally to schedule the delayed call.
+        """
+        if not hasattr(self, '_pending_invokes'):
+            self._pending_invokes: dict[str, object] = {}
+        # Cancel any existing invoke for this method
+        if method_name in getattr(self, '_pending_invokes', {}):
+            old = self._pending_invokes[method_name]
+            self.stop_coroutine(old)
+        coro = self.start_coroutine(self._invoke_delayed(method_name, delay))
+        self._pending_invokes[method_name] = coro
+
+    def cancel_invoke(self, method_name: str | None = None) -> None:
+        """Cancel pending Invoke calls.
+
+        If method_name is None, cancels ALL pending invokes (matches Unity's CancelInvoke()).
+        If method_name is given, cancels only that one (matches Unity's CancelInvoke(string)).
+        """
+        pending = getattr(self, '_pending_invokes', {})
+        if method_name is None:
+            for coro in pending.values():
+                self.stop_coroutine(coro)
+            pending.clear()
+        elif method_name in pending:
+            self.stop_coroutine(pending.pop(method_name))
+
+    def invoke_repeating(self, method_name: str, delay: float, repeat_rate: float) -> None:
+        """Repeatedly call a method by name after an initial delay, then every repeat_rate seconds.
+
+        Matches Unity's MonoBehaviour.InvokeRepeating(string methodName, float time, float repeatRate).
+        """
+        if not hasattr(self, '_pending_invokes'):
+            self._pending_invokes: dict[str, object] = {}
+        # Cancel any existing invoke for this method
+        if method_name in getattr(self, '_pending_invokes', {}):
+            old = self._pending_invokes[method_name]
+            self.stop_coroutine(old)
+        coro = self.start_coroutine(self._invoke_repeating_loop(method_name, delay, repeat_rate))
+        self._pending_invokes[method_name] = coro
+
+    def _invoke_repeating_loop(self, method_name: str, delay: float, repeat_rate: float):
+        """Coroutine: wait initial delay, then call repeatedly at repeat_rate."""
+        from src.engine.coroutine import WaitForSeconds
+        yield WaitForSeconds(delay)
+        while True:
+            method = getattr(self, method_name, None)
+            if method is not None:
+                method()
+            yield WaitForSeconds(repeat_rate)
+
+    def _invoke_delayed(self, method_name: str, delay: float):
+        """Coroutine: wait then call the named method."""
+        from src.engine.coroutine import WaitForSeconds
+        yield WaitForSeconds(delay)
+        pending = getattr(self, '_pending_invokes', {})
+        pending.pop(method_name, None)
+        method = getattr(self, method_name, None)
+        if method is not None:
+            method()
+
     def update(self) -> None:
         pass
 
@@ -69,12 +177,6 @@ class MonoBehaviour(Component):
         pass
 
     def late_update(self) -> None:
-        pass
-
-    def on_enable(self) -> None:
-        pass
-
-    def on_disable(self) -> None:
         pass
 
     def on_collision_enter_2d(self, collision: object) -> None:
@@ -86,7 +188,13 @@ class MonoBehaviour(Component):
     def on_trigger_enter_2d(self, other: object) -> None:
         pass
 
+    def on_collision_stay_2d(self, collision: object) -> None:
+        pass
+
     def on_trigger_exit_2d(self, other: object) -> None:
+        pass
+
+    def on_trigger_stay_2d(self, other: object) -> None:
         pass
 
 
@@ -141,7 +249,11 @@ class GameObject:
         return self._transform
 
     def add_component(self, cls: Type[T], **kwargs) -> T:
-        """Add a component of the given type to this GameObject."""
+        """Add a component of the given type to this GameObject.
+
+        Automatically registers MonoBehaviour components with LifecycleManager,
+        matching Unity's behavior where AddComponent triggers Awake/Start.
+        """
         component = cls(**kwargs)
         component._game_object = self
         self._components.append(component)
@@ -150,6 +262,10 @@ class GameObject:
         from src.engine.transform import Transform
         if isinstance(component, Transform) and self._transform is None:
             self._transform = component
+
+        # Auto-register with LifecycleManager (Unity does this automatically)
+        from src.engine.lifecycle import LifecycleManager
+        LifecycleManager.instance().register_component(component)
 
         return component
 
@@ -201,6 +317,72 @@ class GameObject:
             if obj is not None and obj.active:
                 result.append(obj)
         return result
+
+    def compare_tag(self, tag: str) -> bool:
+        """Check if this GameObject's tag matches. Matches Unity's CompareTag."""
+        return self._tag == tag
+
+    def set_active(self, active: bool) -> None:
+        """Activate or deactivate this GameObject. Matches Unity's SetActive."""
+        self.active = active
+
+    @staticmethod
+    def find_objects_of_type(cls: Type[T]) -> list[T]:
+        """Find all active components of the given type. Matches Unity's FindObjectsOfType<T>()."""
+        results: list[T] = []
+        for go in _game_objects.values():
+            if go.active:
+                for comp in go._components:
+                    if isinstance(comp, cls):
+                        results.append(comp)
+        return results
+
+    @staticmethod
+    def destroy_immediate(obj: 'GameObject | Component') -> None:
+        """Immediately destroy a GameObject. Matches Unity's DestroyImmediate."""
+        GameObject.destroy(obj)
+
+    @staticmethod
+    def instantiate(original: 'GameObject', position: 'Vector3 | None' = None, rotation: 'Quaternion | None' = None) -> 'GameObject':
+        """Instantiate a copy of a GameObject. Simplified clone for prefab-like behavior.
+
+        Matches Unity's Object.Instantiate(original, position, rotation).
+        Creates a new GameObject with the same name and tag, copies components and children.
+        """
+        new_go = GameObject._clone_hierarchy(original)
+        new_go.active = True  # Always activate the clone (even if template was inactive)
+        if position is not None:
+            new_go.transform.position = position
+        return new_go
+
+    @staticmethod
+    def _clone_hierarchy(original: 'GameObject') -> 'GameObject':
+        """Recursively clone a GameObject and its children."""
+        from src.engine.transform import Transform
+        new_go = GameObject(original.name, original.tag)
+        new_go.active = original.active
+        if original._transform is not None:
+            new_go.transform.position = original.transform.position
+            new_go.transform.local_scale = original.transform.local_scale
+        # Copy non-Transform components
+        for comp in original._components:
+            if isinstance(comp, Transform):
+                continue
+            new_comp = new_go.add_component(type(comp))
+            # Copy public attributes
+            for attr in vars(comp):
+                if not attr.startswith('_'):
+                    try:
+                        setattr(new_comp, attr, getattr(comp, attr))
+                    except (AttributeError, TypeError):
+                        pass
+        # Recursively clone children
+        if original._transform is not None:
+            for child_transform in original.transform.children:
+                child_clone = GameObject._clone_hierarchy(child_transform.game_object)
+                child_clone.transform.set_parent(new_go.transform)
+                child_clone.active = True  # Activate cloned children
+        return new_go
 
     @staticmethod
     def destroy(obj: 'GameObject | Component', delay: float = 0.0) -> None:

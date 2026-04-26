@@ -1,0 +1,513 @@
+{
+  "total_pairs": 37,
+  "avg_overall": 0.771,
+  "avg_class": 0.86,
+  "avg_method": 0.757,
+  "avg_field": 0.709,
+  "avg_using": 0.705,
+  "by_game": {
+    "angry_birds": {
+      "count": 8,
+      "avg_overall": 0.763,
+      "avg_class": 0.875,
+      "avg_method": 0.88,
+      "avg_field": 0.442
+    },
+    "breakout": {
+      "count": 5,
+      "avg_overall": 0.896,
+      "avg_class": 1.0,
+      "avg_method": 0.814,
+      "avg_field": 0.883
+    },
+    "fsm_platformer": {
+      "count": 20,
+      "avg_overall": 0.734,
+      "avg_class": 0.792,
+      "avg_method": 0.67,
+      "avg_field": 0.826
+    },
+    "pong": {
+      "count": 4,
+      "avg_overall": 0.815,
+      "avg_class": 1.0,
+      "avg_method": 0.875,
+      "avg_field": 0.438
+    }
+  },
+  "pairs": [
+    {
+      "id": "033_player_input_handler",
+      "game": "fsm_platformer",
+      "overall": 0.273,
+      "class": 0.5,
+      "method": 0.14285714285714285,
+      "field": 0.09090909090909091,
+      "using": 0.5,
+      "details": [
+        "Missing methods: {'PlayerRunningState', 'WalkCommand', 'states', 'PlayerLandingState', 'CommandProcessor', 'NoInputTransition', 'InputTransition', 'Awake', 'JumpTransition', 'OnDrawGizmosSelected', 'JumpCommand', 'PlayerJumpingState', 'PlayerFallingState', 'LandingTimerTransition', 'PlayerIdleState', 'GroundedTransition', 'FSM', 'FallTransition'}",
+        "Missing fields: {'Fsm', 'moveAction', 'Rb', 'groundLayer', 'JumpForce', 'idleState', 'jumpAction', 'jumpingState', 'inputActionAsset', 'landingState', 'groundCheck', 'groundCheckRadius', 'walkCommand', 'rb', 'fsm', 'fallingState', 'runningState', 'commandProcessor', 'MoveSpeed', 'jumpCommand'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "037_enemy_behaviour",
+      "game": "fsm_platformer",
+      "overall": 0.407,
+      "class": 0.5,
+      "method": 0.2857142857142857,
+      "field": 0.42857142857142855,
+      "using": 0.5,
+      "details": [
+        "Missing methods: {'IdleState', 'Awake', 'TimeTransition', 'WalkState', 'FSM'}",
+        "Missing fields: {'stateText', 'rb', 'Rb', 'fsm'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "036_time_transition",
+      "game": "fsm_platformer",
+      "overall": 0.475,
+      "class": 1.0,
+      "method": 0.5,
+      "field": 0.0,
+      "using": 0.0,
+      "details": [
+        "Missing methods: {'TimeTransition'}",
+        "Missing fields: {'totalTime'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "018_fsm",
+      "game": "fsm_platformer",
+      "overall": 0.5,
+      "class": 0.3333333333333333,
+      "method": 1.0,
+      "field": 0.0,
+      "using": 0.5,
+      "details": [
+        "Missing fields: {'currentState', 'CurrentState'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "013_slingshot",
+      "game": "angry_birds",
+      "overall": 0.512,
+      "class": 0.0,
+      "method": 1.0,
+      "field": 0.25,
+      "using": 1.0,
+      "details": [
+        "Missing classes: {'SlingShot'}",
+        "Missing fields: {'TimeSinceThrown', 'SlingshotMiddleVector', 'BirdToThrow'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "035_enemy_walk_state",
+      "game": "fsm_platformer",
+      "overall": 0.525,
+      "class": 0.0,
+      "method": 0.5,
+      "field": 1.0,
+      "using": 1.0,
+      "details": [
+        "Missing classes: {'WalkState'}",
+        "Missing methods: {'WalkState', 'DoBeforeEntering'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "015_pig",
+      "game": "angry_birds",
+      "overall": 0.575,
+      "class": 1.0,
+      "method": 0.5,
+      "field": 0.0,
+      "using": 1.0,
+      "details": [
+        "Missing methods: {'Color'}",
+        "Missing fields: {'Health', 'hurtColor', 'hurtThreshold'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "034_enemy_idle_state",
+      "game": "fsm_platformer",
+      "overall": 0.583,
+      "class": 0.0,
+      "method": 0.6666666666666666,
+      "field": 1.0,
+      "using": 1.0,
+      "details": [
+        "Missing classes: {'IdleState'}",
+        "Missing methods: {'DoBeforeEntering'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "014_brick",
+      "game": "angry_birds",
+      "overall": 0.633,
+      "class": 1.0,
+      "method": 0.6666666666666666,
+      "field": 0.0,
+      "using": 1.0,
+      "details": [
+        "Missing methods: {'Color'}",
+        "Missing fields: {'MaxHealth', 'Health'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "019_command",
+      "game": "fsm_platformer",
+      "overall": 0.68,
+      "class": 0.5,
+      "method": 0.8,
+      "field": 1.0,
+      "using": 0.0,
+      "details": [
+        "Missing methods: {'Command'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "025_input_transition",
+      "game": "fsm_platformer",
+      "overall": 0.725,
+      "class": 1.0,
+      "method": 0.5,
+      "field": 1.0,
+      "using": 0.0,
+      "details": [
+        "Missing methods: {'InputTransition'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "026_no_input_transition",
+      "game": "fsm_platformer",
+      "overall": 0.725,
+      "class": 1.0,
+      "method": 0.5,
+      "field": 1.0,
+      "using": 0.0,
+      "details": [
+        "Missing methods: {'NoInputTransition'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "027_jump_transition",
+      "game": "fsm_platformer",
+      "overall": 0.725,
+      "class": 1.0,
+      "method": 0.5,
+      "field": 1.0,
+      "using": 0.0,
+      "details": [
+        "Missing methods: {'JumpTransition'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "029_grounded_transition",
+      "game": "fsm_platformer",
+      "overall": 0.725,
+      "class": 1.0,
+      "method": 0.5,
+      "field": 1.0,
+      "using": 0.0,
+      "details": [
+        "Missing methods: {'GroundedTransition'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "030_landing_timer_transition",
+      "game": "fsm_platformer",
+      "overall": 0.725,
+      "class": 1.0,
+      "method": 0.5,
+      "field": 1.0,
+      "using": 0.0,
+      "details": [
+        "Missing methods: {'LandingTimerTransition'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "017_game_manager",
+      "game": "angry_birds",
+      "overall": 0.738,
+      "class": 1.0,
+      "method": 0.875,
+      "field": 0.2857142857142857,
+      "using": 0.6,
+      "details": [
+        "Missing methods: {'UpdateUI'}",
+        "Missing fields: {'statusText', 'slingshot', 'scoreText', 'CurrentGameState', 'birdsText'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "003_score_manager",
+      "game": "pong",
+      "overall": 0.75,
+      "class": 1.0,
+      "method": 1.0,
+      "field": 0.0,
+      "using": 1.0,
+      "details": [
+        "Missing fields: {'WinScore'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "012_bird",
+      "game": "angry_birds",
+      "overall": 0.75,
+      "class": 1.0,
+      "method": 1.0,
+      "field": 0.0,
+      "using": 1.0,
+      "details": [
+        "Missing fields: {'_destroyStarted'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "001_paddle_controller",
+      "game": "pong",
+      "overall": 0.762,
+      "class": 1.0,
+      "method": 0.5,
+      "field": 0.75,
+      "using": 1.0,
+      "details": [
+        "Missing methods: {'FixedUpdate', 'if'}",
+        "Missing fields: {'rb'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "004_game_manager",
+      "game": "pong",
+      "overall": 0.812,
+      "class": 1.0,
+      "method": 1.0,
+      "field": 0.25,
+      "using": 1.0,
+      "details": [
+        "Missing fields: {'resetTimer', 'ball', 'isResetting'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "007_brick",
+      "game": "breakout",
+      "overall": 0.825,
+      "class": 1.0,
+      "method": 0.5,
+      "field": 1.0,
+      "using": 1.0,
+      "details": [
+        "Missing methods: {'DestroyBrick'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "028_fall_transition",
+      "game": "fsm_platformer",
+      "overall": 0.825,
+      "class": 1.0,
+      "method": 0.5,
+      "field": 1.0,
+      "using": 1.0,
+      "details": [
+        "Missing methods: {'FallTransition'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "009_powerup",
+      "game": "breakout",
+      "overall": 0.85,
+      "class": 1.0,
+      "method": 0.5714285714285714,
+      "field": 1.0,
+      "using": 1.0,
+      "details": [
+        "Missing methods: {'Color', 'MaybeSpawn', 'GameObject'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "032_walk_command",
+      "game": "fsm_platformer",
+      "overall": 0.85,
+      "class": 1.0,
+      "method": 0.7142857142857143,
+      "field": 1.0,
+      "using": 0.5,
+      "details": [
+        "Missing methods: {'if', 'WalkCommand'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "010_constants",
+      "game": "angry_birds",
+      "overall": 0.9,
+      "class": 1.0,
+      "method": 1.0,
+      "field": 1.0,
+      "using": 0.0,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "006_ball_controller",
+      "game": "breakout",
+      "overall": 0.917,
+      "class": 1.0,
+      "method": 1.0,
+      "field": 0.6666666666666666,
+      "using": 1.0,
+      "details": [
+        "Missing fields: {'rb', 'paddle'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "031_jump_command",
+      "game": "fsm_platformer",
+      "overall": 0.93,
+      "class": 1.0,
+      "method": 0.8,
+      "field": 1.0,
+      "using": 1.0,
+      "details": [
+        "Missing methods: {'JumpCommand'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "002_ball_controller",
+      "game": "pong",
+      "overall": 0.937,
+      "class": 1.0,
+      "method": 1.0,
+      "field": 0.75,
+      "using": 1.0,
+      "details": [
+        "Missing fields: {'rb'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "005_paddle_controller",
+      "game": "breakout",
+      "overall": 0.937,
+      "class": 1.0,
+      "method": 1.0,
+      "field": 0.75,
+      "using": 1.0,
+      "details": [
+        "Missing fields: {'rb'}"
+      ],
+      "error": null
+    },
+    {
+      "id": "008_game_manager",
+      "game": "breakout",
+      "overall": 0.95,
+      "class": 1.0,
+      "method": 1.0,
+      "field": 1.0,
+      "using": 0.5,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "011_enums",
+      "game": "angry_birds",
+      "overall": 1.0,
+      "class": 1.0,
+      "method": 1.0,
+      "field": 1.0,
+      "using": 1.0,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "016_destroyer",
+      "game": "angry_birds",
+      "overall": 1.0,
+      "class": 1.0,
+      "method": 1.0,
+      "field": 1.0,
+      "using": 1.0,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "020_player_idle_state",
+      "game": "fsm_platformer",
+      "overall": 1.0,
+      "class": 1.0,
+      "method": 1.0,
+      "field": 1.0,
+      "using": 1.0,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "021_player_running_state",
+      "game": "fsm_platformer",
+      "overall": 1.0,
+      "class": 1.0,
+      "method": 1.0,
+      "field": 1.0,
+      "using": 1.0,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "022_player_jumping_state",
+      "game": "fsm_platformer",
+      "overall": 1.0,
+      "class": 1.0,
+      "method": 1.0,
+      "field": 1.0,
+      "using": 1.0,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "023_player_falling_state",
+      "game": "fsm_platformer",
+      "overall": 1.0,
+      "class": 1.0,
+      "method": 1.0,
+      "field": 1.0,
+      "using": 1.0,
+      "details": [],
+      "error": null
+    },
+    {
+      "id": "024_player_landing_state",
+      "game": "fsm_platformer",
+      "overall": 1.0,
+      "class": 1.0,
+      "method": 1.0,
+      "field": 1.0,
+      "using": 1.0,
+      "details": [],
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "id": "035_enemy_walk_state",
+  "unity_file": "examples/fsm_platformer/fsm_platformer_unity/WalkState.cs",
+  "python_file": "examples/fsm_platformer/fsm_platformer_python/enemy_walk_state.py",
+  "game": "fsm_platformer"
+}

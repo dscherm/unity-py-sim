@@ -1,0 +1,43 @@
+{
+  "scene": {
+    "game_objects": 19,
+    "component_types": [
+      "AudioSource",
+      "Bird",
+      "BoxCollider2D",
+      "Brick",
+      "Camera",
+      "CircleCollider2D",
+      "Destroyer",
+      "GameManager",
+      "Pig",
+      "QuitHandler",
+      "Rigidbody2D",
+      "Slingshot",
+      "SpriteRenderer",
+      "Transform"
+    ],
+    "tags": [
+      "Bird",
+      "Brick",
+      "Ground",
+      "Pig"
+    ],
+    "sprite_refs": [
+      "bird_red",
+      "brick_wood",
+      "ground_grass",
+      "pig_normal",
+      "slingshot"
+    ]
+  },
+  "mapping_coverage": {
+    "sprite_refs_in_scene": 5,
+    "mapped": 5,
+    "unmapped": []
+  },
+  "generated_script": {
+    "lines": 400
+  },
+  "unity_validation": "deferred - requires Unity Editor session"
+}

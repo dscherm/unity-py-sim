@@ -1,0 +1,8 @@
+{
+  "task": "demo-blind-tdd-delta-angle",
+  "agent_id": "blind-writer-subagent",
+  "phase": "red",
+  "criteria_tested": ["AC-1", "AC-2", "AC-3", "AC-4", "AC-5", "AC-6"],
+  "triage": [],
+  "notes": "One test function per acceptance criterion. AC-2 explicitly asserts the positive 180.0 boundary (both via pytest.approx and a sign check). AC-3 and AC-4 additionally guard against the naive (target - current) implementation by asserting the result is NOT the unwrapped value. AC-6 covers input normalization for angles outside [0, 360). All float comparisons use pytest.approx(abs=1e-4) or math.isclose(abs_tol=1e-4). No src/, examples/, or tests/ files were read."
+}

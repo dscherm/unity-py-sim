@@ -1,0 +1,688 @@
+{
+  "version": 1,
+  "game_objects": [
+    {
+      "name": "MainCamera",
+      "tag": "Untagged",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Camera",
+          "orthographic_size": 7.0,
+          "background_color": [
+            5,
+            5,
+            15
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Player",
+      "tag": "Player",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            0.0,
+            -5.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Kinematic",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.5,
+            0.8
+          ],
+          "is_trigger": true
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            255,
+            50
+          ],
+          "size": [
+            1.5,
+            0.8
+          ],
+          "sorting_order": 3,
+          "asset_ref": "player_ship"
+        },
+        {
+          "type": "Player",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Player"
+            },
+            "laser_prefab": null,
+            "speed": 5.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "InvadersGrid",
+      "tag": "Untagged",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            0.0,
+            3.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Invaders",
+          "is_monobehaviour": true,
+          "fields": {
+            "base_speed": 1.0,
+            "columns": 11,
+            "direction": {
+              "_type": "Vector3",
+              "value": [
+                1.0,
+                0.0,
+                0.0
+              ]
+            },
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "InvadersGrid"
+            },
+            "initial_position": {
+              "_type": "Vector3",
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "missile_spawn_rate": 1.5,
+            "rows": 5,
+            "speed_curve_max": 5.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bunker_0",
+      "tag": "Bunker",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -4.5,
+            -3.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            2.0,
+            1.5
+          ],
+          "is_trigger": true
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            200,
+            50
+          ],
+          "size": [
+            2.0,
+            1.5
+          ],
+          "sorting_order": 1,
+          "asset_ref": "bunker"
+        },
+        {
+          "type": "Bunker",
+          "is_monobehaviour": true,
+          "fields": {
+            "box_collider": null,
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Bunker_0"
+            },
+            "splat_radius": 2,
+            "sprite_renderer": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bunker_1",
+      "tag": "Bunker",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -1.5,
+            -3.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            2.0,
+            1.5
+          ],
+          "is_trigger": true
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            200,
+            50
+          ],
+          "size": [
+            2.0,
+            1.5
+          ],
+          "sorting_order": 1,
+          "asset_ref": "bunker"
+        },
+        {
+          "type": "Bunker",
+          "is_monobehaviour": true,
+          "fields": {
+            "box_collider": null,
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Bunker_1"
+            },
+            "splat_radius": 2,
+            "sprite_renderer": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bunker_2",
+      "tag": "Bunker",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            1.5,
+            -3.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            2.0,
+            1.5
+          ],
+          "is_trigger": true
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            200,
+            50
+          ],
+          "size": [
+            2.0,
+            1.5
+          ],
+          "sorting_order": 1,
+          "asset_ref": "bunker"
+        },
+        {
+          "type": "Bunker",
+          "is_monobehaviour": true,
+          "fields": {
+            "box_collider": null,
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Bunker_2"
+            },
+            "splat_radius": 2,
+            "sprite_renderer": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bunker_3",
+      "tag": "Bunker",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            4.5,
+            -3.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            2.0,
+            1.5
+          ],
+          "is_trigger": true
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            50,
+            200,
+            50
+          ],
+          "size": [
+            2.0,
+            1.5
+          ],
+          "sorting_order": 1,
+          "asset_ref": "bunker"
+        },
+        {
+          "type": "Bunker",
+          "is_monobehaviour": true,
+          "fields": {
+            "box_collider": null,
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Bunker_3"
+            },
+            "splat_radius": 2,
+            "sprite_renderer": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "MysteryShip",
+      "tag": "MysteryShip",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -8.0,
+            5.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Kinematic",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            2.0,
+            0.8
+          ],
+          "is_trigger": true
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            255,
+            50,
+            50
+          ],
+          "size": [
+            2.0,
+            0.8
+          ],
+          "sorting_order": 4,
+          "asset_ref": "mystery_ship"
+        },
+        {
+          "type": "MysteryShip",
+          "is_monobehaviour": true,
+          "fields": {
+            "cycle_time": 30.0,
+            "direction": -1,
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "MysteryShip"
+            },
+            "left_destination": {
+              "_type": "Vector2",
+              "value": [
+                -8.0,
+                0.0
+              ]
+            },
+            "right_destination": {
+              "_type": "Vector2",
+              "value": [
+                8.0,
+                0.0
+              ]
+            },
+            "score": 300,
+            "spawned": false,
+            "speed": 5.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "BoundaryTop",
+      "tag": "Boundary",
+      "layer": 11,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            0.0,
+            7.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            20.0,
+            1.0
+          ],
+          "is_trigger": true
+        }
+      ]
+    },
+    {
+      "name": "BoundaryBottom",
+      "tag": "Boundary",
+      "layer": 11,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            0.0,
+            -7.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            20.0,
+            1.0
+          ],
+          "is_trigger": true
+        }
+      ]
+    },
+    {
+      "name": "GameManager",
+      "tag": "Untagged",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "GameManager",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "GameManager"
+            },
+            "game_over_ui": null,
+            "instance": null,
+            "invaders": null,
+            "lives": 3,
+            "lives_text": null,
+            "mystery_ship": null,
+            "player": null,
+            "score": 0,
+            "score_text": null
+          }
+        },
+        {
+          "type": "Transform",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        }
+      ]
+    },
+    {
+      "name": "QuitHandler",
+      "tag": "Untagged",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "QuitHandler",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "QuitHandler"
+            }
+          }
+        },
+        {
+          "type": "Transform",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        }
+      ]
+    }
+  ]
+}

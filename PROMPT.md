@@ -23,9 +23,11 @@ Follow these phases in order. ONE task per iteration.
 ### Phase 1: Orient
 
 - Read pending tasks (above). Your task is the FIRST one listed.
+- Read lesson warnings injected below pending tasks. Apply them proactively.
 - Read recent activity to understand what was just completed.
 - Read memories for cross-iteration context.
 - **If gate_failure.md is non-empty, FIX THE GATE FAILURE before starting any new task.**
+- If `.ralph/remote_gate_result.md` exists with status: fail, treat it as a gate failure.
 - If human_note.md has content, follow those instructions.
 
 ### Phase 2: Search
@@ -34,6 +36,17 @@ Follow these phases in order. ONE task per iteration.
 - Do not duplicate code that already exists. Extend or modify it instead.
 - Check both `src/engine/` and `src/translator/` — they share the math and type systems.
 - Use subagents for parallel codebase searches when helpful.
+
+### Phase 2.5: Red Phase — Define Success Before Coding
+
+- Before writing any implementation code, define what success looks like.
+- Write **failing tests** that describe the expected behavior of the task:
+  - Unit tests for new functions/classes in `tests/` (mirroring source structure)
+  - If the task changes translator output, write a test asserting the expected C# output
+  - If the task changes engine behavior, write a test asserting the expected runtime behavior
+- Run the tests — they should **fail** (red). If they pass, your tests aren't testing the new behavior.
+- This is separate from post-task independent validation (which catches blind spots after implementation). The Red Phase defines the *target* before you code.
+- **Skip only if:** the task is pure refactoring with no behavioral change, or documentation-only. Document why you skipped.
 
 ### Phase 3: Implement
 
@@ -85,6 +98,10 @@ Follow these phases in order. ONE task per iteration.
 - If you learned something non-obvious, add it to `.ralph/memories.md`.
 - If you discovered a translation pattern or gotcha, add it to `data/lessons/patterns.md` or `data/lessons/gotchas.md`.
 - If you discovered new issues, add them as new JSON task blocks at the end of `plan.md`.
+- **Emit reasoning signals** for key decisions using `<reasoning>chose X over Y because Z</reasoning>` tags. These are captured by the harness for observation analysis. Emit them when you:
+  - Choose between two approaches
+  - Skip a step and need to explain why
+  - Discover something unexpected that changes the plan
 
 ### Phase 6: Mark — CRITICAL
 
@@ -112,7 +129,7 @@ This is the #1 cause of wasted iterations. VERIFY plan.md is updated before comm
 - **ONE task per iteration. Only one.**
 - Fix gate failures before new work.
 - No placeholders, stubs, or TODOs.
-- Expertise focus: backend, testing
+- Expertise focus: backend, gamedev, unity, testing
 
 ## Architecture Notes
 

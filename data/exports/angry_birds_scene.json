@@ -1,0 +1,1246 @@
+{
+  "version": 1,
+  "game_objects": [
+    {
+      "name": "MainCamera",
+      "tag": "Untagged",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Camera",
+          "orthographic_size": 6.0,
+          "background_color": [
+            135,
+            200,
+            235
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ground",
+      "tag": "Ground",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            0.0,
+            -5.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            30.0,
+            1.0
+          ],
+          "is_trigger": false,
+          "physics_material": {
+            "bounciness": 0.1,
+            "friction": 0.8
+          }
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            80,
+            160,
+            60
+          ],
+          "size": [
+            30.0,
+            1.0
+          ],
+          "sorting_order": 0,
+          "asset_ref": "ground_grass"
+        }
+      ]
+    },
+    {
+      "name": "Slingshot",
+      "tag": "Untagged",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -5.0,
+            -3.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Slingshot",
+          "is_monobehaviour": true,
+          "fields": {
+            "bird_to_throw": {
+              "_type": "GameObjectRef",
+              "name": "Bird_1"
+            },
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Slingshot"
+            },
+            "slingshot_center": {
+              "_type": "Vector2",
+              "value": [
+                0.0,
+                0.0
+              ]
+            },
+            "throw_speed": 5.0,
+            "time_since_thrown": 0.0
+          }
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            120,
+            80,
+            40
+          ],
+          "size": [
+            0.3,
+            1.5
+          ],
+          "sorting_order": 0,
+          "asset_ref": "slingshot"
+        }
+      ]
+    },
+    {
+      "name": "Destroyer_Bottom",
+      "tag": "Untagged",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            0.0,
+            -10.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            40.0,
+            2.0
+          ],
+          "is_trigger": true
+        },
+        {
+          "type": "Destroyer",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Destroyer_Bottom"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Destroyer_Left",
+      "tag": "Untagged",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -18.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            2.0,
+            30.0
+          ],
+          "is_trigger": true
+        },
+        {
+          "type": "Destroyer",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Destroyer_Left"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Destroyer_Right",
+      "tag": "Untagged",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            18.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Static",
+          "mass": 999999.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            2.0,
+            30.0
+          ],
+          "is_trigger": true
+        },
+        {
+          "type": "Destroyer",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Destroyer_Right"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bird_1",
+      "tag": "Bird",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -5.0,
+            -3.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Dynamic",
+          "mass": 1.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "CircleCollider2D",
+          "radius": 0.3,
+          "is_trigger": false,
+          "physics_material": {
+            "bounciness": 0.3,
+            "friction": 0.5
+          }
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            0.6,
+            0.6
+          ],
+          "sorting_order": 0,
+          "asset_ref": "bird_red"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "bird_launch_sfx",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Bird",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Bird_1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bird_2",
+      "tag": "Bird",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -7.0,
+            -4.2,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Dynamic",
+          "mass": 1.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "CircleCollider2D",
+          "radius": 0.3,
+          "is_trigger": false,
+          "physics_material": {
+            "bounciness": 0.3,
+            "friction": 0.5
+          }
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            0.6,
+            0.6
+          ],
+          "sorting_order": 0,
+          "asset_ref": "bird_red"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "bird_launch_sfx",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Bird",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Bird_2"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bird_3",
+      "tag": "Bird",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            -8.0,
+            -4.2,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Dynamic",
+          "mass": 1.0,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "CircleCollider2D",
+          "radius": 0.3,
+          "is_trigger": false,
+          "physics_material": {
+            "bounciness": 0.3,
+            "friction": 0.5
+          }
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            220,
+            50,
+            50
+          ],
+          "size": [
+            0.6,
+            0.6
+          ],
+          "sorting_order": 0,
+          "asset_ref": "bird_red"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "bird_launch_sfx",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Bird",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Bird_3"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "B_pL",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            4.0,
+            -4.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Dynamic",
+          "mass": 0.5,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            0.4,
+            1.0
+          ],
+          "is_trigger": false,
+          "physics_material": {
+            "bounciness": 0.2,
+            "friction": 0.6
+          }
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            180,
+            130,
+            70
+          ],
+          "size": [
+            0.4,
+            1.0
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick_wood"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break_sfx",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "B_pL"
+            },
+            "health": 70,
+            "max_health": 70
+          }
+        }
+      ]
+    },
+    {
+      "name": "B_pR",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            6.0,
+            -4.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Dynamic",
+          "mass": 0.5,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            0.4,
+            1.0
+          ],
+          "is_trigger": false,
+          "physics_material": {
+            "bounciness": 0.2,
+            "friction": 0.6
+          }
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            180,
+            130,
+            70
+          ],
+          "size": [
+            0.4,
+            1.0
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick_wood"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break_sfx",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "B_pR"
+            },
+            "health": 70,
+            "max_health": 70
+          }
+        }
+      ]
+    },
+    {
+      "name": "B_b1",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            5.0,
+            -3.2,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Dynamic",
+          "mass": 0.5,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            2.5,
+            0.3
+          ],
+          "is_trigger": false,
+          "physics_material": {
+            "bounciness": 0.2,
+            "friction": 0.6
+          }
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            180,
+            130,
+            70
+          ],
+          "size": [
+            2.5,
+            0.3
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick_wood"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break_sfx",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "B_b1"
+            },
+            "health": 50,
+            "max_health": 50
+          }
+        }
+      ]
+    },
+    {
+      "name": "B_uL",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            4.5,
+            -2.7,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Dynamic",
+          "mass": 0.5,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            0.4,
+            0.7
+          ],
+          "is_trigger": false,
+          "physics_material": {
+            "bounciness": 0.2,
+            "friction": 0.6
+          }
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            180,
+            130,
+            70
+          ],
+          "size": [
+            0.4,
+            0.7
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick_wood"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break_sfx",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "B_uL"
+            },
+            "health": 40,
+            "max_health": 40
+          }
+        }
+      ]
+    },
+    {
+      "name": "B_uR",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            5.5,
+            -2.7,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Dynamic",
+          "mass": 0.5,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            0.4,
+            0.7
+          ],
+          "is_trigger": false,
+          "physics_material": {
+            "bounciness": 0.2,
+            "friction": 0.6
+          }
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            180,
+            130,
+            70
+          ],
+          "size": [
+            0.4,
+            0.7
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick_wood"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break_sfx",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "B_uR"
+            },
+            "health": 40,
+            "max_health": 40
+          }
+        }
+      ]
+    },
+    {
+      "name": "B_cap",
+      "tag": "Brick",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            5.0,
+            -2.1,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Dynamic",
+          "mass": 0.5,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "BoxCollider2D",
+          "size": [
+            1.5,
+            0.3
+          ],
+          "is_trigger": false,
+          "physics_material": {
+            "bounciness": 0.2,
+            "friction": 0.6
+          }
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            180,
+            130,
+            70
+          ],
+          "size": [
+            1.5,
+            0.3
+          ],
+          "sorting_order": 0,
+          "asset_ref": "brick_wood"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "brick_break_sfx",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Brick",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "B_cap"
+            },
+            "health": 90,
+            "max_health": 90
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pig_1",
+      "tag": "Pig",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            5.0,
+            -3.7,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Dynamic",
+          "mass": 0.8,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "CircleCollider2D",
+          "radius": 0.3,
+          "is_trigger": false,
+          "physics_material": {
+            "bounciness": 0.1,
+            "friction": 0.5
+          }
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            100,
+            200,
+            80
+          ],
+          "size": [
+            0.6,
+            0.6
+          ],
+          "sorting_order": 0,
+          "asset_ref": "pig_normal"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "pig_hit_sfx",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Pig",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Pig_1"
+            },
+            "health": 150.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pig_2",
+      "tag": "Pig",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "Transform",
+          "position": [
+            6.5,
+            -4.2,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        },
+        {
+          "type": "Rigidbody2D",
+          "body_type": "Dynamic",
+          "mass": 0.8,
+          "gravity_scale": 1.0
+        },
+        {
+          "type": "CircleCollider2D",
+          "radius": 0.3,
+          "is_trigger": false,
+          "physics_material": {
+            "bounciness": 0.1,
+            "friction": 0.5
+          }
+        },
+        {
+          "type": "SpriteRenderer",
+          "color": [
+            100,
+            200,
+            80
+          ],
+          "size": [
+            0.6,
+            0.6
+          ],
+          "sorting_order": 0,
+          "asset_ref": "pig_normal"
+        },
+        {
+          "type": "AudioSource",
+          "clip_ref": "pig_hit_sfx",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false
+        },
+        {
+          "type": "Pig",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "Pig_2"
+            },
+            "health": 150.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "GameManager",
+      "tag": "Untagged",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "GameManager",
+          "is_monobehaviour": true,
+          "fields": {
+            "current_bird_index": 0,
+            "current_level_index": 0,
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "GameManager"
+            },
+            "score": 0,
+            "slingshot": null
+          }
+        },
+        {
+          "type": "Transform",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        }
+      ]
+    },
+    {
+      "name": "QuitHandler",
+      "tag": "Untagged",
+      "layer": 0,
+      "active": true,
+      "components": [
+        {
+          "type": "QuitHandler",
+          "is_monobehaviour": true,
+          "fields": {
+            "enabled": true,
+            "game_object": {
+              "_type": "GameObjectRef",
+              "name": "QuitHandler"
+            }
+          }
+        },
+        {
+          "type": "Transform",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "local_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "parent": null
+        }
+      ]
+    }
+  ]
+}

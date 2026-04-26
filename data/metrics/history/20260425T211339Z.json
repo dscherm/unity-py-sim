@@ -1,0 +1,55 @@
+{
+  "timestamp": "2026-04-25T21:13:39+00:00",
+  "git_commit": "bef7021",
+  "git_branch": "feat/asset-pipeline-and-translator",
+  "metrics": {
+    "corpus_compile_pct": 0.189,
+    "corpus_pairs": 37,
+    "avg_overall": 0.771,
+    "avg_class": 0.86,
+    "avg_method": 0.757,
+    "avg_field": 0.709,
+    "avg_using": 0.705,
+    "roundtrip_compile_pct": 0.8918918918918919,
+    "roundtrip_ast_pct": 0.5945945945945946,
+    "roundtrip_avg_overall": 0.849
+  },
+  "by_game": {
+    "angry_birds": {
+      "count": 8,
+      "avg_overall": 0.763,
+      "avg_class": 0.875,
+      "avg_method": 0.88,
+      "avg_field": 0.442
+    },
+    "breakout": {
+      "count": 5,
+      "avg_overall": 0.896,
+      "avg_class": 1.0,
+      "avg_method": 0.814,
+      "avg_field": 0.883
+    },
+    "fsm_platformer": {
+      "count": 20,
+      "avg_overall": 0.734,
+      "avg_class": 0.792,
+      "avg_method": 0.67,
+      "avg_field": 0.826
+    },
+    "pong": {
+      "count": 4,
+      "avg_overall": 0.815,
+      "avg_class": 1.0,
+      "avg_method": 0.875,
+      "avg_field": 0.438
+    }
+  },
+  "test_counts": {
+    "unit": 31,
+    "contracts": 58,
+    "integration": 48,
+    "mutation": 45,
+    "parity": 0
+  },
+  "notes": "M-2 phase 2b \u2014 cast strip + decl allowlist removal + && translation. ASP-1 (89.2%) and ASP-2 (59.5%) targets met."
+}

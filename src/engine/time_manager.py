@@ -35,6 +35,11 @@ class Time:
     time_scale = _TimeAccessor('_time_scale')
 
     @staticmethod
+    def set_time_scale(value: float) -> None:
+        """Set the time scale. Matches Unity's Time.timeScale = value."""
+        Time._time_scale = value
+
+    @staticmethod
     def _reset() -> None:
         Time._delta_time = 0.0
         Time._fixed_delta_time = 1.0 / 50.0

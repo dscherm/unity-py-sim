@@ -57,6 +57,18 @@ class Camera(Component):
         wy = cam_pos.y - (screen_point[1] - screen_height / 2.0) / ppu
         return Vector2(wx, wy)
 
+    def screen_to_world_point(self, screen_point: Vector3, screen_width: int = 800, screen_height: int = 600) -> Vector3:
+        """Convert screen pixel coordinates to world space. Matches Unity's Camera.ScreenToWorldPoint.
+
+        Takes a Vector3 where x,y are screen pixels and z is distance from camera (ignored in 2D).
+        Returns a Vector3 in world space.
+        """
+        result = self.screen_to_world(
+            (int(screen_point.x), int(screen_point.y)),
+            screen_width, screen_height
+        )
+        return Vector3(result.x, result.y, 0)
+
     @staticmethod
     def _reset_main() -> None:
         Camera.main = None

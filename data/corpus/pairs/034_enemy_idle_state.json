@@ -1,0 +1,6 @@
+{
+  "id": "034_enemy_idle_state",
+  "unity_file": "examples/fsm_platformer/fsm_platformer_unity/IdleState.cs",
+  "python_file": "examples/fsm_platformer/fsm_platformer_python/enemy_idle_state.py",
+  "game": "fsm_platformer"
+}

@@ -114,3 +114,17 @@ class Mathf:
     @staticmethod
     def atan2(y: float, x: float) -> float:
         return math.atan2(y, x)
+
+    @staticmethod
+    def delta_angle(current: float, target: float) -> float:
+        """Shortest signed angular difference in degrees, range (-180, 180].
+
+        Matches UnityEngine.Mathf.DeltaAngle. The result is the smallest
+        rotation in degrees that turns `current` to `target`, with sign
+        indicating direction. Inputs outside [0, 360) are normalized.
+        The 180-degree boundary returns the positive value.
+        """
+        delta = (target - current) % 360.0
+        if delta > 180.0:
+            delta -= 360.0
+        return delta

@@ -1,0 +1,6 @@
+{
+  "id": "033_player_input_handler",
+  "unity_file": "examples/fsm_platformer/fsm_platformer_unity/PlayerInputHandler.cs",
+  "python_file": "examples/fsm_platformer/fsm_platformer_python/player_input_handler.py",
+  "game": "fsm_platformer"
+}

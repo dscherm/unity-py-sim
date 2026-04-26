@@ -5,8 +5,10 @@
     "Start",
     "FixedUpdate",
     "OnTriggerEnter2D",
+    "OnTriggerStay2D",
     "OnTriggerExit2D",
     "OnCollisionEnter2D",
+    "OnCollisionStay2D",
     "OnCollisionExit2D",
     "Update",
     "LateUpdate",
@@ -80,11 +82,23 @@
       "python_signature": "def on_trigger_enter_2d(self, other: GameObject) -> None",
       "notes": "Called when a trigger collider is entered. Python passes the other GameObject directly"
     },
+    "OnTriggerStay2D": {
+      "python_method": "on_trigger_stay_2d",
+      "unity_signature": "void OnTriggerStay2D(Collider2D other)",
+      "python_signature": "def on_trigger_stay_2d(self, other: GameObject) -> None",
+      "notes": "Called every physics step while a trigger overlap persists"
+    },
     "OnTriggerExit2D": {
       "python_method": "on_trigger_exit_2d",
       "unity_signature": "void OnTriggerExit2D(Collider2D other)",
       "python_signature": "def on_trigger_exit_2d(self, other: GameObject) -> None",
       "notes": "Called when a trigger collider is exited"
+    },
+    "OnCollisionStay2D": {
+      "python_method": "on_collision_stay_2d",
+      "unity_signature": "void OnCollisionStay2D(Collision2D collision)",
+      "python_signature": "def on_collision_stay_2d(self, collision: Collision2D) -> None",
+      "notes": "Called every physics step while two non-trigger colliders remain in contact"
     }
   }
 }

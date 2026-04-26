@@ -72,16 +72,46 @@ class TypeMapper:
         """Convert a Python type to its C# equivalent."""
         t = python_type.strip()
 
+        # Strip forward reference quotes: 'GameManager | None' -> GameManager | None
+        if (t.startswith("'") and t.endswith("'")) or (t.startswith('"') and t.endswith('"')):
+            t = t[1:-1].strip()
+
         # Optional: int | None -> int?
         if t.endswith("| None"):
             base = self.python_to_csharp(t[:-7].strip())
             return f"{base}?"
 
-        # list[T] -> List<T> or T[]
+        # list[list[T]] -> List<T[]> (nested lists use List for mutability)
+        nested_match = re.match(r"list\[list\[(.+)\]\]", t)
+        if nested_match:
+            inner = self.python_to_csharp(nested_match.group(1))
+            return f"List<{inner}[]>"
+
+        # list[T] -> T[]
         list_match = re.match(r"list\[(.+)\]", t)
         if list_match:
             inner = self.python_to_csharp(list_match.group(1))
             return f"{inner}[]"
+
+        # bare 'list' without type param -> List<object>
+        if t == "list":
+            return "List<object>"
+
+        # tuple[int, int, int] -> Color32 (RGB color in game context)
+        # tuple[T1, T2] -> (T1, T2) C# value tuple for other cases
+        tuple_match = re.match(r"tuple\[(.+)\]", t)
+        if tuple_match:
+            args = self._split_generic_args(tuple_match.group(1))
+            # 3 or 4 ints = color (RGB or RGBA)
+            if len(args) in (3, 4) and all(a.strip() == "int" for a in args):
+                return "Color32"
+            cs_args = ", ".join(self.python_to_csharp(a) for a in args)
+            return f"({cs_args})"
+
+        # bare tuple -> Color32 when used as color, otherwise object
+        # In Unity game context, bare tuples are almost always RGB colors
+        if t == "tuple":
+            return "Color32"
 
         # dict[K, V] -> Dictionary<K, V>
         dict_match = re.match(r"dict\[(.+),\s*(.+)\]", t)

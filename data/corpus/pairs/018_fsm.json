@@ -1,0 +1,6 @@
+{
+  "id": "018_fsm",
+  "unity_file": "examples/fsm_platformer/fsm_platformer_unity/FSM.cs",
+  "python_file": "examples/fsm_platformer/fsm_platformer_python/fsm.py",
+  "game": "fsm_platformer"
+}

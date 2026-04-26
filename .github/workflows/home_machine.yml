@@ -1,0 +1,106 @@
+name: Home Machine — Unity Deploy (v1)
+
+# Runs on the self-hosted Windows runner with Unity 6 + CoPlay installed.
+# v1 scope: regenerate each game's CoPlay scene setup in batchmode,
+# capture the Unity log, fail the check on any compile error or
+# scene-setup exception. PlayMode validation (frame ticking + screenshot
+# capture) is M-7 phase 2 — will use Unity Test Framework's [UnityTest]
+# runner, not custom batchmode harness (which Unity batchmode doesn't
+# reliably keep alive long enough for async coroutines to tick).
+# See CROSS_MACHINE.md for runner registration and license setup.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      games:
+        description: "Space-separated game names to deploy (default: all)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  deploy:
+    name: ${{ matrix.game }}
+    runs-on: [self-hosted, Windows, unity]
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        # Add a row here when a new game's project is regenerable.
+        game:
+          - breakout
+          - flappy_bird
+    env:
+      GAME: ${{ matrix.game }}
+      PROJECT_PATH: data/generated/${{ matrix.game }}_project
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Skip if game not requested via dispatch
+        if: github.event_name == 'workflow_dispatch' && inputs.games != ''
+        shell: pwsh
+        run: |
+          $requested = "${{ inputs.games }}".Split(' ')
+          if (-not ($requested -contains "${env:GAME}")) {
+            Write-Host "::notice::Skipping ${env:GAME} (not in dispatch list)"
+            exit 78  # neutral skip
+          }
+
+      - name: Verify project exists
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:PROJECT_PATH}")) {
+            Write-Error "Project path ${env:PROJECT_PATH} not present in checkout"
+            exit 1
+          }
+          if (-not (Test-Path "${env:PROJECT_PATH}/Assets/Editor/GeneratedSceneSetup.cs")) {
+            Write-Error "GeneratedSceneSetup.cs missing — regenerate the project first"
+            exit 1
+          }
+
+      - name: Deploy CoPlay scene (batchmode)
+        id: deploy
+        shell: pwsh
+        run: |
+          $logFile = Join-Path $env:RUNNER_TEMP "${env:GAME}_deploy.log"
+          pwsh tools/home_machine_deploy.ps1 `
+            -ProjectPath "${env:PROJECT_PATH}" `
+            -Method "GeneratedSceneSetup.Execute" `
+            -LogFile $logFile
+          # Surface the saved log path to subsequent steps for upload
+          "log_file=$logFile" >> $env:GITHUB_OUTPUT
+
+      - name: Record run metadata
+        if: always()
+        shell: pwsh
+        run: |
+          $resultsDir = "data/metrics/home_machine_runs"
+          New-Item -ItemType Directory -Force -Path $resultsDir | Out-Null
+          $ts = (Get-Date).ToUniversalTime().ToString("yyyyMMddTHHmmssZ")
+          $dst = Join-Path $resultsDir "${env:GAME}_${ts}.json"
+          $status = if ("${{ steps.deploy.outcome }}" -eq "success") { "deployed" } else { "deploy_failed" }
+          $payload = @{
+            game = "${env:GAME}"
+            status = $status
+            phase = "deploy_v1"
+            commit = "${env:GITHUB_SHA}"
+            run_id = "${env:GITHUB_RUN_ID}"
+            timestamp_utc = (Get-Date).ToUniversalTime().ToString("o")
+          } | ConvertTo-Json
+          Set-Content -Path $dst -Value $payload -Encoding utf8
+          Write-Host "Wrote $dst"
+
+      - name: Upload Unity log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.game }}-deploy-${{ github.run_id }}
+          path: ${{ steps.deploy.outputs.log_file }}
+          if-no-files-found: warn
+          retention-days: 14

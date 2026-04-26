@@ -1,0 +1,6 @@
+{
+  "id": "008_game_manager",
+  "unity_file": "examples/breakout/breakout_unity/GameManager.cs",
+  "python_file": "examples/breakout/breakout_python/game_manager.py",
+  "game": "breakout"
+}

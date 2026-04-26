@@ -1,0 +1,6 @@
+{
+  "id": "006_ball_controller",
+  "unity_file": "examples/breakout/breakout_unity/BallController.cs",
+  "python_file": "examples/breakout/breakout_python/ball_controller.py",
+  "game": "breakout"
+}

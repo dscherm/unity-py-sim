@@ -300,16 +300,19 @@ def _translate_statement(line: str, cls: CSharpClass) -> list[str]:
     if result == "return":
         return [f"return{comment}"]
 
-    # Variable declaration: Type name = value
+    # Variable declaration: `Type name = value`. The shape (two identifiers
+    # then `=`) is unambiguous inside a C# function body, so we don't need
+    # an allowlist of types. The previous allowlist (int/float/Vector2/...)
+    # silently dropped declarations of user-defined types like
+    # `PlayerInputHandler player = (PlayerInputHandler)owner`, which then
+    # leaked the C# type prefix into Python (M-2 phase-2b fix for pairs
+    # 020/021/022).
     decl_match = re.match(r"^(\w+)\s+(\w+)\s*=\s*(.+)$", result)
     if decl_match:
-        var_type, var_name, value = decl_match.groups()
-        if var_type in ("int", "float", "double", "bool", "string", "var",
-                         "Vector2", "Vector3", "GameObject", "Rigidbody2D",
-                         "BallController", "Collision2D"):
-            py_name = camel_to_snake(var_name)
-            py_value = _translate_expression(value, cls)
-            return [f"{py_name} = {py_value}{comment}"]
+        _var_type, var_name, value = decl_match.groups()
+        py_name = camel_to_snake(var_name)
+        py_value = _translate_expression(value, cls)
+        return [f"{py_name} = {py_value}{comment}"]
 
     # Assignment: name = value
     assign_match = re.match(r"^([\w.]+)\s*=\s*(.+)$", result)
@@ -349,6 +352,13 @@ def _translate_expression(expr: str, cls: CSharpClass) -> str:
     # new Constructor() -> Constructor()
     expr = re.sub(r"\bnew\s+", "", expr)
 
+    # C# cast `(Type)expr` -> `expr`. Use a lookahead so we keep the
+    # following identifier intact. Only matches when the cast type is
+    # a single PascalCase identifier (`(Vector2)pos`, `(MyType)x`),
+    # which avoids stripping legitimate parenthesized expressions
+    # like `(a + b) * c`. M-2 phase-2b fix for pairs 006/020/021/022.
+    expr = re.sub(r"\(([A-Z]\w*)\)\s*(?=[A-Za-z_(])", "", expr)
+
     # Float literals: 5f -> 5.0, 0.5f -> 0.5 (order matters — decimal first)
     expr = re.sub(r"(\d+\.\d+)f\b", r"\1", expr)
     expr = re.sub(r"\b(\d+)f\b", lambda m: m.group(1) + ".0", expr)
@@ -364,6 +374,11 @@ def _translate_expression(expr: str, cls: CSharpClass) -> str:
     # Bool/null literals
     expr = expr.replace("true", "True").replace("false", "False")
     expr = re.sub(r"\bnull\b", "None", expr)
+
+    # Logical operators: && -> and, || -> or. Use spaces so they remain
+    # parseable when adjacent to identifiers. M-2 phase-2b fix for pair
+    # 027 (was failing parse-back on `player.A && player.B`).
+    expr = expr.replace("&&", " and ").replace("||", " or ")
 
     # Apply API translations
     for cs_api, py_api in _api_translations.items():
@@ -429,13 +444,54 @@ def _extract_condition(text: str) -> str:
     return text
 
 
+_STRING_LITERAL_RE = re.compile(r'"(?:[^"\\]|\\.)*"')
+
+
+def _sub_outside_strings(pattern: str | re.Pattern[str], repl, text: str) -> str:
+    """Apply ``re.sub(pattern, repl, ...)`` only to substrings outside C# string
+    literals. Splits on double-quoted spans (with escape handling) and rejoins.
+
+    Without this, regex-based keyword/literal stripping in _translate_literal
+    silently corrupts embedded text — e.g. ``"hello new world"`` would become
+    ``"hello world"`` after the ``\\bnew\\s+`` strip.
+    """
+    parts = _STRING_LITERAL_RE.split(text)
+    quoted = _STRING_LITERAL_RE.findall(text)
+    # parts has len == len(quoted) + 1; interleave: parts[0], quoted[0], parts[1], ...
+    rebuilt: list[str] = []
+    for i, p in enumerate(parts):
+        rebuilt.append(re.sub(pattern, repl, p))
+        if i < len(quoted):
+            rebuilt.append(quoted[i])
+    return "".join(rebuilt)
+
+
 def _translate_literal(value: str | None) -> str:
-    """Translate a C# literal value to Python."""
+    """Translate a C# literal value to Python.
+
+    Field initializers reach this path even when they are compound C#
+    expressions like ``new Vector2(0, 0.6f)``. The whole-string
+    convert_float_literal() helper only handles a bare literal, so we
+    also run the same regex passes that _translate_expression uses for
+    embedded ``new`` constructors and ``Nf`` / ``N.Nf`` float literals.
+    Without these, Python emits ``new Vector2(0, 0.6f)`` and trips
+    SyntaxError on parse-back (M-2 phase-2 fix for pairs 006, 009).
+
+    All regex passes that match identifiers / literals run via
+    _sub_outside_strings so that string contents (e.g. ``"the new way"``)
+    are not silently mangled.
+    """
     if value is None:
         return "None"
     value = value.strip()
+    # Strip embedded `new` keyword: `new Vector2(...)` -> `Vector2(...)`.
+    value = _sub_outside_strings(r"\bnew\s+", "", value)
+    # Embedded float-suffix stripping (decimal first so `0.5f` doesn't
+    # become `0.50` via the int rule).
+    value = _sub_outside_strings(r"(\d+\.\d+)[fF]\b", r"\1", value)
+    value = _sub_outside_strings(r"\b(\d+)[fF]\b", lambda m: m.group(1) + ".0", value)
     value = convert_float_literal(value)
     value = value.replace("true", "True").replace("false", "False")
-    value = re.sub(r"\bnull\b", "None", value)
+    value = _sub_outside_strings(r"\bnull\b", "None", value)
     value = re.sub(r'"([^"]*)"', r"'\1'", value)
     return value

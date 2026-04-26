@@ -1,0 +1,6 @@
+{
+  "id": "014_brick",
+  "unity_file": "examples/angry_birds/angry_birds_unity/Brick.cs",
+  "python_file": "examples/angry_birds/angry_birds_python/brick.py",
+  "game": "angry_birds"
+}

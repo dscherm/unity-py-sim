@@ -29,7 +29,15 @@ class LifecycleManager:
         cls._instance = None
 
     def register_component(self, comp: Component) -> None:
-        """Register a component for lifecycle management. Called when added to a GameObject."""
+        """Register a component for lifecycle management. Called automatically by add_component().
+
+        Idempotent — calling multiple times for the same component is safe.
+        """
+        if comp in self._awake_queue or comp in self._start_queue:
+            return
+        # Also check if already in update lists (fully started)
+        if isinstance(comp, MonoBehaviour) and comp in self._update_list:
+            return
         self._awake_queue.append(comp)
 
     def unregister_component(self, comp: Component) -> None:
@@ -49,15 +57,27 @@ class LifecycleManager:
             self._destroy_queue.append(comp)
 
     def process_awake_queue(self) -> None:
-        """Process all components waiting for Awake."""
+        """Process all components waiting for Awake.
+
+        Unity calls Awake() regardless of enabled state — it runs once when
+        the component is first created, even if the component starts disabled.
+        Unity also fires OnEnable() right after Awake() for components that start enabled.
+        """
         while self._awake_queue:
             comp = self._awake_queue.pop(0)
-            if comp.enabled:
-                comp.awake()
-                self._start_queue.append(comp)
+            comp.awake()
+            # Unity fires OnEnable right after Awake for initially-enabled components
+            if comp.enabled and comp.game_object.active:
+                comp.on_enable()
+            self._start_queue.append(comp)
 
     def process_start_queue(self) -> None:
-        """Process all components waiting for Start."""
+        """Process all components waiting for Start.
+
+        Unity calls Start() on the first frame a component is enabled.
+        Disabled components stay in the queue until they become enabled.
+        """
+        still_waiting = []
         while self._start_queue:
             comp = self._start_queue.pop(0)
             if comp.enabled:
@@ -66,23 +86,35 @@ class LifecycleManager:
                     self._update_list.append(comp)
                     self._fixed_update_list.append(comp)
                     self._late_update_list.append(comp)
+            else:
+                # Keep disabled components waiting — they'll start when enabled
+                still_waiting.append(comp)
+        self._start_queue.extend(still_waiting)
 
     def run_fixed_update(self) -> None:
         """Run FixedUpdate on all registered MonoBehaviours."""
         for comp in list(self._fixed_update_list):
-            if comp.enabled:
+            if comp.enabled and comp.game_object.active:
                 comp.fixed_update()
 
     def run_update(self) -> None:
         """Run Update on all registered MonoBehaviours."""
         for comp in list(self._update_list):
-            if comp.enabled:
+            if comp.enabled and comp.game_object.active:
                 comp.update()
+        # Tick coroutines after Update (Unity order)
+        self._tick_coroutines()
+
+    def _tick_coroutines(self) -> None:
+        """Advance all active coroutines."""
+        from src.engine.time_manager import Time
+        if hasattr(MonoBehaviour, '_coroutine_manager'):
+            MonoBehaviour._coroutine_manager.tick(Time.delta_time)
 
     def run_late_update(self) -> None:
         """Run LateUpdate on all registered MonoBehaviours."""
         for comp in list(self._late_update_list):
-            if comp.enabled:
+            if comp.enabled and comp.game_object.active:
                 comp.late_update()
 
     def process_destroy_queue(self) -> None:

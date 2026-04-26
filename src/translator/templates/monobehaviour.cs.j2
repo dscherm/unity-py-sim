@@ -1,13 +1,18 @@
 using UnityEngine;
 {% for ns in extra_using %}using {{ ns }};
-{% endfor %}
-public class {{ class_name }} : MonoBehaviour
+{% endfor %}{% for attr in attributes %}
+{{ attr }}
+{% endfor %}public class {{ class_name }} : MonoBehaviour
 {
 {% for field in serialized_fields %}
-    [SerializeField] private {{ field.csharp_type }} {{ field.csharp_name }}{% if field.default %} = {{ field.default }}{% endif %};
+    public {{ field.csharp_type }} {{ field.csharp_name }}{% if field.default %} = {{ field.default }}{% endif %};
 {% endfor %}
 {% for field in private_fields %}
-    private {{ field.csharp_type }} {{ field.csharp_name }};
+{% if field.serialize %}
+    [SerializeField] {{ field.access or "private" }} {{ field.csharp_type }} {{ field.csharp_name }}{% if field.default and field.default != "null" %} = {{ field.default }}{% endif %};
+{% else %}
+    public {{ field.csharp_type }} {{ field.csharp_name }}{% if field.default and field.default != "null" %} = {{ field.default }}{% endif %};
+{% endif %}
 {% endfor %}
 {% for field in static_fields %}
     public static {{ field.csharp_type }} {{ field.csharp_name }}{% if field.default %} = {{ field.default }}{% endif %};

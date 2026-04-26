@@ -1,0 +1,6 @@
+{
+  "id": "010_constants",
+  "unity_file": "examples/angry_birds/angry_birds_unity/Constants.cs",
+  "python_file": "examples/angry_birds/angry_birds_python/constants.py",
+  "game": "angry_birds"
+}

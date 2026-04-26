@@ -1,0 +1,6 @@
+{
+  "id": "015_pig",
+  "unity_file": "examples/angry_birds/angry_birds_unity/Pig.cs",
+  "python_file": "examples/angry_birds/angry_birds_python/pig.py",
+  "game": "angry_birds"
+}

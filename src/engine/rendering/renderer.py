@@ -17,7 +17,9 @@ class SpriteRenderer(Component):
         self.color: tuple[int, int, int] = (255, 255, 255)
         self.sprite: Any = None  # pygame.Surface or None
         self.sorting_order: int = 0
+        self.sorting_layer_name: str = "Default"
         self.size: Vector2 = Vector2(1, 1)  # Size in world units (for shape fallback)
+        self.asset_ref: str | None = None  # Symbolic asset name for Unity export (e.g. "bird_red")
 
     def render(self, surface: Any, camera: Camera, screen_width: int, screen_height: int) -> None:
         """Render this sprite to the given surface."""
@@ -28,14 +30,22 @@ class SpriteRenderer(Component):
         sx, sy = camera.world_to_screen(pos, screen_width, screen_height)
         ppu = screen_height / (2.0 * camera.orthographic_size)
 
+        if self.sprite is None and self.asset_ref is not None:
+            from src.assets.resolver import load_sprite_surface
+            self.sprite = load_sprite_surface(self.asset_ref)
+
+        import pygame
         if self.sprite is not None:
-            # Blit the sprite centered at screen position
-            import pygame
-            rect = self.sprite.get_rect(center=(sx, sy))
-            surface.blit(self.sprite, rect)
+            w = max(1, int(self.size.x * ppu))
+            h = max(1, int(self.size.y * ppu))
+            scaled = pygame.transform.scale(self.sprite, (w, h))
+            if self.color != (255, 255, 255):
+                tinted = scaled.copy()
+                tinted.fill((*self.color, 255), special_flags=pygame.BLEND_RGBA_MULT)
+                scaled = tinted
+            rect = scaled.get_rect(center=(sx, sy))
+            surface.blit(scaled, rect)
         else:
-            # Fallback: draw a colored rectangle
-            import pygame
             w = int(self.size.x * ppu)
             h = int(self.size.y * ppu)
             rect = pygame.Rect(sx - w // 2, sy - h // 2, w, h)
@@ -59,6 +69,7 @@ class RenderManager:
                     if comp.enabled:
                         renderers.append(comp)
 
-        renderers.sort(key=lambda r: r.sorting_order)
+        from src.engine.rendering.sorting import SortingLayer
+        renderers.sort(key=lambda r: (SortingLayer.get_layer_value(r.sorting_layer_name), r.sorting_order))
         for renderer in renderers:
             renderer.render(surface, camera, screen_width, screen_height)

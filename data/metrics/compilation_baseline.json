@@ -1,0 +1,307 @@
+{
+  "mode": "syntax check",
+  "total": 37,
+  "passed": 37,
+  "failed": 0,
+  "pass_rate": 1.0,
+  "pairs": [
+    {
+      "id": "001_paddle_controller",
+      "game": "pong",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "002_ball_controller",
+      "game": "pong",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "003_score_manager",
+      "game": "pong",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "004_game_manager",
+      "game": "pong",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "005_paddle_controller",
+      "game": "breakout",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "006_ball_controller",
+      "game": "breakout",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "007_brick",
+      "game": "breakout",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "008_game_manager",
+      "game": "breakout",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "009_powerup",
+      "game": "breakout",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "010_constants",
+      "game": "angry_birds",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "011_enums",
+      "game": "angry_birds",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": [
+        "No 'using' directives found"
+      ]
+    },
+    {
+      "id": "012_bird",
+      "game": "angry_birds",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "013_slingshot",
+      "game": "angry_birds",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "014_brick",
+      "game": "angry_birds",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "015_pig",
+      "game": "angry_birds",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "016_destroyer",
+      "game": "angry_birds",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "017_game_manager",
+      "game": "angry_birds",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "018_fsm",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "019_command",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "020_player_idle_state",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "021_player_running_state",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "022_player_jumping_state",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "023_player_falling_state",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "024_player_landing_state",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "025_input_transition",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "026_no_input_transition",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "027_jump_transition",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "028_fall_transition",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "029_grounded_transition",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "030_landing_timer_transition",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "031_jump_command",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "032_walk_command",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "033_player_input_handler",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "034_enemy_idle_state",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "035_enemy_walk_state",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "036_time_transition",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    },
+    {
+      "id": "037_enemy_behaviour",
+      "game": "fsm_platformer",
+      "passed": true,
+      "syntax_passed": true,
+      "syntax_errors": [],
+      "syntax_warnings": []
+    }
+  ]
+}

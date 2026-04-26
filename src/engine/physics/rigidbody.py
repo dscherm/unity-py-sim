@@ -81,13 +81,37 @@ class Rigidbody2D(Component):
 
     @body_type.setter
     def body_type(self, value: RigidbodyType2D) -> None:
+        import math
+        # Save finite mass before type change — pymunk uses inf for KINEMATIC/STATIC
+        current_mass = self._body.mass
+        if 0 < current_mass < math.inf:
+            self._saved_mass = current_mass
         self._body_type = value
         if value == RigidbodyType2D.DYNAMIC:
             self._body.body_type = pymunk.Body.DYNAMIC
+            # Restore mass/moment — pymunk may have zeroed them
+            restore_mass = getattr(self, '_saved_mass', 1.0)
+            if not (0 < self._body.mass < math.inf):
+                self._body.mass = restore_mass if restore_mass > 0 else 1.0
+            if not (0 < self._body.moment < math.inf):
+                self._body.moment = pymunk.moment_for_circle(self._body.mass, 0, 1)
         elif value == RigidbodyType2D.KINEMATIC:
             self._body.body_type = pymunk.Body.KINEMATIC
         elif value == RigidbodyType2D.STATIC:
             self._body.body_type = pymunk.Body.STATIC
+
+    @property
+    def is_kinematic(self) -> bool:
+        """Unity-compatible property: True if body_type is KINEMATIC."""
+        return self._body_type == RigidbodyType2D.KINEMATIC
+
+    @is_kinematic.setter
+    def is_kinematic(self, value: bool) -> None:
+        """Set body to KINEMATIC (True) or DYNAMIC (False). Matches Unity's Rigidbody2D.isKinematic."""
+        if value:
+            self.body_type = RigidbodyType2D.KINEMATIC
+        else:
+            self.body_type = RigidbodyType2D.DYNAMIC
 
     def add_force(self, force: Vector2, mode: ForceMode2D = ForceMode2D.FORCE) -> None:
         if mode == ForceMode2D.FORCE:

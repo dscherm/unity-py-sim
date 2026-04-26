@@ -1,0 +1,29 @@
+{
+  "sprites": {
+    "paddle": {
+      "unity_path": "Assets/Art/Sprites/paddle.png",
+      "sprite_name": "paddle_0",
+      "ppu": 100,
+      "material": "Sprite-Unlit-Default",
+      "sorting_layer": "Default",
+      "notes": "color_hint=[200, 200, 220], size=[2.0, 0.4]"
+    },
+    "ball": {
+      "unity_path": "Assets/Art/Sprites/ball.png",
+      "sprite_name": "ball_0",
+      "ppu": 100,
+      "material": "Sprite-Unlit-Default",
+      "sorting_layer": "Default",
+      "notes": "color_hint=[255, 255, 100], size=[0.4, 0.4]"
+    },
+    "brick": {
+      "unity_path": "Assets/Art/Sprites/brick.png",
+      "sprite_name": "brick_0",
+      "ppu": 100,
+      "material": "Sprite-Unlit-Default",
+      "sorting_layer": "Default",
+      "notes": "color_hint=[220, 50, 50], size=[1.3, 0.5]"
+    }
+  },
+  "audio": {}
+}
