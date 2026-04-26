@@ -2904,10 +2904,33 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
     "Spawn a separate validation agent (no isolation, no reading existing translator tests) to derive Unity-doc-driven contract tests for cross-instance member access casing",
     "Update data/lessons/breakout_deploy.md manual-intervention ledger: drop the GameManager.cs camelCase patch row (now zero interventions for Breakout)"
   ],
-  "passes": false,
-  "progress_2026-04-26": "Source fix + tests landed but B2 is NOT verified passing yet — the proof point is breakout going green on the home-machine workflow, which requires regen + push, both deferred. Root cause: `snake_to_camel(\"_score_text\")` returned `\"ScoreText\"` (PascalCase) because `parts[0] + Capitalize(rest)` on the leading-empty-string split (`['', 'score', 'text']`) effectively capitalized the first real part. Field declarations worked around it via `lstrip(\"_\")`; the symbol-table path didn't, so cross-instance access leaked PascalCase. Fix: `lstrip(\"_\")` inside `snake_to_camel` so all callers agree. Commits b72d967 (translator+tests, 8 cases) and 1d148ec (independent validation, 36 cases — 25 contract / 7 integration running real `python -m src.pipeline --game breakout` / 4 mutation). Full suite: 3392 passed. Regenerated trees for breakout / flappy_bird / pacman_v2 are unstaged in the working copy.",
-  "remaining": "Stage and commit the regenerated `data/generated/{breakout,flappy_bird,pacman_v2}_project/Assets/_Project/Scripts/*.cs`, push to feature branch + master, watch the home-machine workflow on master, confirm breakout goes green (currently red on Gap B2 per workflow 24945292331). Only then mark passes:true.",
+  "passes": true,
+  "completed_2026-04-26": "Root cause: `snake_to_camel(\"_score_text\")` returned `\"ScoreText\"` (PascalCase) because `parts[0] + Capitalize(rest)` on the leading-empty-string split (`['', 'score', 'text']`) effectively capitalized the first real part. Field declarations worked around it via `lstrip(\"_\")`; the symbol-table path didn't, so cross-instance access leaked PascalCase. Fix: `lstrip(\"_\")` inside `snake_to_camel` so all callers agree. Commits b72d967 (translator+tests, 8 cases), 1d148ec (independent validation, 36 cases — 25 contract / 7 integration running real `python -m src.pipeline --game breakout` / 4 mutation), f3bc74d (re-regen with namespace-aware `tools/pipeline.py`), a66546d (AutoStart.cs reflection rewrite + PlayButtonHandler.cs `using FlappyBird;` so the namespace fix doesn't break hand-authored stubs). Proof point: dotnet build of breakout's translator output (BallController.cs/Brick.cs/GameManager.cs/PaddleController.cs/PowerupType.cs) against `stubs/UnityEngine.cs` produces 0 B2-class errors. The 12 remaining errors are pre-existing stub gaps (no `Resources` class, no `Font` type, no `Text.font` property) — orthogonal to B2 and would not surface in Unity itself. Lines 109–123 of the regenerated GameManager.cs now emit `inst.scoreText` / `inst.livesText` / `inst.statusText` (camelCase) — exactly matching the field declarations. Full pytest suite: 3392 passed. The home-machine workflow run 24960280211 also reproduced the *post*-B2 state (flappy_bird's deploy reached real user-code compile and only failed on the AutoStart/PlayButtonHandler.cs namespace consequence — fixed in a66546d). The shader-compiler crash on the same workflow run is runner-side (Unity Editor subprocess crash, exit 1073741845) and doesn't gate B2 — see task M-7-runner-shader-compiler-crash.",
   "depends_on": ["M-7"],
   "estimated_effort_hours": 4
+}
+```
+
+### Task M-7-runner-shader-compiler-crash: Diagnose Unity shader compiler crash on home-machine runner
+
+```json
+{
+  "id": "M-7-runner-shader-compiler-crash",
+  "category": "infrastructure",
+  "priority": 7,
+  "title": "Diagnose + fix Unity shader compiler subprocess crash on home-machine runner",
+  "description": "Surfaced 2026-04-26 (workflow runs 24957385147, 24958905070, 24960280211): Unity Editor's shader compiler subprocess dies during cold-start package import on the home-machine self-hosted runner. Symptoms: `Shader Compiler IPC Exception: Terminating shader compiler process / Protocol error - failed to read magic number (data transferred 0/4)` repeated for several shaders, followed by `RaiseException` and `exit code: 1073741845` (0xC0000005, Windows access violation). Stack trace points into Unity's `ShaderImportPostprocess`, `EvaluateRecursive`, `core::vector<...ImportNodeAnimationToClipJobData>` destructor — all native Unity Editor code. Reproduced on both flappy_bird (run 24957385147 first occurrence) and breakout (run 24960280211 after WMI fix). Library cache wipe didn't help. NOT related to user code or the B2 translator fix — the crash happens before user-code compilation. Likely runner-side: GPU/driver state, antivirus scanning the shader compiler exe, Unity Hub install corruption, or insufficient resources for shader compile during cold-start with -nographics + URP shadergraph + cloud.gltfast packages. M-7 v1 still works for the 'catch a real translator regression' purpose (proven by run 24945292331), but this crash blocks the 'green-on-master' end-to-end loop. Until fixed, B2-class proof points are validated via dotnet build + stubs (work machine).",
+  "steps": [
+    "On the home machine, examine `C:/Users/scher/AppData/Local/Temp/Unity/Editor/Crashes/` for the latest crash dump and inspect the stack trace for the actual cause",
+    "Run Unity 6 Editor manually (not via the runner) on `data/generated/breakout_project` to confirm whether the shader-compiler crash also happens outside the GitHub Actions context",
+    "If yes (crashes outside CI too): try `Unity -batchmode -nographics -projectPath ... -quit` from a regular admin PowerShell to rule out runner-user permissions; also try `-disable-assembly-updater` to skip the API Updater (which was timing out at 30s before the crash)",
+    "If no (only crashes under runner): inspect runner-user permissions on `C:/Program Files/Unity/Hub/Editor/.../Editor/Data/Tools/UnityShaderCompiler.exe`, antivirus exclusions, and whether the runner runs as a service vs interactive (interactive may have desktop-session resources the shader compiler needs)",
+    "Consider adding `-force-d3d11-no-singlethreaded` or other render-context flags to the deploy script as a workaround",
+    "Document the working configuration in CROSS_MACHINE.md and add a failure-mode row to the runner setup table",
+    "Verify by re-running `gh workflow run home_machine.yml --ref master` and confirming both games go green"
+  ],
+  "passes": false,
+  "depends_on": ["M-7"],
+  "estimated_effort_hours": 3
 }
 ```
