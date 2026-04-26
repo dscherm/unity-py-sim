@@ -1,12 +1,10 @@
-name: Home Machine — Unity Deploy (v1)
+name: Home Machine — Unity Deploy + PlayMode Tests (v2)
 
 # Runs on the self-hosted Windows runner with Unity 6 + CoPlay installed.
-# v1 scope: regenerate each game's CoPlay scene setup in batchmode,
-# capture the Unity log, fail the check on any compile error or
-# scene-setup exception. PlayMode validation (frame ticking + screenshot
-# capture) is M-7 phase 2 — will use Unity Test Framework's [UnityTest]
-# runner, not custom batchmode harness (which Unity batchmode doesn't
-# reliably keep alive long enough for async coroutines to tick).
+# v1 scope: regenerate each game's CoPlay scene setup in batchmode and
+# capture the Unity log; fail the check on compile errors / setup exceptions.
+# v2 (M-7 phase 2) adds Unity Test Framework PlayMode tests after the deploy
+# step — fails red on Awake/Start/Update NullRefs that batchmode setup misses.
 # See CROSS_MACHINE.md for runner registration and license setup.
 
 on:
@@ -41,6 +39,8 @@ jobs:
       # Deterministic log path so the deploy step writes here and the
       # upload step finds it without juggling step outputs.
       DEPLOY_LOG: deploy_logs/${{ matrix.game }}.log
+      TESTS_RESULTS: deploy_logs/${{ matrix.game }}_tests.xml
+      TESTS_LOG: deploy_logs/${{ matrix.game }}_tests.log
     # Use built-in Windows PowerShell 5.1 (`shell: powershell`) — pwsh
     # (PowerShell 7) isn't installed on the runner. The deploy script
     # is written to be PS5.1-compatible.
@@ -82,6 +82,24 @@ jobs:
             -Method "GeneratedSceneSetup.Execute" `
             -LogFile "${env:DEPLOY_LOG}"
 
+      - name: Run PlayMode tests
+        run: |
+          & tools/home_machine_run_tests.ps1 `
+            -ProjectPath "${env:PROJECT_PATH}" `
+            -ResultsFile "${env:TESTS_RESULTS}" `
+            -LogFile "${env:TESTS_LOG}"
+
+      - name: Upload PlayMode test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.game }}-tests-${{ github.run_id }}
+          path: |
+            ${{ env.TESTS_RESULTS }}
+            ${{ env.TESTS_LOG }}
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Record run metadata
         if: always()
         run: |
@@ -89,11 +107,11 @@ jobs:
           New-Item -ItemType Directory -Force -Path $resultsDir | Out-Null
           $ts = (Get-Date).ToUniversalTime().ToString("yyyyMMddTHHmmssZ")
           $dst = Join-Path $resultsDir "${env:GAME}_${ts}.json"
-          $status = if ("${{ job.status }}" -eq "success") { "deployed" } else { "deploy_failed" }
+          $status = if ("${{ job.status }}" -eq "success") { "deployed_and_tested" } else { "failed" }
           $payload = @{
             game = "${env:GAME}"
             status = $status
-            phase = "deploy_v1"
+            phase = "deploy+playtest_v2"
             commit = "${env:GITHUB_SHA}"
             run_id = "${env:GITHUB_RUN_ID}"
             timestamp_utc = (Get-Date).ToUniversalTime().ToString("o")
