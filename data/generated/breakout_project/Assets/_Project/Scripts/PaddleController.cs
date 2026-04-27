@@ -15,7 +15,7 @@ namespace Breakout
         }
          void Update()
         {
-            float inputVal = ((Keyboard.current.dKey.isPressed ? 1f : 0f) - (Keyboard.current.aKey.isPressed ? 1f : 0f));
+            float inputVal = ((Keyboard.current?.dKey.isPressed == true ? 1f : 0f) - (Keyboard.current?.aKey.isPressed == true ? 1f : 0f));
             if (Mathf.Abs(inputVal) > 0.01f)
             {
                 Vector2 pos = transform.position;

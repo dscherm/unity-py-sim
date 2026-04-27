@@ -32,7 +32,7 @@ namespace FlappyBird
         }
          void Update()
         {
-            if (Keyboard.current.spaceKey.wasPressedThisFrame || Mouse.current.leftButton.wasPressedThisFrame)
+            if (Keyboard.current?.spaceKey.wasPressedThisFrame == true || Mouse.current?.leftButton.wasPressedThisFrame == true)
             {
                 direction = Vector3.up * strength;
             }

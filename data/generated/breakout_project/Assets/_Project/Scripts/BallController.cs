@@ -29,7 +29,7 @@ namespace Breakout
                     rb.MovePosition(transform.position);
                 }
                 // Launch on space
-                if (Keyboard.current.spaceKey.wasPressedThisFrame)
+                if (Keyboard.current?.spaceKey.wasPressedThisFrame == true)
                 {
                     Launch();
                 }
