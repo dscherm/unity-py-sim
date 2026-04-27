@@ -64,13 +64,30 @@ namespace UnityEngine
         public Vector3 localPosition;
         public Quaternion rotation;
         public Quaternion localRotation;
-        public Vector3 localScale;
+        public Vector3 localScale = new Vector3(1f, 1f, 1f);
         public Transform parent;
-        public int childCount;
 
-        public Transform GetChild(int index) => null;
-        public void SetParent(Transform parent) { }
-        public void Translate(Vector3 translation) { }
+        // Children tracked in a plain list so childCount + GetChild work in parity tests.
+        // Real Unity uses an internal hierarchy, but for headless behavior the list
+        // suffices and stays in sync via SetParent.
+        private System.Collections.Generic.List<Transform> _children = new System.Collections.Generic.List<Transform>();
+
+        public int childCount => _children.Count;
+
+        public Transform GetChild(int index) => _children[index];
+
+        public void SetParent(Transform newParent)
+        {
+            if (this.parent != null) this.parent._children.Remove(this);
+            this.parent = newParent;
+            if (newParent != null) newParent._children.Add(this);
+        }
+
+        public void Translate(Vector3 translation)
+        {
+            position = new Vector3(position.x + translation.x, position.y + translation.y, position.z + translation.z);
+        }
+
         public void Rotate(Vector3 eulers) { }
     }
 

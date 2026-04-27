@@ -1,9 +1,9 @@
 {
   "total_apis": 87,
   "implemented": 83,
-  "with_parity_test": 28,
+  "with_parity_test": 32,
   "implementation_pct": 0.954,
-  "parity_test_pct": 0.322,
+  "parity_test_pct": 0.368,
   "by_kind": {
     "class": {
       "total": 29,
@@ -13,12 +13,12 @@
     "method": {
       "total": 13,
       "implemented": 13,
-      "with_parity_test": 4
+      "with_parity_test": 5
     },
     "property": {
       "total": 31,
       "implemented": 27,
-      "with_parity_test": 10
+      "with_parity_test": 13
     },
     "lifecycle": {
       "total": 14,
@@ -40,7 +40,7 @@
     "Transform": {
       "total": 12,
       "implemented": 12,
-      "with_parity_test": 3
+      "with_parity_test": 7
     },
     "Rigidbody2D": {
       "total": 8,
@@ -537,7 +537,7 @@
       "python_module": null,
       "python_member": "translate",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Transform",
@@ -627,7 +627,7 @@
       "python_module": null,
       "python_member": "local_scale",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Transform",
@@ -637,7 +637,7 @@
       "python_module": null,
       "python_member": "parent",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Transform",
@@ -677,7 +677,7 @@
       "python_module": null,
       "python_member": "child_count",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "GameObject",

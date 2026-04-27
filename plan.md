@@ -3069,7 +3069,8 @@ Premise: today the Python sim and the translated C# can drift silently — the s
   ],
   "passes": false,
   "depends_on": ["M-8-divergence-harness"],
-  "estimated_effort_hours": 35
+  "estimated_effort_hours": 35,
+  "progress_2026-04-27": "PHASE 1 SHIPPED (~3.5h of the 35h budget). Infrastructure + first batch landed: (1) tools/parity_scaffold.py — generates skeleton parity test files marked `# PARITY_SCAFFOLD_SKELETON`, with --park-untestable for the curated 10-API skip list (Audio/UI/Canvas/SceneManager/DOTween — out-of-scope for headless dual-path). (2) src/gates/parity_matrix.py — scanner now skips files with the SCAFFOLD_SKELETON or SCAFFOLD_PARKED markers so untouched skeletons don't inflate the coverage number. (3) 49 skeletons + 10 parked notices generated under tests/parity/. (4) stubs/UnityEngine.cs — Transform upgraded to faithfully implement Translate (position += delta), SetParent (maintains _children list), childCount (derived from list), GetChild (list lookup), localScale defaulting to (1,1,1). (5) BATCH 1 (Transform): 9 dual-path parity cases across Translate (3), localScale (3), childCount (3) — all green; coverage 28/87 → 32/87 (32.2% → 36.8%). Validation agent shipped tests/mutation/test_transform_parity_mutation.py — 6 tests proving the Transform batch has both teeth (catches divergences) and substance (passes when behavior matches). REMAINING: 5 batches × ~10 APIs each: Rigidbody2D (8 APIs, needs physics-faithful stub), MonoBehaviour collision/trigger callbacks (7 APIs, needs Physics2D events), Time + Input (8 APIs), Math + Camera + SpriteRenderer (~10 APIs), residual class-row checks. Each batch = ~5-6h with stub upgrades + parity tests + validation agent. Floor target ≥80/87 (92%) per ASP-3 — needs ~48 more APIs."
 }
 ```
 
