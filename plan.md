@@ -3172,3 +3172,18 @@ Premise: today the Python sim and the translated C# can drift silently — the s
   "estimated_effort_hours": 4
 }
 ```
+
+### ASP-6 closure: CI dashboard auto-commit (2026-04-27)
+
+```json
+{
+  "id": "ASP-6-dashboard-autocommit",
+  "category": "infrastructure",
+  "title": "ASP-6 — auto-commit metrics history + dashboard from CI on every push to master",
+  "description": "Closes the last remaining hop on ASP-6. The `snapshot` job in .github/workflows/test.yml previously only uploaded `data/metrics/history/<UTC>.json` + `data/metrics/dashboard.md` as an artifact. Now: (1) refresh parity_matrix first, (2) take snapshot, (3) render dashboard, (4) auto-commit history + dashboard back to master/main on push events. Permissions scoped to job-level `contents: write`; branch-gated to master/main; race-safe via pull-rebase + fail-soft push; empty-commit guarded; uses GITHUB_TOKEN so the auto-commit does not retrigger CI (with `[skip ci]` belt-and-suspenders).",
+  "passes": true,
+  "verified_2026-04-27": "Workflow YAML parses cleanly (5 jobs, snapshot has 9 steps in correct order). Local pipeline confirmed: `parity_matrix` → `snapshot` → `render_dashboard` produces a fresh history JSON + dashboard.md whose 'Unity API parity (tested)' cell now reads 92.0% ↑ (was 31.0% in the last committed snapshot, reflecting M-9's backfill). Independent security review by oh-my-claudecode:security-reviewer scored 10/10 on the auto-commit safety checklist (job-level perms, defense-in-depth branch gate, no token leak, [skip ci] marker, race-handling, empty-commit guard, fetch-depth:0, narrow git-add scope, well-quoted commit body). Ship verdict: clean.",
+  "depends_on": ["M-3-translation-dashboard"],
+  "estimated_effort_hours": 2
+}
+```

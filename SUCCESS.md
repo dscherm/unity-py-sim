@@ -94,11 +94,13 @@ These define the project's *maturity*, not its *shipping*. Useful for prioritiza
 
 **Delivered by**: M-7 v1 (deploy automation) + Gap B2 translator fix (separate task) + M-7 phase 2 (PlayMode validation via UTF, separate task).
 
-### ASP-6 · Translation accuracy dashboard live
+### ASP-6 · Translation accuracy dashboard live ✅
 
 **Definition**: `data/metrics/dashboard.md` is auto-generated from `data/metrics/history/` snapshots taken on every CI run. Trend lines show compile %, gate pass %, contract test pass %, mutation test pass %, and (post-M-2) per-construct roundtrip scores over time.
 
-**Delivered by**: M-3.
+**Status (2026-04-27)**: ✅ closed. M-3 shipped the renderer + history schema. The `snapshot` job in `.github/workflows/test.yml` now (a) refreshes `parity_matrix.json` first so the snapshot reflects current parity coverage, (b) takes a snapshot via `src.gates.snapshot`, (c) renders `data/metrics/dashboard.md` via `tools/render_dashboard.py`, and (d) auto-commits `data/metrics/history/<UTC>.json` + `data/metrics/dashboard.md` back to master/main on push events. Permissions scoped to the job (`contents: write`); branch-gated to master/main; race-safe via pull-rebase + fail-soft push; empty-commit guarded; uses `GITHUB_TOKEN` so the auto-commit does not retrigger CI (with `[skip ci]` belt-and-suspenders). Local verification confirmed the dashboard's "Unity API parity (tested)" cell now reads **92.0% ↑** off the M-9 backfill (was 31.0% in the last committed snapshot).
+
+**Delivered by**: M-3 (renderer + schema) + ASP-6 closure (CI auto-commit, 2026-04-27).
 
 ---
 
