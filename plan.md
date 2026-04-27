@@ -2934,10 +2934,35 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
     "Document the working configuration in CROSS_MACHINE.md and add a failure-mode row to the runner setup table",
     "Verify by re-running `gh workflow run home_machine.yml --ref master` and confirming both games go green"
   ],
-  "passes": false,
+  "passes": true,
+  "completed_on": "2026-04-27",
   "depends_on": ["M-7"],
   "estimated_effort_hours": 3,
-  "evidence_2026-04-26": "Still reproducing on master. Two new Unity Editor crash dumps today: Crash_2026-04-26_131455139/ (correlates with master run at 13:07) and Crash_2026-04-26_153847992/ (correlates with master run at 15:31). Feat-branch runs from this session (24965492310, 24966990254, 24967295767) all reached PlayMode-tests step OK on breakout — so the crash is intermittent and may be cold-start / cache-state dependent. Not autonomously diagnosable; remains a real follow-up."
+  "evidence_2026-04-26": "Still reproducing on master. Two new Unity Editor crash dumps today: Crash_2026-04-26_131455139/ (correlates with master run at 13:07) and Crash_2026-04-26_153847992/ (correlates with master run at 15:31). Feat-branch runs from this session (24965492310, 24966990254, 24967295767) all reached PlayMode-tests step OK on breakout — so the crash is intermittent and may be cold-start / cache-state dependent. Not autonomously diagnosable; remains a real follow-up.",
+  "verified_2026-04-27": "Root-caused via crash artifact analysis: `breakout.log` from run 24960280211 line 6431 reads `Shader error in 'LightmapDirectIntegration': DirectX Shader Compiler failed to execute Compile command. [0x8007000e - Not enough memory resources are available to complete this operation.]` — 0x8007000e is E_OUTOFMEMORY. The IPC errors that follow are cascade fallout from the shader compiler subprocess dying. Trigger: cold-start of UnityShaderCompiler.exe trying to compile URP path-tracing shaders (com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/) under runner-context memory pressure (16GB physical RAM, ~4GB free at idle, plus Defender real-time scan + actions-runner.exe). Manual repro outside CI ran clean (exit 0, scene saved cleanly in 77s) — proving runner-context-specific, not environmental. Three mitigations landed in commits a58dc27 + da6b74a: (1) Defender exclusions for Unity Hub Editor, actions-runner work dir, generated projects + Unity.exe/UnityShaderCompiler.exe processes; (2) `Pre-deploy cleanup (kill orphan Unity processes)` step in home_machine.yml that kills leftover Unity/UnityShaderCompiler/UnityHelper from prior cancelled runs; (3) `-disable-assembly-updater` flag added to home_machine_deploy.ps1 + home_machine_run_tests.ps1 to free the 30s + working set the API updater holds during shader compile. Verified across two consecutive runs: 24971232854 (full matrix) and 24971807340 (flappy_bird only). Both deploy steps succeeded — breakout in 77s, flappy_bird's CoPlay setup compiled and saved scene cleanly. No 0x8007000e, no IPC errors, no Crash_*/. PlayMode tests in both runs failed for an unrelated reason: NullReferenceException at Keyboard.current.X / Mouse.current.X (filed as new task translator-input-system-null-guard). Workflow YAML had a separate validation regression — `if:` referencing matrix.X — fixed via dynamic-matrix prep job in the same commit chain."
+}
+```
+
+### Task translator-input-system-null-guard: Translator must emit null-safe Keyboard.current / Mouse.current accesses
+
+```json
+{
+  "id": "translator-input-system-null-guard",
+  "category": "translator",
+  "priority": 6,
+  "title": "Translator must emit null-safe Keyboard.current / Mouse.current accesses for batchmode test compatibility",
+  "description": "Surfaced 2026-04-27 by M-7 phase 2 PlayMode tests on workflow runs 24971232854 (breakout) and 24971807340 (flappy_bird): every Update() that reads `Keyboard.current.X` or `Mouse.current.X` throws NullReferenceException in batchmode `-runTests` mode because Unity doesn't initialize input devices when no physical/desktop input is attached. Affected stack frames:\n  - breakout: PaddleController.cs:18 (`Keyboard.current.dKey.isPressed`, `Keyboard.current.aKey.isPressed`)\n  - breakout: BallController.cs:32 (`Keyboard.current.spaceKey.wasPressedThisFrame`)\n  - flappy_bird: Player.cs:35 (`Keyboard.current.spaceKey.wasPressedThisFrame`, `Mouse.current.leftButton.wasPressedThisFrame`)\nFix at the translator level (src/translator/python_to_csharp.py): when emitting `Keyboard.current.X` or `Mouse.current.X` accesses, wrap with null-conditional access — either `Keyboard.current?.X.isPressed == true` (Boolean fields) or guard the whole conditional with an `if (Keyboard.current != null)`. The .meta question: do we want all keyboard reads to silently no-op when the device is missing (correct for tests, may hide bugs in production), or fail loudly? The Boolean-coerced pattern (`?.X.isPressed == true`) is the canonical Unity-recommended idiom and is what we should emit. Once landed, both games' PlayMode tests should pass cleanly and M-7 phase 2 closes its end-to-end loop.",
+  "steps": [
+    "Add a failing test under tests/translator/: translate a Python snippet `if input.is_pressed_d:` (or similar idiom that emits Keyboard.current.dKey.isPressed) and assert the C# output contains `Keyboard.current?.dKey` AND a Boolean coercion with `== true`.",
+    "Add a failing PlayMode-equivalent contract test that loads PaddleController.cs / Player.cs and grep-asserts none of the Keyboard.current. / Mouse.current. accesses are unconditional (every one must be `?.` or inside a null check).",
+    "In src/translator/python_to_csharp.py, find the Keyboard.current / Mouse.current emission site and apply the null-conditional pattern. May require changing the IsPressed-style ternaries (currently `(Keyboard.current.dKey.isPressed ? 1f : 0f)`) into the Boolean-coerced form `(Keyboard.current?.dKey.isPressed == true ? 1f : 0f)`.",
+    "Re-translate breakout + flappy_bird (python tools/pipeline.py <game>), regen CoPlay scripts (python tools/gen_*_coplay.py).",
+    "Verify the failing tests now pass; commit + push; gh workflow run home_machine.yml --ref <branch>; confirm both games go fully green (deploy + PlayMode tests).",
+    "Bonus: extend the contract test to cover Touchscreen.current and Gamepad.current too — same null-shape, same trap if a future example uses them."
+  ],
+  "passes": false,
+  "depends_on": ["M-7-runner-shader-compiler-crash"],
+  "estimated_effort_hours": 2
 }
 ```
 
