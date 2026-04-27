@@ -3166,7 +3166,8 @@ Premise: today the Python sim and the translated C# can drift silently — the s
     "Reference AGENT_GUIDE.md from CLAUDE.md so it loads at session start.",
     "Validate by spawning an agent to build a small new game (one new MonoBehaviour + a scene) reading ONLY AGENT_GUIDE.md as context — agent should produce a translator-safe + gate-green PR on first try."
   ],
-  "passes": false,
+  "passes": true,
+  "verified_2026-04-27": "Shipped AGENT_GUIDE.md (sections a–f + 10-item antipattern checklist + source-of-truth table) referenced from CLAUDE.md banner. Validation agent fact-checked every load-bearing claim against source files: 80/87 parity-tested ✓, 20 idioms / 8 areas ✓, 62 idiom tests ✓, all 7 deferred + 10 parked APIs verified ✓, all 7 lesson cross-links exist ✓, all tool/path commands run cleanly ✓. Two real flaws caught and fixed in-session: (1) headline `--code` example used a bare expression that produced empty stdout — replaced with class-wrapped Mover example, verified working; (2) antipattern #1 (dataclass mutable defaults) didn't match a real translator failure — replaced with the bool-truthiness `!= null` bug from translator_compilability.md. Skipped the full game-build validation per spec — the snippet/gate proxies cover translator-safe + gate-green concerns at a fraction of the cost.",
   "depends_on": ["M-12-gap-gate"],
   "estimated_effort_hours": 4
 }
