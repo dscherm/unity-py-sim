@@ -111,6 +111,11 @@ $unityArgs += @(
     "-runTests"
     "-testPlatform", "PlayMode"
     "-testResults", $ResultsFile
+    # Match home_machine_deploy.ps1: skip the API Updater.  Generated
+    # projects already target the runner's exact Editor version, so it
+    # has no migrations to run — and the timeout-then-shader-OOM chain
+    # observed during deploy applies equally to the test invocation.
+    "-disable-assembly-updater"
     "-logFile", "-"
 )
 

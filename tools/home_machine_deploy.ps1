@@ -100,6 +100,15 @@ if (-not $WithGraphics) {
 $unityArgs += @(
     "-projectPath", $absProject
     "-executeMethod", $Method
+    # Skip Unity's API Updater. It migrates assembly references between
+    # Unity versions; our generated projects already target the runner's
+    # exact Editor version (6000.4.0f1), so the updater is dead weight
+    # — and on the home-machine runner it was timing out at 30s right
+    # before the cold-start shader compiler OOM
+    # (`Crash_2026-04-26_153847992`, run 24960280211).  Removing the
+    # updater frees both the wallclock and the working set it holds
+    # while shaders compile in parallel.
+    "-disable-assembly-updater"
     # `-logFile -` makes Unity stream the log to stdout, so we tee it
     # into both the console (visible in CI) and a file artifact.
     "-logFile", "-"

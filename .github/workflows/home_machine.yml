@@ -63,6 +63,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Pre-deploy cleanup (kill orphan Unity processes)
+        # When a prior matrix entry or workflow run is cancelled, Unity
+        # processes are not always terminated cleanly.  The leftover
+        # `Unity.exe` and especially `UnityShaderCompiler.exe` keep RAM
+        # pinned and starve the next cold-start, which is the failure
+        # mode that produced `Crash_2026-04-26_153847992` (master run
+        # 24960280211): the prior cancelled run at 14:23 left enough
+        # memory pressure that the 15:31 deploy OOM'd during URP
+        # path-tracing shader compile (`LightmapDirectIntegration.urtshader`,
+        # `0x8007000e`).  Best-effort kill — exits 0 if nothing to clean.
+        run: |
+          $names = @('Unity', 'UnityShaderCompiler', 'UnityHelper', 'UnityHub.CrashHandler64')
+          foreach ($n in $names) {
+            $procs = Get-Process -Name $n -ErrorAction SilentlyContinue
+            if ($procs) {
+              Write-Host ("Killing $($procs.Count) leftover $n process(es)")
+              $procs | Stop-Process -Force -ErrorAction SilentlyContinue
+            }
+          }
+          # Wait briefly so handles release before Unity launches.
+          Start-Sleep -Seconds 2
+
       - name: Verify project exists
         run: |
           if (-not (Test-Path "${env:PROJECT_PATH}")) {
