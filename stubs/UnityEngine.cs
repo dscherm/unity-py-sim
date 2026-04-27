@@ -193,9 +193,10 @@ namespace UnityEngine
     public static class Time
     {
         public static float deltaTime;
-        public static float fixedDeltaTime;
+        public static float fixedDeltaTime = 0.02f;
         public static float time;
-        public static float timeScale;
+        public static float timeScale = 1f;
+        public static int frameCount;
     }
 
     public static class Input
@@ -257,9 +258,10 @@ namespace UnityEngine
         public Vector2 velocity;
         public Vector2 linearVelocity;
         public float angularVelocity;
-        public float gravityScale;
-        public float mass;
-        public RigidbodyType2D bodyType;
+        public float gravityScale = 1f;
+        public float mass = 1f;
+        public float drag;
+        public RigidbodyType2D bodyType = RigidbodyType2D.Dynamic;
 
         public void AddForce(Vector2 force) { }
         public void AddForce(Vector2 force, ForceMode2D mode) { }

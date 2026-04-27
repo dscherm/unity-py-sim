@@ -1,24 +1,24 @@
 {
   "total_apis": 87,
   "implemented": 83,
-  "with_parity_test": 32,
+  "with_parity_test": 48,
   "implementation_pct": 0.954,
-  "parity_test_pct": 0.368,
+  "parity_test_pct": 0.552,
   "by_kind": {
     "class": {
       "total": 29,
       "implemented": 29,
-      "with_parity_test": 7
+      "with_parity_test": 9
     },
     "method": {
       "total": 13,
       "implemented": 13,
-      "with_parity_test": 5
+      "with_parity_test": 9
     },
     "property": {
       "total": 31,
       "implemented": 27,
-      "with_parity_test": 13
+      "with_parity_test": 23
     },
     "lifecycle": {
       "total": 14,
@@ -45,7 +45,7 @@
     "Rigidbody2D": {
       "total": 8,
       "implemented": 8,
-      "with_parity_test": 0
+      "with_parity_test": 8
     },
     "BoxCollider2D": {
       "total": 1,
@@ -165,12 +165,12 @@
     "Time": {
       "total": 6,
       "implemented": 6,
-      "with_parity_test": 2
+      "with_parity_test": 6
     },
     "Input": {
       "total": 4,
       "implemented": 4,
-      "with_parity_test": 0
+      "with_parity_test": 4
     },
     "Object": {
       "total": 1,
@@ -217,7 +217,7 @@
       "python_module": "src.engine.physics.rigidbody",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "BoxCollider2D",
@@ -467,7 +467,7 @@
       "python_module": "src.engine.input_manager",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "GameObject",
@@ -567,7 +567,7 @@
       "python_module": null,
       "python_member": "add_force",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Input",
@@ -577,7 +577,7 @@
       "python_module": null,
       "python_member": "get_key",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Input",
@@ -587,7 +587,7 @@
       "python_module": null,
       "python_member": "get_key_down",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Input",
@@ -597,7 +597,7 @@
       "python_module": null,
       "python_member": "get_axis",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Transform",
@@ -767,7 +767,7 @@
       "python_module": null,
       "python_member": "velocity",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Rigidbody2D",
@@ -777,7 +777,7 @@
       "python_module": null,
       "python_member": "angular_velocity",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Rigidbody2D",
@@ -787,7 +787,7 @@
       "python_module": null,
       "python_member": "mass",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Rigidbody2D",
@@ -797,7 +797,7 @@
       "python_module": null,
       "python_member": "drag",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Rigidbody2D",
@@ -807,7 +807,7 @@
       "python_module": null,
       "python_member": "gravity_scale",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Rigidbody2D",
@@ -817,7 +817,7 @@
       "python_module": null,
       "python_member": "body_type",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Camera",
@@ -867,7 +867,7 @@
       "python_module": null,
       "python_member": "delta_time",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Time",
@@ -877,7 +877,7 @@
       "python_module": null,
       "python_member": "fixed_delta_time",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Time",
@@ -897,7 +897,7 @@
       "python_module": null,
       "python_member": "frame_count",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Time",
@@ -907,7 +907,7 @@
       "python_module": null,
       "python_member": "time_scale",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "MonoBehaviour",
