@@ -1,0 +1,9 @@
+using System.Collections;
+using UnityEngine;
+public class Spawner : MonoBehaviour
+{
+    public IEnumerator SpawnLoop()
+    {
+        yield return new WaitForSeconds(2.0f);
+    }
+}

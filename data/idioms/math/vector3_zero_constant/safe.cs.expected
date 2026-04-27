@@ -1,0 +1,8 @@
+using UnityEngine;
+public class V
+{
+    public object AtOrigin()
+    {
+        return Vector3.zero;
+    }
+}

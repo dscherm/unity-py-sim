@@ -1,0 +1,1 @@
+Per data/lessons/patterns.md (Medium-difficulty section), `@property` is not converted to C# property syntax. Output is a method body but call-sites elsewhere in your code will still try to access it as a field, breaking compilation. Rewrite as an explicit `get_*` method named with `get_` prefix.

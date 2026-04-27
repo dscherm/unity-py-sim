@@ -1,0 +1,9 @@
+using UnityEngine;
+public class Health
+{
+    public int hp = 100;
+    public int GetMaxHp()
+    {
+        return 100;
+    }
+}

@@ -1,0 +1,5 @@
+using UnityEngine;
+public class Mover
+{
+    public float speed = 5.0f;
+}

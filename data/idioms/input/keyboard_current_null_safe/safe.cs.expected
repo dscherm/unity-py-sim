@@ -1,0 +1,12 @@
+using UnityEngine.InputSystem;
+using UnityEngine;
+public class Player : MonoBehaviour
+{
+     void Update()
+    {
+        if (Keyboard.current?.spaceKey.wasPressedThisFrame == true)
+        {
+            /* pass */
+        }
+    }
+}

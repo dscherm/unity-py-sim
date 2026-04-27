@@ -1,0 +1,9 @@
+using UnityEngine;
+public class Score
+{
+    public int points = 0;
+    public string Label()
+    {
+        return "Score: " + points.ToString();
+    }
+}

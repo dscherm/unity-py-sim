@@ -1,0 +1,1 @@
+Per data/lessons/gotchas.md (Pacman section), `hasattr()` translates to a `true ? ... : null` ternary, dropping the actual reflection check. C# doesn't have hasattr; use null checks (`x is not None`) or interface checks instead.

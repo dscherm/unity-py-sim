@@ -1,0 +1,1 @@
+Per data/lessons/patterns.md, method-body imports emit verbatim, producing invalid C# (`from ... import ...` is not a statement). Rewrite by hoisting the import to the module top so the translator can lift it into a C# `using` directive instead.
