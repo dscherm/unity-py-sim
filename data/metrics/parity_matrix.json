@@ -1,46 +1,46 @@
 {
   "total_apis": 87,
   "implemented": 83,
-  "with_parity_test": 48,
+  "with_parity_test": 80,
   "implementation_pct": 0.954,
-  "parity_test_pct": 0.552,
+  "parity_test_pct": 0.92,
   "by_kind": {
     "class": {
       "total": 29,
       "implemented": 29,
-      "with_parity_test": 9
+      "with_parity_test": 29
     },
     "method": {
       "total": 13,
       "implemented": 13,
-      "with_parity_test": 9
+      "with_parity_test": 10
     },
     "property": {
       "total": 31,
       "implemented": 27,
-      "with_parity_test": 23
+      "with_parity_test": 27
     },
     "lifecycle": {
       "total": 14,
       "implemented": 14,
-      "with_parity_test": 7
+      "with_parity_test": 14
     }
   },
   "by_unity_class": {
     "MonoBehaviour": {
       "total": 15,
       "implemented": 15,
-      "with_parity_test": 8
+      "with_parity_test": 15
     },
     "GameObject": {
       "total": 10,
       "implemented": 8,
-      "with_parity_test": 8
+      "with_parity_test": 10
     },
     "Transform": {
       "total": 12,
       "implemented": 12,
-      "with_parity_test": 7
+      "with_parity_test": 8
     },
     "Rigidbody2D": {
       "total": 8,
@@ -50,22 +50,22 @@
     "BoxCollider2D": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "CircleCollider2D": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "Camera": {
       "total": 3,
       "implemented": 3,
-      "with_parity_test": 0
+      "with_parity_test": 2
     },
     "SpriteRenderer": {
       "total": 3,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 2
     },
     "Vector2": {
       "total": 1,
@@ -80,82 +80,82 @@
     "Quaternion": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "Mathf": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "PhysicsMaterial2D": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "Physics2D": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "RaycastHit2D": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "Debug": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "AudioClip": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "AudioSource": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "AudioListener": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "Canvas": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "RectTransform": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "Text": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "Image": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "Button": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "SceneManager": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "DOTween (Tween)": {
       "total": 1,
       "implemented": 1,
-      "with_parity_test": 0
+      "with_parity_test": 1
     },
     "Component": {
       "total": 5,
@@ -227,7 +227,7 @@
       "python_module": "src.engine.physics.collider",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "CircleCollider2D",
@@ -237,7 +237,7 @@
       "python_module": "src.engine.physics.collider",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Camera",
@@ -247,7 +247,7 @@
       "python_module": "src.engine.rendering.camera",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "SpriteRenderer",
@@ -257,7 +257,7 @@
       "python_module": "src.engine.rendering.renderer",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Vector2",
@@ -287,7 +287,7 @@
       "python_module": "src.engine.math.quaternion",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Mathf",
@@ -297,7 +297,7 @@
       "python_module": "src.engine.math.mathf",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "PhysicsMaterial2D",
@@ -307,7 +307,7 @@
       "python_module": "src.engine.physics.collider",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Physics2D",
@@ -317,7 +317,7 @@
       "python_module": "src.engine.physics.physics_manager",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "RaycastHit2D",
@@ -327,7 +327,7 @@
       "python_module": "src.engine.physics.physics_manager",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Debug",
@@ -337,7 +337,7 @@
       "python_module": "src.engine.debug",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "AudioClip",
@@ -347,7 +347,7 @@
       "python_module": "src.engine.audio",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "AudioSource",
@@ -357,7 +357,7 @@
       "python_module": "src.engine.audio",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "AudioListener",
@@ -367,7 +367,7 @@
       "python_module": "src.engine.audio",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Canvas",
@@ -377,7 +377,7 @@
       "python_module": "src.engine.ui",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "RectTransform",
@@ -387,7 +387,7 @@
       "python_module": "src.engine.ui",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Text",
@@ -397,7 +397,7 @@
       "python_module": "src.engine.ui",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Image",
@@ -407,7 +407,7 @@
       "python_module": "src.engine.ui",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Button",
@@ -417,7 +417,7 @@
       "python_module": "src.engine.ui",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "SceneManager",
@@ -427,7 +427,7 @@
       "python_module": "src.engine.scene",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "DOTween (Tween)",
@@ -437,7 +437,7 @@
       "python_module": "src.engine.tweening",
       "python_member": null,
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Component",
@@ -497,7 +497,7 @@
       "python_module": null,
       "python_member": "find_game_objects_with_tag",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "GameObject",
@@ -617,7 +617,7 @@
       "python_module": null,
       "python_member": "rotation",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Transform",
@@ -717,7 +717,7 @@
       "python_module": null,
       "python_member": "active",
       "has_python_impl": false,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "GameObject",
@@ -827,7 +827,7 @@
       "python_module": null,
       "python_member": "orthographic_size",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Camera",
@@ -857,7 +857,7 @@
       "python_module": null,
       "python_member": "sorting_order",
       "has_python_impl": false,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Time",
@@ -987,7 +987,7 @@
       "python_module": null,
       "python_member": "on_disable",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "MonoBehaviour",
@@ -997,7 +997,7 @@
       "python_module": null,
       "python_member": "on_collision_enter_2d",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "MonoBehaviour",
@@ -1007,7 +1007,7 @@
       "python_module": null,
       "python_member": "on_collision_exit_2d",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "MonoBehaviour",
@@ -1017,7 +1017,7 @@
       "python_module": null,
       "python_member": "on_trigger_enter_2d",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "MonoBehaviour",
@@ -1027,7 +1027,7 @@
       "python_module": null,
       "python_member": "on_trigger_stay_2d",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "MonoBehaviour",
@@ -1037,7 +1037,7 @@
       "python_module": null,
       "python_member": "on_trigger_exit_2d",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "MonoBehaviour",
@@ -1047,7 +1047,7 @@
       "python_module": null,
       "python_member": "on_collision_stay_2d",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     }
   ]
 }

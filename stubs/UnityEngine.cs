@@ -40,8 +40,8 @@ namespace UnityEngine
 
     public class GameObject : Object
     {
-        public bool activeSelf;
-        public bool activeInHierarchy;
+        public bool activeSelf = true;
+        public bool activeInHierarchy = true;
         public string tag;
         public int layer;
         public Transform transform;
@@ -51,7 +51,7 @@ namespace UnityEngine
 
         public T GetComponent<T>() where T : Component => default;
         public T AddComponent<T>() where T : Component => default;
-        public void SetActive(bool value) { }
+        public void SetActive(bool value) { activeSelf = value; activeInHierarchy = value; }
 
         public static GameObject Find(string name) => null;
         public static GameObject FindWithTag(string tag) => null;
@@ -62,8 +62,8 @@ namespace UnityEngine
     {
         public Vector3 position;
         public Vector3 localPosition;
-        public Quaternion rotation;
-        public Quaternion localRotation;
+        public Quaternion rotation = Quaternion.identity;
+        public Quaternion localRotation = Quaternion.identity;
         public Vector3 localScale = new Vector3(1f, 1f, 1f);
         public Transform parent;
 
@@ -141,7 +141,8 @@ namespace UnityEngine
     public struct Quaternion
     {
         public float x, y, z, w;
-        public static Quaternion identity => default;
+        public Quaternion(float x, float y, float z, float w) { this.x = x; this.y = y; this.z = z; this.w = w; }
+        public static Quaternion identity => new Quaternion(0f, 0f, 0f, 1f);
         public static Quaternion Euler(float x, float y, float z) => default;
     }
 
@@ -274,13 +275,13 @@ namespace UnityEngine
     public class Collider2D : Component { }
     public class BoxCollider2D : Collider2D
     {
-        public Vector2 size;
+        public Vector2 size = new Vector2(1f, 1f);
         public Vector2 offset;
         public bool isTrigger;
     }
     public class CircleCollider2D : Collider2D
     {
-        public float radius;
+        public float radius = 0.5f;
         public Vector2 offset;
         public bool isTrigger;
     }
@@ -307,9 +308,17 @@ namespace UnityEngine
     public class Camera : Component
     {
         public static Camera main;
-        public float orthographicSize;
+        public float orthographicSize = 5f;
         public Color backgroundColor;
         public Vector3 ScreenToWorldPoint(Vector3 position) => default;
+    }
+
+    public class PhysicsMaterial2D
+    {
+        public float bounciness;
+        public float friction = 0.4f;
+        public PhysicsMaterial2D() { }
+        public PhysicsMaterial2D(float bounciness, float friction) { this.bounciness = bounciness; this.friction = friction; }
     }
 
     public class AudioSource : Component

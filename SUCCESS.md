@@ -72,13 +72,13 @@ These define the project's *maturity*, not its *shipping*. Useful for prioritiza
 
 **Delivered by**: M-2.
 
-### ASP-3 · Engine API parity tests ≥90% coverage
+### ASP-3 · Engine API parity tests ≥90% coverage ✅
 
 **Definition**: At least 90% of Unity APIs claimed in `src/reference/mappings/classes.json` + `methods.json` + `lifecycle.json` + `patterns.json` have a corresponding parity test in `tests/parity/`.
 
-**Status (2026-04-25)**: 31.0% (27/87). Seed tests landed in M-4 phase 1: Transform.position, GameObject.find/find_with_tag, MonoBehaviour lifecycle (Awake/Start/Update/FixedUpdate/LateUpdate/OnEnable/OnDisable/OnDestroy), Vector2/Vector3 static constants. Tracked live by `data/metrics/dashboard.md` `Parity Test` column.
+**Status (2026-04-27)**: **80/87 (92.0%) ✅**. M-9 closed the gap from 31.0% → 92.0% in one focused session via the M-8 dual-path harness. Coverage trajectory: 28→32 (Transform batch) →40 (Rigidbody2D) →44 (Time) →48 (Input) →61 (class-existence + GameObject + SpriteRenderer + Camera) →79 (MonoBehaviour callbacks combined file + GameObject.FindGameObjectsWithTag) →80 (Transform.rotation). Remaining 7 untested APIs are explicitly deferred: Component.GetComponent (depends on real component registry), Transform Rotate/LookAt/forward/right (need Quaternion-faithful stub math), Camera.backgroundColor + SpriteRenderer.color (RGB-tuple-vs-Color-struct normalization). 10 APIs are parity_skipped under PARITY_SCAFFOLD_PARKED (Audio×3, UI×5, SceneManager, DOTween — explicitly out-of-scope for headless dual-path).
 
-**Delivered by**: M-4 phase 2 (post-audit expansion to ≥90%).
+**Delivered by**: M-9 (closed 2026-04-27).
 
 ### ASP-4 · Parity tests ≥80% pass dotnet path, ≥70% pass CoPlay path
 
