@@ -2960,7 +2960,9 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
     "Verify the failing tests now pass; commit + push; gh workflow run home_machine.yml --ref <branch>; confirm both games go fully green (deploy + PlayMode tests).",
     "Bonus: extend the contract test to cover Touchscreen.current and Gamepad.current too — same null-shape, same trap if a future example uses them."
   ],
-  "passes": false,
+  "passes": true,
+  "completed_on": "2026-04-27",
+  "verified_2026-04-27": "Translator emission sites in src/translator/python_to_csharp.py:_translate_new_input_system updated to emit `Keyboard.current?.X.Y == true` / `Mouse.current?.X.Y == true` (Boolean coercion preserves bool typing for `if`, `||`, `&&`, ternary contexts) and `(Mouse.current?.position.ReadValue() ?? Vector2.zero)` (keeps Vector2 typing). Covered: get_key/get_key_down/get_key_up, get_mouse_button/get_mouse_button_down/get_mouse_button_up, mouse_position / get_mouse_position(), get_axis('Horizontal'/'Vertical'). New test tests/translator/test_input_system_null_guard.py (12 tests: explicit + sweep-style 'no unguarded current.' across keyboard/mouse/axis, plus legacy-unchanged guard). Updated 4 stale-assertion test files (test_python_to_csharp, test_input_system_contract, test_translator_task10_validation, test_input_system_mutation) — total 47 lines flipped to the new emission. Re-translated breakout + flappy_bird via tools/pipeline.py and regenerated CoPlay scripts; spot-check confirms PaddleController/BallController/Player emit the null-conditional form. Full suite green: 2993 passed, 2 skipped, 2 xfailed (was 2991, +2 net from new contract tests after backfill). Bonus Touchscreen.current / Gamepad.current coverage deferred — no current example uses them.",
   "depends_on": ["M-7-runner-shader-compiler-crash"],
   "estimated_effort_hours": 2
 }

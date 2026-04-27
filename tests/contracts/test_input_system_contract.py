@@ -72,26 +72,26 @@ class TestNewInputKeyboard:
         result = _translate_source(
             _make_input_source("Input.get_key_down('space')")
         )
-        assert "Keyboard.current.spaceKey.wasPressedThisFrame" in result
+        assert "Keyboard.current?.spaceKey.wasPressedThisFrame == true" in result
 
     def test_get_key_down_escape(self):
         result = _translate_source(
             _make_input_source("Input.get_key_down('escape')")
         )
-        assert "Keyboard.current.escapeKey.wasPressedThisFrame" in result
+        assert "Keyboard.current?.escapeKey.wasPressedThisFrame == true" in result
 
     def test_get_key_pressed_escape(self):
         """get_key (held) should map to isPressed."""
         result = _translate_source(
             _make_input_source("Input.get_key('escape')")
         )
-        assert "Keyboard.current.escapeKey.isPressed" in result
+        assert "Keyboard.current?.escapeKey.isPressed == true" in result
 
     def test_get_key_up_space(self):
         result = _translate_source(
             _make_input_source("Input.get_key_up('space')")
         )
-        assert "Keyboard.current.spaceKey.wasReleasedThisFrame" in result
+        assert "Keyboard.current?.spaceKey.wasReleasedThisFrame == true" in result
 
     def test_get_key_down_arrow_keys(self):
         for py_key, cs_key in [
@@ -103,7 +103,7 @@ class TestNewInputKeyboard:
             result = _translate_source(
                 _make_input_source(f"Input.get_key_down('{py_key}')")
             )
-            assert f"Keyboard.current.{cs_key}.wasPressedThisFrame" in result, (
+            assert f"Keyboard.current?.{cs_key}.wasPressedThisFrame == true" in result, (
                 f"Arrow key '{py_key}' should map to {cs_key}"
             )
 
@@ -111,13 +111,13 @@ class TestNewInputKeyboard:
         result = _translate_source(
             _make_input_source("Input.get_key_down('a')")
         )
-        assert "Keyboard.current.aKey.wasPressedThisFrame" in result
+        assert "Keyboard.current?.aKey.wasPressedThisFrame == true" in result
 
     def test_get_key_return_maps_to_enter(self):
         result = _translate_source(
             _make_input_source("Input.get_key_down('return')")
         )
-        assert "Keyboard.current.enterKey.wasPressedThisFrame" in result
+        assert "Keyboard.current?.enterKey.wasPressedThisFrame == true" in result
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -131,43 +131,43 @@ class TestNewInputMouse:
         result = _translate_source(
             _make_input_source("Input.get_mouse_button_down(0)")
         )
-        assert "Mouse.current.leftButton.wasPressedThisFrame" in result
+        assert "Mouse.current?.leftButton.wasPressedThisFrame == true" in result
 
     def test_mouse_button_down_right(self):
         result = _translate_source(
             _make_input_source("Input.get_mouse_button_down(1)")
         )
-        assert "Mouse.current.rightButton.wasPressedThisFrame" in result
+        assert "Mouse.current?.rightButton.wasPressedThisFrame == true" in result
 
     def test_mouse_button_down_middle(self):
         result = _translate_source(
             _make_input_source("Input.get_mouse_button_down(2)")
         )
-        assert "Mouse.current.middleButton.wasPressedThisFrame" in result
+        assert "Mouse.current?.middleButton.wasPressedThisFrame == true" in result
 
     def test_mouse_button_up_left(self):
         result = _translate_source(
             _make_input_source("Input.get_mouse_button_up(0)")
         )
-        assert "Mouse.current.leftButton.wasReleasedThisFrame" in result
+        assert "Mouse.current?.leftButton.wasReleasedThisFrame == true" in result
 
     def test_mouse_button_held_left(self):
         result = _translate_source(
             _make_input_source("Input.get_mouse_button(0)")
         )
-        assert "Mouse.current.leftButton.isPressed" in result
+        assert "Mouse.current?.leftButton.isPressed == true" in result
 
     def test_mouse_position_method(self):
         result = _translate_source(
             _make_input_source("Input.get_mouse_position()", as_condition=False)
         )
-        assert "Mouse.current.position.ReadValue()" in result
+        assert "Mouse.current?.position.ReadValue() ?? Vector2.zero" in result
 
     def test_mouse_position_property(self):
         result = _translate_source(
             _make_input_source("Input.mouse_position", as_condition=False)
         )
-        assert "Mouse.current.position.ReadValue()" in result
+        assert "Mouse.current?.position.ReadValue() ?? Vector2.zero" in result
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -179,8 +179,8 @@ class TestNewInputAxis:
         result = _translate_source(
             _make_input_source("Input.get_axis('Horizontal')", as_condition=False)
         )
-        assert "Keyboard.current.dKey.isPressed" in result
-        assert "Keyboard.current.aKey.isPressed" in result
+        assert "Keyboard.current?.dKey.isPressed == true" in result
+        assert "Keyboard.current?.aKey.isPressed == true" in result
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -273,7 +273,7 @@ class TestTranslateFileEntryPoint:
     def test_translate_file_new_input(self):
         source = _make_input_source("Input.get_key_down('space')")
         result = _translate_via_file(source, input_system="new")
-        assert "Keyboard.current.spaceKey.wasPressedThisFrame" in result
+        assert "Keyboard.current?.spaceKey.wasPressedThisFrame == true" in result
         assert "using UnityEngine.InputSystem;" in result
 
     def test_translate_file_legacy_input(self):
@@ -286,4 +286,4 @@ class TestTranslateFileEntryPoint:
         """Default input_system should be 'new'."""
         source = _make_input_source("Input.get_key_down('space')")
         result = _translate_via_file(source)  # no input_system kwarg
-        assert "Keyboard.current.spaceKey.wasPressedThisFrame" in result
+        assert "Keyboard.current?.spaceKey.wasPressedThisFrame == true" in result

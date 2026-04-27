@@ -1130,6 +1130,12 @@ class TestUnity6ApiMappings:
         assert "rb.velocity" in result
         assert "linearVelocity" not in result
 
+    # New Input System emission is null-safe — Keyboard.current and
+    # Mouse.current return null in batchmode tests when no device is
+    # attached.  See tests/translator/test_input_system_null_guard.py
+    # for the full contract; the assertions here are smoke checks
+    # against the same emission sites.
+
     def test_new_input_mouse_button_down(self):
         parsed = parse_python(
             "from src.engine.core import MonoBehaviour\n"
@@ -1140,7 +1146,7 @@ class TestUnity6ApiMappings:
             "            pass\n"
         )
         result = translate(parsed, input_system="new")
-        assert "Mouse.current.leftButton.wasPressedThisFrame" in result
+        assert "Mouse.current?.leftButton.wasPressedThisFrame == true" in result
 
     def test_new_input_mouse_button_up(self):
         parsed = parse_python(
@@ -1152,7 +1158,7 @@ class TestUnity6ApiMappings:
             "            pass\n"
         )
         result = translate(parsed, input_system="new")
-        assert "Mouse.current.leftButton.wasReleasedThisFrame" in result
+        assert "Mouse.current?.leftButton.wasReleasedThisFrame == true" in result
 
     def test_new_input_mouse_button_held(self):
         parsed = parse_python(
@@ -1164,7 +1170,7 @@ class TestUnity6ApiMappings:
             "            pass\n"
         )
         result = translate(parsed, input_system="new")
-        assert "Mouse.current.leftButton.isPressed" in result
+        assert "Mouse.current?.leftButton.isPressed == true" in result
 
     def test_new_input_right_mouse_button(self):
         parsed = parse_python(
@@ -1176,7 +1182,7 @@ class TestUnity6ApiMappings:
             "            pass\n"
         )
         result = translate(parsed, input_system="new")
-        assert "Mouse.current.rightButton.wasPressedThisFrame" in result
+        assert "Mouse.current?.rightButton.wasPressedThisFrame == true" in result
 
     def test_new_input_key_down(self):
         parsed = parse_python(
@@ -1188,7 +1194,7 @@ class TestUnity6ApiMappings:
             "            pass\n"
         )
         result = translate(parsed, input_system="new")
-        assert "Keyboard.current.spaceKey.wasPressedThisFrame" in result
+        assert "Keyboard.current?.spaceKey.wasPressedThisFrame == true" in result
 
     def test_new_input_key_pressed(self):
         parsed = parse_python(
@@ -1200,7 +1206,7 @@ class TestUnity6ApiMappings:
             "            pass\n"
         )
         result = translate(parsed, input_system="new")
-        assert "Keyboard.current.escapeKey.isPressed" in result
+        assert "Keyboard.current?.escapeKey.isPressed == true" in result
 
     def test_new_input_axis_emits_keyboard(self):
         """get_axis('Horizontal') emits keyboard-based axis emulation."""
@@ -1212,8 +1218,8 @@ class TestUnity6ApiMappings:
             "        h = Input.get_axis('Horizontal')\n"
         )
         result = translate(parsed, input_system="new")
-        assert "Keyboard.current.dKey.isPressed" in result
-        assert "Keyboard.current.aKey.isPressed" in result
+        assert "Keyboard.current?.dKey.isPressed == true" in result
+        assert "Keyboard.current?.aKey.isPressed == true" in result
 
     def test_using_input_system_added(self):
         parsed = parse_python(

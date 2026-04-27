@@ -114,118 +114,118 @@ class TestNewInputSystemContract:
     def test_mouse_button_down_left(self):
         """Input.get_mouse_button_down(0) -> Mouse.current.leftButton.wasPressedThisFrame"""
         result = _translate_simple_body("if Input.get_mouse_button_down(0):")
-        assert "Mouse.current.leftButton.wasPressedThisFrame" in result
+        assert "Mouse.current?.leftButton.wasPressedThisFrame == true" in result
 
     def test_mouse_button_down_right(self):
         """Input.get_mouse_button_down(1) -> Mouse.current.rightButton.wasPressedThisFrame"""
         result = _translate_simple_body("if Input.get_mouse_button_down(1):")
-        assert "Mouse.current.rightButton.wasPressedThisFrame" in result
+        assert "Mouse.current?.rightButton.wasPressedThisFrame == true" in result
 
     def test_mouse_button_down_middle(self):
         """Input.get_mouse_button_down(2) -> Mouse.current.middleButton.wasPressedThisFrame"""
         result = _translate_simple_body("if Input.get_mouse_button_down(2):")
-        assert "Mouse.current.middleButton.wasPressedThisFrame" in result
+        assert "Mouse.current?.middleButton.wasPressedThisFrame == true" in result
 
     def test_mouse_button_up_left(self):
         """Input.get_mouse_button_up(0) -> Mouse.current.leftButton.wasReleasedThisFrame"""
         result = _translate_simple_body("if Input.get_mouse_button_up(0):")
-        assert "Mouse.current.leftButton.wasReleasedThisFrame" in result
+        assert "Mouse.current?.leftButton.wasReleasedThisFrame == true" in result
 
     def test_mouse_button_up_right(self):
         """Input.get_mouse_button_up(1) -> Mouse.current.rightButton.wasReleasedThisFrame"""
         result = _translate_simple_body("if Input.get_mouse_button_up(1):")
-        assert "Mouse.current.rightButton.wasReleasedThisFrame" in result
+        assert "Mouse.current?.rightButton.wasReleasedThisFrame == true" in result
 
     def test_mouse_button_held_left(self):
         """Input.get_mouse_button(0) -> Mouse.current.leftButton.isPressed"""
         result = _translate_simple_body("if Input.get_mouse_button(0):")
-        assert "Mouse.current.leftButton.isPressed" in result
+        assert "Mouse.current?.leftButton.isPressed == true" in result
 
     def test_mouse_button_held_right(self):
         """Input.get_mouse_button(1) -> Mouse.current.rightButton.isPressed"""
         result = _translate_simple_body("if Input.get_mouse_button(1):")
-        assert "Mouse.current.rightButton.isPressed" in result
+        assert "Mouse.current?.rightButton.isPressed == true" in result
 
     def test_mouse_button_held_middle(self):
         """Input.get_mouse_button(2) -> Mouse.current.middleButton.isPressed"""
         result = _translate_simple_body("if Input.get_mouse_button(2):")
-        assert "Mouse.current.middleButton.isPressed" in result
+        assert "Mouse.current?.middleButton.isPressed == true" in result
 
     def test_mouse_position(self):
         """Input.get_mouse_position() -> Mouse.current.position.ReadValue()"""
         result = _translate_simple_body("pos = Input.get_mouse_position()")
-        assert "Mouse.current.position.ReadValue()" in result
+        assert "Mouse.current?.position.ReadValue() ?? Vector2.zero" in result
 
     def test_mouse_position_property(self):
         """Input.mouse_position -> Mouse.current.position.ReadValue()"""
         result = _translate_simple_body("pos = Input.mouse_position")
-        assert "Mouse.current.position.ReadValue()" in result
+        assert "Mouse.current?.position.ReadValue() ?? Vector2.zero" in result
 
     # ── Keyboard keys ──
 
     def test_key_down_space(self):
         """Input.get_key_down('space') -> Keyboard.current.spaceKey.wasPressedThisFrame"""
         result = _translate_simple_body("if Input.get_key_down('space'):")
-        assert "Keyboard.current.spaceKey.wasPressedThisFrame" in result
+        assert "Keyboard.current?.spaceKey.wasPressedThisFrame == true" in result
 
     def test_key_down_escape(self):
         """Input.get_key_down('escape') -> Keyboard.current.escapeKey.wasPressedThisFrame"""
         result = _translate_simple_body("if Input.get_key_down('escape'):")
-        assert "Keyboard.current.escapeKey.wasPressedThisFrame" in result
+        assert "Keyboard.current?.escapeKey.wasPressedThisFrame == true" in result
 
     def test_key_held_escape(self):
         """Input.get_key('escape') -> Keyboard.current.escapeKey.isPressed"""
         result = _translate_simple_body("if Input.get_key('escape'):")
-        assert "Keyboard.current.escapeKey.isPressed" in result
+        assert "Keyboard.current?.escapeKey.isPressed == true" in result
 
     def test_key_up_space(self):
         """Input.get_key_up('space') -> Keyboard.current.spaceKey.wasReleasedThisFrame"""
         result = _translate_simple_body("if Input.get_key_up('space'):")
-        assert "Keyboard.current.spaceKey.wasReleasedThisFrame" in result
+        assert "Keyboard.current?.spaceKey.wasReleasedThisFrame == true" in result
 
     def test_arrow_keys(self):
         """Arrow key names map to Unity's xArrowKey pattern."""
         for py_key, cs_key in [("left", "leftArrowKey"), ("right", "rightArrowKey"),
                                 ("up", "upArrowKey"), ("down", "downArrowKey")]:
             result = _translate_simple_body(f"if Input.get_key_down('{py_key}'):")
-            assert f"Keyboard.current.{cs_key}.wasPressedThisFrame" in result, \
+            assert f"Keyboard.current?.{cs_key}.wasPressedThisFrame == true" in result, \
                 f"Failed for key '{py_key}': expected {cs_key}"
 
     def test_letter_keys(self):
         """Single letter keys map to xKey pattern."""
         for letter in "wasd":
             result = _translate_simple_body(f"if Input.get_key('{letter}'):")
-            assert f"Keyboard.current.{letter}Key.isPressed" in result, \
+            assert f"Keyboard.current?.{letter}Key.isPressed == true" in result, \
                 f"Failed for letter key '{letter}'"
 
     def test_modifier_keys(self):
         """Modifier keys: left_shift -> leftShiftKey, left_control -> leftCtrlKey."""
         result = _translate_simple_body("if Input.get_key('left_shift'):")
-        assert "Keyboard.current.leftShiftKey.isPressed" in result
+        assert "Keyboard.current?.leftShiftKey.isPressed == true" in result
 
         result = _translate_simple_body("if Input.get_key('left_control'):")
-        assert "Keyboard.current.leftCtrlKey.isPressed" in result
+        assert "Keyboard.current?.leftCtrlKey.isPressed == true" in result
 
     def test_return_key(self):
         """return key -> enterKey (Unity naming)."""
         result = _translate_simple_body("if Input.get_key_down('return'):")
-        assert "Keyboard.current.enterKey.wasPressedThisFrame" in result
+        assert "Keyboard.current?.enterKey.wasPressedThisFrame == true" in result
 
     def test_tab_key(self):
         """tab key -> tabKey."""
         result = _translate_simple_body("if Input.get_key_down('tab'):")
-        assert "Keyboard.current.tabKey.wasPressedThisFrame" in result
+        assert "Keyboard.current?.tabKey.wasPressedThisFrame == true" in result
 
     def test_unknown_key_fallback(self):
         """Unknown key name gets 'Key' suffix appended as fallback."""
         result = _translate_simple_body("if Input.get_key_down('backspace'):")
-        assert "Keyboard.current.backspaceKey.wasPressedThisFrame" in result
+        assert "Keyboard.current?.backspaceKey.wasPressedThisFrame == true" in result
 
     def test_axis_becomes_keyboard(self):
         """Input.get_axis('Horizontal') emits keyboard-based axis emulation."""
         result = _translate_simple_body("h = Input.get_axis('Horizontal')")
-        assert "Keyboard.current.dKey.isPressed" in result
-        assert "Keyboard.current.aKey.isPressed" in result
+        assert "Keyboard.current?.dKey.isPressed == true" in result
+        assert "Keyboard.current?.aKey.isPressed == true" in result
 
     # ── Using directive ──
 
@@ -392,7 +392,7 @@ class TestEdgeCases:
             "    rb.velocity = Vector2(1, 0)"
         )
         result = _translate_simple_body(body, unity_version=6, input_system="new")
-        assert "Mouse.current.leftButton.wasPressedThisFrame" in result
+        assert "Mouse.current?.leftButton.wasPressedThisFrame == true" in result
         assert "linearVelocity" in result
 
     def test_mixed_velocity_and_input_unity5(self):
@@ -416,9 +416,9 @@ class TestEdgeCases:
             "pos = Input.get_mouse_position()"
         )
         result = _translate_simple_body(body, unity_version=6, input_system="new")
-        assert "Keyboard.current.spaceKey.wasPressedThisFrame" in result
-        assert "Mouse.current.leftButton.isPressed" in result
-        assert "Mouse.current.position.ReadValue()" in result
+        assert "Keyboard.current?.spaceKey.wasPressedThisFrame == true" in result
+        assert "Mouse.current?.leftButton.isPressed == true" in result
+        assert "Mouse.current?.position.ReadValue() ?? Vector2.zero" in result
 
     def test_velocity_not_replaced_in_variable_name(self):
         """'velocity' as a local variable name should also get mapped (known limitation)
@@ -441,7 +441,7 @@ class TestEdgeCases:
             imports=["from src.engine.input_manager import Input"],
         )
         result = translate(parsed)  # No explicit version/input args
-        assert "Keyboard.current.spaceKey.wasPressedThisFrame" in result
+        assert "Keyboard.current?.spaceKey.wasPressedThisFrame == true" in result
         assert "linearVelocity" in result
 
     def test_translate_file_passes_config(self):

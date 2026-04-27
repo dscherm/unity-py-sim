@@ -1984,45 +1984,70 @@ _MOUSE_BUTTON_MAP = {
 
 
 def _translate_new_input_system(expr: str) -> str:
-    """Translate Input.get_* calls to Unity New Input System (Mouse/Keyboard)."""
-    # Input.get_mouse_button_down(0) -> Mouse.current.leftButton.wasPressedThisFrame
+    """Translate Input.get_* calls to Unity New Input System (Mouse/Keyboard).
+
+    Every emitted access is null-safe: `Keyboard.current` and
+    `Mouse.current` return null when the corresponding device hasn't
+    been registered (the default state during `-batchmode -runTests`,
+    which has no real input device backend).  Bare unguarded reads
+    threw NullReferenceException on every Update() tick under that
+    environment — see translator-input-system-null-guard for the
+    forensic trail (workflow runs 24971232854, 24971807340).
+
+    The Boolean-coerced null-conditional pattern
+        Keyboard.current?.spaceKey.wasPressedThisFrame == true
+    collapses `bool?` back to `bool` so `if`, `||`, `&&`, and ternary
+    chains continue to work.  Vector2 reads (`mouse_position`) coalesce
+    against `Vector2.zero` so the result type stays Vector2.
+    """
+    # Input.get_mouse_button_down(0) -> Mouse.current?.leftButton.wasPressedThisFrame == true
     expr = re.sub(
         r"Input\.get_mouse_button_down\((\d)\)",
-        lambda m: f"Mouse.current.{_MOUSE_BUTTON_MAP.get(m.group(1), 'leftButton')}.wasPressedThisFrame",
+        lambda m: f"Mouse.current?.{_MOUSE_BUTTON_MAP.get(m.group(1), 'leftButton')}.wasPressedThisFrame == true",
         expr,
     )
-    # Input.get_mouse_button_up(0) -> Mouse.current.leftButton.wasReleasedThisFrame
+    # Input.get_mouse_button_up(0) -> Mouse.current?.leftButton.wasReleasedThisFrame == true
     expr = re.sub(
         r"Input\.get_mouse_button_up\((\d)\)",
-        lambda m: f"Mouse.current.{_MOUSE_BUTTON_MAP.get(m.group(1), 'leftButton')}.wasReleasedThisFrame",
+        lambda m: f"Mouse.current?.{_MOUSE_BUTTON_MAP.get(m.group(1), 'leftButton')}.wasReleasedThisFrame == true",
         expr,
     )
-    # Input.get_mouse_button(0) -> Mouse.current.leftButton.isPressed
+    # Input.get_mouse_button(0) -> Mouse.current?.leftButton.isPressed == true
     expr = re.sub(
         r"Input\.get_mouse_button\((\d)\)",
-        lambda m: f"Mouse.current.{_MOUSE_BUTTON_MAP.get(m.group(1), 'leftButton')}.isPressed",
+        lambda m: f"Mouse.current?.{_MOUSE_BUTTON_MAP.get(m.group(1), 'leftButton')}.isPressed == true",
         expr,
     )
-    # Input.get_mouse_position() / Input.mouse_position -> Mouse.current.position.ReadValue()
-    expr = re.sub(r"Input\.get_mouse_position\(\)", "Mouse.current.position.ReadValue()", expr)
-    expr = re.sub(r"Input\.mouse_position", "Mouse.current.position.ReadValue()", expr)
+    # Input.get_mouse_position() / Input.mouse_position -> Vector2-typed read with
+    # a Vector2.zero fallback when the device is missing — keeps the result type
+    # Vector2 (not Vector2?) so callers needing arithmetic don't break.
+    expr = re.sub(
+        r"Input\.get_mouse_position\(\)",
+        "(Mouse.current?.position.ReadValue() ?? Vector2.zero)",
+        expr,
+    )
+    expr = re.sub(
+        r"Input\.mouse_position",
+        "(Mouse.current?.position.ReadValue() ?? Vector2.zero)",
+        expr,
+    )
 
-    # Input.get_key_down('space') -> Keyboard.current.spaceKey.wasPressedThisFrame
+    # Input.get_key_down('space') -> Keyboard.current?.spaceKey.wasPressedThisFrame == true
     expr = re.sub(
         r"Input\.get_key_down\(['\"](\w+)['\"]\)",
-        lambda m: f"Keyboard.current.{_KEY_NAME_MAP.get(m.group(1), m.group(1) + 'Key')}.wasPressedThisFrame",
+        lambda m: f"Keyboard.current?.{_KEY_NAME_MAP.get(m.group(1), m.group(1) + 'Key')}.wasPressedThisFrame == true",
         expr,
     )
-    # Input.get_key_up('space') -> Keyboard.current.spaceKey.wasReleasedThisFrame
+    # Input.get_key_up('space') -> Keyboard.current?.spaceKey.wasReleasedThisFrame == true
     expr = re.sub(
         r"Input\.get_key_up\(['\"](\w+)['\"]\)",
-        lambda m: f"Keyboard.current.{_KEY_NAME_MAP.get(m.group(1), m.group(1) + 'Key')}.wasReleasedThisFrame",
+        lambda m: f"Keyboard.current?.{_KEY_NAME_MAP.get(m.group(1), m.group(1) + 'Key')}.wasReleasedThisFrame == true",
         expr,
     )
-    # Input.get_key('space') -> Keyboard.current.spaceKey.isPressed
+    # Input.get_key('space') -> Keyboard.current?.spaceKey.isPressed == true
     expr = re.sub(
         r"Input\.get_key\(['\"](\w+)['\"]\)",
-        lambda m: f"Keyboard.current.{_KEY_NAME_MAP.get(m.group(1), m.group(1) + 'Key')}.isPressed",
+        lambda m: f"Keyboard.current?.{_KEY_NAME_MAP.get(m.group(1), m.group(1) + 'Key')}.isPressed == true",
         expr,
     )
 
@@ -2030,9 +2055,9 @@ def _translate_new_input_system(expr: str) -> str:
     def _replace_axis(m):
         axis = m.group(1)
         if axis == "Horizontal":
-            return "((Keyboard.current.dKey.isPressed ? 1f : 0f) - (Keyboard.current.aKey.isPressed ? 1f : 0f))"
+            return "((Keyboard.current?.dKey.isPressed == true ? 1f : 0f) - (Keyboard.current?.aKey.isPressed == true ? 1f : 0f))"
         elif axis == "Vertical":
-            return "((Keyboard.current.wKey.isPressed ? 1f : 0f) - (Keyboard.current.sKey.isPressed ? 1f : 0f))"
+            return "((Keyboard.current?.wKey.isPressed == true ? 1f : 0f) - (Keyboard.current?.sKey.isPressed == true ? 1f : 0f))"
         else:
             return f"0f /* unknown axis: {axis} */"
     expr = re.sub(

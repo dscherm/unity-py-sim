@@ -46,7 +46,7 @@ class TestMutationForceLegacy:
 
         # Normal translation should produce new input system API
         normal_result = translate(parsed, input_system="new")
-        assert "Keyboard.current.spaceKey.wasPressedThisFrame" in normal_result
+        assert "Keyboard.current?.spaceKey.wasPressedThisFrame == true" in normal_result
 
         # Mutant: override config after translate sets it
         original_translate_new = translator_mod._translate_new_input_system
@@ -69,7 +69,7 @@ class TestMutationForceLegacy:
         parsed = parse_python(source)
 
         normal_result = translate(parsed, input_system="new")
-        assert "Mouse.current.leftButton.wasPressedThisFrame" in normal_result
+        assert "Mouse.current?.leftButton.wasPressedThisFrame == true" in normal_result
 
         def mutant_translate_expr(expr):
             return expr
