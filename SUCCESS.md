@@ -22,9 +22,9 @@ The project is shipped when **all 5 criteria pass simultaneously** on the main b
 
 **Definition**: GitHub Actions runs the full pytest suite + ruff lint + structural/convention/compilation gates on every push and PR. A failing test or gate blocks merge to main.
 
-**Status (2026-04-27)**: ✅ shipped. M-6 wired `.github/workflows/ci.yml` to run pytest + ruff on every push and PR; ruff passes (per-file ignores in `pyproject.toml` cover known noisy patterns); the full suite went green at 3412 passed during M-6 verification. Branch protection on `master` enforces the check before merge. Lint debt was triaged in 3 buckets that session: 381 auto-fixes, per-file ignores for legitimate test/tools patterns, and 16 manual E731/E702 cleanups.
+**Status (2026-04-27)**: ✅ shipped. M-6 wired `.github/workflows/ci.yml` to run pytest + ruff on every push and PR; ruff passes (per-file ignores in `pyproject.toml` cover known noisy patterns); the full suite went green at 3412 passed during M-6 verification. Branch protection on `master` enforces the check before merge. Lint debt was triaged in 3 buckets that session: 381 auto-fixes, per-file ignores for legitimate test/tools patterns, and 16 manual E731/E702 cleanups. M-12 (closed 2026-04-27) added the **Gap Gate** as a required CI job — for every Unity API referenced by a Python file touched in a PR, a passing dual-path parity test must exist under `tests/parity/`. Untouched files are grandfathered; touched files are strict (even on pre-existing references). Missing coverage auto-writes a skeleton via `tools/parity_scaffold.py`. Suite is now 3699 passed.
 
-**Delivered by**: M-6 (closed 2026-04-26).
+**Delivered by**: M-6 (closed 2026-04-26) + M-12 (closed 2026-04-27).
 
 ### MAN-3 · No undocumented `passes: false` in plan.md
 

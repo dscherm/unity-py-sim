@@ -3143,7 +3143,8 @@ Premise: today the Python sim and the translated C# can drift silently — the s
     "Update SUCCESS.md MAN-3 (or add MAN-6) — document the Gap Gate as a mandatory criterion.",
     "Spawn validation agent: write a synthetic PR that touches a file referencing an untested API, run gate, assert (a) skeleton lands, (b) gate fails with the expected message, (c) after filling skeleton, gate passes."
   ],
-  "passes": false,
+  "passes": true,
+  "verified_2026-04-27": "Shipped src/gates/gap_gate.py + tests/gates/test_gap_gate.py (9 tests, all green). CI wired in .github/workflows/test.yml as a required `gap_gate` job — fetch-depth:0, --no-scaffold, base=origin/${{ github.base_ref }} for PRs / HEAD~1 otherwise. Validation agent built tests/contracts/test_gap_gate_contract.py (12), tests/integration/test_gap_gate_integration.py (6), tests/mutation/test_gap_gate_mutation.py (5) — 5/5 mutations caught, full suite 3699 passed. Known follow-ups (non-blocking): (a) `--files` argparse can't represent an explicitly empty list, (b) examples/breakout/run_breakout.py will fail any PR that touches it until Camera.backgroundColor / SpriteRenderer.color are implemented (the M-9 deferred list). Both are accepted design costs of the strict-on-touched rule.",
   "depends_on": ["M-9-parity-backfill", "M-11-idiom-catalog"],
   "estimated_effort_hours": 4
 }
