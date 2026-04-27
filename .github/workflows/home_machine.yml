@@ -22,29 +22,60 @@ permissions:
   actions: write
 
 jobs:
+  # Build the deploy matrix dynamically so the `games` workflow_dispatch
+  # input can drop matrix entries entirely (rather than running them and
+  # painting the row red on a non-zero "neutral skip" exit). A previous
+  # attempt used a job-level `if:` referencing `matrix.game`, but GitHub
+  # Actions evaluates job-level `if:` BEFORE matrix expansion, so the
+  # `matrix` context is unresolved there ("Unrecognized named-value:
+  # 'matrix'"). Computing the matrix in a prep job is the canonical
+  # GHA pattern for input-driven matrix filtering.
+  setup:
+    name: Resolve matrix
+    runs-on: ubuntu-latest
+    outputs:
+      games: ${{ steps.compute.outputs.games }}
+    steps:
+      - name: Compute matrix
+        id: compute
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Single source of truth for "regenerable games" — when adding
+          # a new generated project, append here AND below in the deploy
+          # job's matrix fallback (kept for readability of the static
+          # case in code review).
+          ALL='["breakout","flappy_bird"]'
+          INPUT='${{ inputs.games }}'
+          EVENT='${{ github.event_name }}'
+          if [[ "$EVENT" == "workflow_dispatch" && -n "${INPUT// /}" ]]; then
+            # Filter the requested list against known games (rejects
+            # typos so a user dispatching `games=brakout` doesn't get a
+            # silent no-op). Whitespace-tolerant, dedup'd, case-sensitive.
+            games=$(echo "$INPUT" \
+              | tr ' ' '\n' \
+              | sort -u \
+              | awk '/^(breakout|flappy_bird)$/' \
+              | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            if [[ -z "$games" || "$games" == "[]" ]]; then
+              echo "::warning::No valid games in inputs.games='$INPUT'; falling back to full matrix"
+              games="$ALL"
+            fi
+          else
+            games="$ALL"
+          fi
+          echo "games=$games" >> "$GITHUB_OUTPUT"
+          echo "Selected matrix: $games"
+
   deploy:
+    needs: setup
     name: ${{ matrix.game }}
     runs-on: [self-hosted, Windows, unity]
     timeout-minutes: 25
-    # Skip the whole matrix entry (gray, not red) when the user dispatches
-    # with an explicit `games` list that omits this matrix.game.  Previously
-    # the equivalent check ran as an inline `exit 78` step, which GitHub
-    # Actions treats as a failed step on `run:` (only `uses:` honors the
-    # neutral-skip exit code), turning every non-target row red.
-    # Space-padded `contains` enforces word-boundary matching so future
-    # game names that share a substring (e.g. `flappy_bird_v2`) don't
-    # accidentally match `flappy_bird`.
-    if: >-
-      github.event_name != 'workflow_dispatch'
-      || inputs.games == ''
-      || contains(format(' {0} ', inputs.games), format(' {0} ', matrix.game))
     strategy:
       fail-fast: false
       matrix:
-        # Add a row here when a new game's project is regenerable.
-        game:
-          - breakout
-          - flappy_bird
+        game: ${{ fromJSON(needs.setup.outputs.games) }}
     env:
       GAME: ${{ matrix.game }}
       PROJECT_PATH: data/generated/${{ matrix.game }}_project
