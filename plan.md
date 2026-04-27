@@ -1871,6 +1871,8 @@ Stage 6: Polish & Build    → Art/audio/ship (MANUAL)
     "Goal: < 5 manual interventions to get from Python source to playable Unity game"
   ],
   "passes": false,
+  "shelved": true,
+  "blocked_on": "moved to SHELVED.md per user redirect 2026-04-24 — Breakout took Pacman V1's slot under MAN-1 (M-1). Re-run is free under M-7 phase 2 if revived; no longer mandatory.",
   "blocked_on": "home-machine Unity deploy",
   "note": "Pipeline components all green in isolation (translate, semantic_layer, scaffold, prefab detect/gen, coplay_generator). E2E playtest requires Unity on the user's home machine — push data/generated/pacman_v2_project/, open in Unity, run CoPlay script, play-test ghosts/pellets/scoring, then log manual-intervention count back into this block."
 }

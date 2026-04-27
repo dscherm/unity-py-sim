@@ -22,15 +22,15 @@ The project is shipped when **all 5 criteria pass simultaneously** on the main b
 
 **Definition**: GitHub Actions runs the full pytest suite + ruff lint + structural/convention/compilation gates on every push and PR. A failing test or gate blocks merge to main.
 
-**Status (2026-04-24)**: not configured.
+**Status (2026-04-27)**: ✅ shipped. M-6 wired `.github/workflows/ci.yml` to run pytest + ruff on every push and PR; ruff passes (per-file ignores in `pyproject.toml` cover known noisy patterns); the full suite went green at 3412 passed during M-6 verification. Branch protection on `master` enforces the check before merge. Lint debt was triaged in 3 buckets that session: 381 auto-fixes, per-file ignores for legitimate test/tools patterns, and 16 manual E731/E702 cleanups.
 
-**Delivered by**: M-6.
+**Delivered by**: M-6 (closed 2026-04-26).
 
 ### MAN-3 · No undocumented `passes: false` in plan.md
 
 **Definition**: Every task in `plan.md` is either `passes: true`, or has an explicit reason and target date in a `blocked_on` field, or is moved to `SHELVED.md` with rationale.
 
-**Status (2026-04-24)**: 1 such task (Hierarchical Architecture Task 8 — Pacman V1 E2E, `blocked_on: home-machine Unity deploy`). Per user redirect (2026-04-24), Pacman V1 is moved to `SHELVED.md` and Breakout takes its place via M-1.
+**Status (2026-04-27)**: ✅ 0 undocumented `passes: false` tasks. The Pacman V1 E2E entry now carries `shelved: true` + `blocked_on` pointing to the user-redirect rationale per the SHELVED.md row. All other open tasks are `passes: true` or marked with completion dates from this session's pipeline closure.
 
 **Delivered by**: M-5 (this task) closes it; subsequent tasks must maintain it.
 
@@ -90,7 +90,7 @@ These define the project's *maturity*, not its *shipping*. Useful for prioritiza
 
 **Definition**: Every push to `main` triggers the home-machine self-hosted runner to clone, deploy, run CoPlay, run Play mode for N seconds, capture screenshots and Unity console logs, and post results back as a PR/commit check. Zero manual ritual on the home machine.
 
-**Status (2026-04-26, partial)**: M-7 v1 (deploy-only) shipped and verified live. Self-hosted Windows runner `home-unity` registered, Unity 6 license activated, `.github/workflows/home_machine.yml` triggers on push to `master` + `workflow_dispatch`. First end-to-end run (workflow `24945292331`): **flappy_bird ✅ deployed in 3m11s**, **breakout ❌ caught a real translator regression** (Gap B2 — `inst.<attr>` PascalCase emission emits `inst.ScoreText` while the field was declared as `scoreText`). The red-on-regression case is therefore proven without a contrived test: M-7 v1 surfaces a Gap B2 bug that was previously masked by a manual Inspector hand-edit. Per-run JSON lands in `data/metrics/home_machine_runs/`, Unity log uploaded as artifact `<game>-deploy-<run>.zip`. PlayMode validation (runtime exception detection during gameplay) is **M-7 phase 2** — will use Unity Test Framework's `[UnityTest]` PlayMode runner via `Unity -runTests`, not a custom batchmode harness (Unity batchmode doesn't reliably keep its main loop alive long enough for async coroutines after `-executeMethod` returns).
+**Status (2026-04-27)**: ✅ M-7 v1 + M-7 phase 2 fully shipped and verified live. Self-hosted Windows runner `home-unity` registered, Unity 6 license activated, `.github/workflows/home_machine.yml` triggers on push to `master` + `workflow_dispatch`, builds matrix dynamically from `inputs.games` via a `setup` prep job. End-to-end run `24972279901` (2026-04-27): **breakout ✅** + **flappy_bird ✅** — both deploy + PlayMode tests went green. PlayMode validation rides the Unity Test Framework `[UnityTest]` runner (3-second tick + `Application.logMessageReceived` capture, fails red on Error/Exception/Assert). Three classes of regression caught and closed during shakedown: (1) shader-compiler OOM under runner-context memory pressure — fixed via Defender exclusions, pre-deploy Unity-process cleanup, and `-disable-assembly-updater`; (2) translator namespace mismatch in CoPlay scripts — fixed by centralizing `GAME_NAMESPACES` + auto-defaulting in `gen_*_coplay.py`; (3) translator emitting unguarded `Keyboard.current.X` / `Mouse.current.X` accesses — fixed by `?.X.Y == true` Boolean-coerced null-conditional pattern. Per-run JSON lands in `data/metrics/home_machine_runs/`, Unity log + JUnit XML uploaded as artifacts.
 
 **Delivered by**: M-7 v1 (deploy automation) + Gap B2 translator fix (separate task) + M-7 phase 2 (PlayMode validation via UTF, separate task).
 
