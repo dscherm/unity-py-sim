@@ -1,9 +1,9 @@
 {
   "total_apis": 87,
   "implemented": 83,
-  "with_parity_test": 27,
+  "with_parity_test": 28,
   "implementation_pct": 0.954,
-  "parity_test_pct": 0.31,
+  "parity_test_pct": 0.322,
   "by_kind": {
     "class": {
       "total": 29,
@@ -18,7 +18,7 @@
     "property": {
       "total": 31,
       "implemented": 27,
-      "with_parity_test": 9
+      "with_parity_test": 10
     },
     "lifecycle": {
       "total": 14,
@@ -40,7 +40,7 @@
     "Transform": {
       "total": 12,
       "implemented": 12,
-      "with_parity_test": 2
+      "with_parity_test": 3
     },
     "Rigidbody2D": {
       "total": 8,
@@ -667,7 +667,7 @@
       "python_module": null,
       "python_member": "up",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Transform",

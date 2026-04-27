@@ -6,6 +6,7 @@ namespace UnityEngine
     public class Object
     {
         public string name;
+        public int GetInstanceID() => 0;
         public static void Destroy(Object obj, float t = 0f) { }
         public static void DontDestroyOnLoad(Object obj) { }
         public static T Instantiate<T>(T original) where T : Object => default;
@@ -45,8 +46,8 @@ namespace UnityEngine
         public int layer;
         public Transform transform;
 
-        public GameObject() { }
-        public GameObject(string name) { }
+        public GameObject() { transform = new Transform { gameObject = this }; }
+        public GameObject(string name) { this.name = name; transform = new Transform { gameObject = this }; }
 
         public T GetComponent<T>() where T : Component => default;
         public T AddComponent<T>() where T : Component => default;
@@ -278,6 +279,9 @@ namespace UnityEngine
         public Color color;
         public int sortingOrder;
         public Vector2 size;
+        public bool enabled;
+        public bool flipX;
+        public bool flipY;
     }
 
     public class Sprite : Object { }
@@ -331,6 +335,13 @@ namespace UnityEngine
     public static class Physics2D
     {
         public static RaycastHit2D Raycast(Vector2 origin, Vector2 direction, float distance = float.PositiveInfinity) => default;
+        public static Collider2D OverlapBox(Vector2 point, Vector2 size, float angle) => default;
+        public static Collider2D OverlapBox(Vector2 point, Vector2 size, float angle, int layerMask) => default;
+        public static Collider2D OverlapCircle(Vector2 point, float radius) => default;
+        public static Collider2D OverlapCircle(Vector2 point, float radius, int layerMask) => default;
+        public static Collider2D OverlapPoint(Vector2 point) => default;
+        public static Collider2D OverlapPoint(Vector2 point, int layerMask) => default;
+        public static void IgnoreLayerCollision(int layer1, int layer2, bool ignore = true) { }
     }
 
     public struct RaycastHit2D

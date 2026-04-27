@@ -3015,3 +3015,152 @@ Total: ~217 hours. Architect's risk note (2026-04-24): M-2 and M-4 together can 
   "estimated_effort_hours": 1
 }
 ```
+
+---
+
+## Phase: Sim ↔ Unity Parity & Gap Gate (post-maintenance initiative)
+
+Anchor: SUCCESS.md ASP-3 (parity tests ≥90%) + ASP-4 (parity tests pass dotnet/CoPlay paths). Closes the realtime-feedback-loop story for LLM-driven game development by making the Python sim a faithful debugging proxy for Unity, with the gap measured by automated parity tests and gated in CI.
+
+Premise: today the Python sim and the translated C# can drift silently — the sim says "ball clears the paddle", Unity says "ball tunnels through" — and the LLM building the game has no way to know which is right until a human spins up Unity. The parity matrix exists (87 APIs, 31% behaviorally tested) but isn't a gate. This phase turns the gap into a number, then a CI failure, then zero.
+
+### Task M-8-divergence-harness: Dual-path parity test runner
+
+```json
+{
+  "id": "M-8-divergence-harness",
+  "category": "infrastructure",
+  "priority": 8,
+  "title": "Dual-path parity test harness — same scenario runs in Python sim and translated C#, asserts equivalent observable behavior",
+  "description": "Build a harness so each parity test under tests/parity/ executes the same scenario (e.g. 'apply force, advance 60 fixed frames, read transform.position') against TWO backends: (1) the Python sim via src/engine, (2) translated C# via the existing dotnet headless path (the same one M-7 uses to validate translator output before shipping). Outputs from both sides are normalized (rounded to 4 decimals for floats, ordered dict for component lists) and asserted equal. Tests that diverge fail with a structured diff showing python value, csharp value, and the API under test. This is the foundation for M-9 (backfill) and M-12 (gate) — without it, the parity matrix only proves a name exists, not that it behaves the same.",
+  "steps": [
+    "Define the parity-test contract: each test exposes `scenario_python(engine)` returning a dict of observables, and `scenario_csharp_source()` returning a C# snippet that produces the equivalent dict via JSON stdout.",
+    "Write the harness `tests/parity/_harness.py` — runs both sides, captures observables, asserts deep-equal with float tolerance.",
+    "Wire the C# side to use the existing dotnet headless runner from tests/contracts/test_compilation_gate (UnityEngine reference DLL stubs).",
+    "Convert one of the existing parity tests (Transform.position is the simplest) to the dual-path shape as a reference implementation.",
+    "Run via pytest tests/parity/ and confirm both backends agree on the reference test.",
+    "Spawn validation agent to verify the harness actually fails when the Python sim is mutated to disagree with C# (mutation test — prove the gate has teeth)."
+  ],
+  "passes": true,
+  "completed_on": "2026-04-27",
+  "verified_2026-04-27": "Harness landed at tests/parity/_harness.py — `ParityCase` dataclass + `assert_parity()` runner. C# leg compiles a one-shot .NET 8 console app against `stubs/UnityEngine.cs` (now with GameObject ctor that initializes `transform`, the one stub upgrade needed for the reference test) and emits a JSON observable dict tagged `PARITY_OBSERVABLES:`; harness parses it and deep-compares with the Python lambda's dict, with float tolerance 1e-4 by default. tests/parity/test_transform_position_parity.py reshaped: 5 legacy `*_python_only` tests (fast smoke) + 4 dual-path `*_parity` tests covering default origin, Vector3 setter, per-instance independence, round-trip-through-zero. Both legs agreed on all 4 cases. Validation agent (general-purpose, no worktree, derived expectations from harness module + Unity docs only) shipped tests/mutation/test_parity_harness_mutation.py — 6 mutation tests prove the harness catches: (1) Python-leg lies, (2) C#-leg lies, (3) tolerance respect (passes at 1e-4, fails at 1e-9 for a 1e-6 delta), (4) type mismatch (list vs dict), (5) missing key, (6) C# build failure surfaces as RuntimeError (no silent pass). Module-level `pytest.mark.skipif(not dotnet_available())` keeps it green on machines without dotnet. Parity-matrix audit re-ran (`python -m src.gates.parity_matrix`) — coverage now 28/87 (32.2%, +1 from this task); dashboard + parity_matrix.md regenerated. Cold-start dotnet run ~3s; subsequent runs ~1s.",
+  "depends_on": ["MAN-4"],
+  "estimated_effort_hours": 10
+}
+```
+
+### Task M-9-parity-backfill: Backfill parity tests from 27/87 → 80+/87
+
+```json
+{
+  "id": "M-9-parity-backfill",
+  "category": "feature",
+  "priority": 9,
+  "title": "Backfill parity tests for the 60 untested APIs in src/reference/mappings/ — auto-generated skeletons + filled-in scenarios",
+  "description": "Today 27/87 claimed Unity APIs have parity tests (per data/metrics/parity_matrix.json). M-9 closes that to ≥80/87 (≥92% — exceeds ASP-3's 90% bar). Process per API: (a) tools/parity_scaffold.py generates a skeleton test file under tests/parity/ with TODO markers for scenario_python + scenario_csharp_source; (b) human or LLM agent fills in a minimal scenario that exercises the API; (c) dual-path harness from M-8 runs it; (d) when the test passes both legs, parity_matrix.json flips that API to parity_tested=true. Untestable APIs (e.g. UI-only, file-system-bound) get parked with explicit `parity_skipped: <reason>` rows.",
+  "steps": [
+    "Build tools/parity_scaffold.py — input: API name from classes.json/methods.json, output: skeleton test file with scenario_python and scenario_csharp_source stubs + TODO comments referencing Unity docs.",
+    "Run scaffolder for all 60 untested APIs; commit the skeletons with passes=skip pytest markers so suite stays green.",
+    "Fill in scenarios in batches of 10 — group by feature area (physics, transform, input, lifecycle, math, etc.) to minimize context-switching cost.",
+    "After each batch, run pytest tests/parity/ -v and confirm both legs pass; flip parity_tested=true in parity_matrix.json via `python -m src.gates.parity_matrix --refresh`.",
+    "Park untestable APIs with explicit `parity_skipped: <reason>` and document the policy in tests/parity/README.md.",
+    "Final acceptance: parity_matrix.json shows ≥80/87 parity_tested, dashboard reflects ASP-3 ✅, all parity tests green on both legs.",
+    "Spawn validation agent per batch (every 10 filled-in tests) — agent reads ONLY src/ + Unity docs, writes mutation tests proving the parity test catches a known divergence."
+  ],
+  "passes": false,
+  "depends_on": ["M-8-divergence-harness"],
+  "estimated_effort_hours": 35
+}
+```
+
+### Task M-10-translate-snippet-tool: Sub-1s Python snippet → C# preview tool
+
+```json
+{
+  "id": "M-10-translate-snippet-tool",
+  "category": "tool",
+  "priority": 10,
+  "title": "tools/translate_snippet.py — paste a Python fragment, get the translator's C# output in <1s",
+  "description": "When an LLM is mid-build in unity-py-sim it should be able to ask 'what would this Python translate to in Unity?' and get an answer in under a second without going through the full pipeline. M-10 ships a thin CLI: stdin or --code Python, stdout C# from src.translator.python_to_csharp. Used by the LLM as a sanity check before committing translator-unfriendly idioms; used by humans to debug translation surprises; used by future M-11 (idiom catalog) as the example-execution backend.",
+  "steps": [
+    "Build tools/translate_snippet.py — single-file CLI, no project context, stdin or --code or --file input, stdout C#.",
+    "Add `--with-using` flag that emits the using directives that would be hoisted by the full project translator.",
+    "Add `--diff <expected.cs>` mode that compares output to a fixture and exits non-zero on mismatch (for use in M-11's idiom-catalog tests).",
+    "Verify <1s wall-clock on cold start for a 20-line snippet (caching the tree-sitter / ast import is the only realistic optimization needed).",
+    "Spawn validation agent: write 10 round-trip tests using only the snippet tool (Python in → C# out → assert equality with hand-written C# fixture)."
+  ],
+  "passes": false,
+  "depends_on": [],
+  "estimated_effort_hours": 4
+}
+```
+
+### Task M-11-idiom-catalog: Translator-safe idiom catalog
+
+```json
+{
+  "id": "M-11-idiom-catalog",
+  "category": "documentation",
+  "priority": 11,
+  "title": "data/idioms/ — Python idioms that translate cleanly + their unsafe counterparts, machine-checkable",
+  "description": "Today the translator-unfriendly patterns are tribal knowledge spread across data/lessons/. M-11 codifies them as paired Python+C# fixtures under data/idioms/<name>/ — `safe.py` translates to `safe.cs.expected` and the M-10 snippet tool's --diff mode enforces it; `unsafe.py` is annotated with the failure mode and the safe rewrite. Index the catalog in data/idioms/README.md grouped by feature area (input, lifecycle, collections, coroutines, serialization, etc.). Used by LLMs as a lookup table before authoring a new game; used by code review as the canonical 'is this pattern OK' reference.",
+  "steps": [
+    "Define the directory layout: data/idioms/<feature_area>/<idiom_name>/{safe.py, safe.cs.expected, unsafe.py, README.md}.",
+    "Seed with 20 idioms drawn from data/lessons/gotchas.md, data/lessons/patterns.md, and data/lessons/coplay_generator_gaps.md — every entry that has a clear before/after.",
+    "Write tests/idioms/test_idiom_catalog.py — for every safe.py, run M-10 --diff against safe.cs.expected; assert 0 mismatches.",
+    "Add a CI step that runs the idiom test suite alongside the rest of pytest.",
+    "Document the contribution flow in data/idioms/README.md: when a new translator gotcha surfaces, the fix lands as a new idiom directory + corresponding test, not just a lesson markdown."
+  ],
+  "passes": false,
+  "depends_on": ["M-10-translate-snippet-tool"],
+  "estimated_effort_hours": 6
+}
+```
+
+### Task M-12-gap-gate: Gap Gate as required CI check
+
+```json
+{
+  "id": "M-12-gap-gate",
+  "category": "infrastructure",
+  "priority": 12,
+  "title": "Gap Gate — required CI check that any Unity API referenced by code touched in a PR has a passing parity test",
+  "description": "Make the Python ↔ Unity gap a SUCCESS.md mandatory criterion by gating every PR. The gate scans `git diff master...HEAD --name-only` for files touched by the PR, then for each touched file extracts every Unity API reference (Transform.position, Rigidbody2D.AddForce, Input.GetKey, etc.) and asserts each one has a passing dual-path parity test under tests/parity/. Two design decisions encoded:\n\n  (1) GRANDFATHER ONLY UNTOUCHED CODE. Files NOT in the PR diff are exempt; files IN the PR diff must have all of their Unity API references parity-tested, even if a particular reference predates the diff. Rationale: forces hot-spot files to upgrade fastest; doesn't punish PRs that don't touch under-tested code. Stricter than 'grandfather entire files until touched once' — every touch carries the obligation forward.\n\n  (2) AUTO-GENERATE PARITY-TEST SKELETONS ON MISSING COVERAGE. When the gate finds an uncovered API in a touched file, it doesn't fail hard — it invokes tools/parity_scaffold.py to write a skeleton test under tests/parity/, then fails with a clear message: 'Skeleton written to tests/parity/<file>.py — fill in scenario_python and scenario_csharp_source, then re-run.' The agent's PR must include the filled-in test before the gate goes green. Lowers friction for agents; humans / reviewers verify the test isn't trivially-passing during code review.\n\nThe gate ships as src/gates/gap_gate.py + a GitHub Actions step in .github/workflows/ci.yml. Once green for one PR cycle on master, gate becomes a required check in branch protection.",
+  "steps": [
+    "Build src/gates/gap_gate.py — inputs: PR diff (or `master...HEAD` ref), src/reference/mappings/ catalog, tests/parity/ index. Outputs: list of (file, api, status: tested|skeleton_written|missing) tuples + non-zero exit on any non-tested.",
+    "Implement the touched-file scanner — git diff name-only, filter to .py files under src/ and examples/, parse with ast to find UnityAPI references (Transform.position style attribute reads, Input.X calls, etc.).",
+    "Implement the API-reference extractor — for each touched file, walk the AST and emit every Unity API name; cross-reference against parity_matrix.json to find untested ones.",
+    "Implement the auto-skeleton path — when an API is untested, call tools/parity_scaffold.py (built in M-9) and write the skeleton; report the path in the gate failure message.",
+    "Add tests/gates/test_gap_gate.py — unit tests + an integration test that runs the gate against a synthetic PR diff and asserts the right files / APIs / skeleton outputs.",
+    "Wire into .github/workflows/ci.yml as a step that runs `python -m src.gates.gap_gate --base master`.",
+    "After one green run on master, mark Gap Gate as a required check in GitHub branch protection.",
+    "Update SUCCESS.md MAN-3 (or add MAN-6) — document the Gap Gate as a mandatory criterion.",
+    "Spawn validation agent: write a synthetic PR that touches a file referencing an untested API, run gate, assert (a) skeleton lands, (b) gate fails with the expected message, (c) after filling skeleton, gate passes."
+  ],
+  "passes": false,
+  "depends_on": ["M-9-parity-backfill", "M-11-idiom-catalog"],
+  "estimated_effort_hours": 4
+}
+```
+
+### Task M-13-agent-guide: AGENT_GUIDE.md operating manual
+
+```json
+{
+  "id": "M-13-agent-guide",
+  "category": "documentation",
+  "priority": 13,
+  "title": "AGENT_GUIDE.md — operating manual for LLM agents building games on unity-py-sim",
+  "description": "Concentrate the realtime-feedback-loop story into one document an LLM reads first when handed unity-py-sim as a build target. Sections: (a) what the sim is and isn't (faithful for the parity-tested 80+ APIs, undefined elsewhere); (b) the M-10 snippet tool as the moment-to-moment 'will this translate?' answer; (c) the M-11 idiom catalog as the 'what should I write instead' lookup; (d) the M-12 gap gate as the 'what will actually fail my PR' enforcer; (e) the playtest workflow (tools/playtest.py for visual debug, tools/pipeline.py for full Python→C# regen, gh workflow run home_machine.yml for end-to-end Unity validation); (f) the failure-mode shortlist (translator-unfriendly idioms, input-system null traps, namespace mismatches) cross-linked to data/lessons/.",
+  "steps": [
+    "Draft AGENT_GUIDE.md sections (a)–(f) above; keep each under 30 lines.",
+    "Cross-link every section to the source-of-truth file (parity_matrix.json, idioms/, lessons/, success.md).",
+    "Add an 'antipattern checklist' at the end — 10 patterns the agent should grep its own draft for before claiming a feature done.",
+    "Reference AGENT_GUIDE.md from CLAUDE.md so it loads at session start.",
+    "Validate by spawning an agent to build a small new game (one new MonoBehaviour + a scene) reading ONLY AGENT_GUIDE.md as context — agent should produce a translator-safe + gate-green PR on first try."
+  ],
+  "passes": false,
+  "depends_on": ["M-12-gap-gate"],
+  "estimated_effort_hours": 4
+}
+```
