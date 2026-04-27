@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using System.Linq;
+using FlappyBird;
 
 public class GeneratedSceneSetup
 {
@@ -82,13 +83,13 @@ public class GeneratedSceneSetup
         go_Player_bc.isTrigger = true;
         var go_Player_rb = go_Player.AddComponent<Rigidbody2D>();
         go_Player_rb.bodyType = RigidbodyType2D.Kinematic;
-        go_Player.AddComponent<Player>();
+        go_Player.AddComponent<FlappyBird.Player>();
         {
-            var so = new SerializedObject(go_Player.GetComponent<Player>());
-            var prop_gravity = so.FindProperty("gravity");
-            if (prop_gravity != null) prop_gravity.floatValue = -9.81f;
+            var so = new SerializedObject(go_Player.GetComponent<FlappyBird.Player>());
             var prop_strength = so.FindProperty("strength");
             if (prop_strength != null) prop_strength.floatValue = 5.0f;
+            var prop_gravity = so.FindProperty("gravity");
+            if (prop_gravity != null) prop_gravity.floatValue = -9.81f;
             var prop_tilt = so.FindProperty("tilt");
             if (prop_tilt != null) prop_tilt.floatValue = 5.0f;
             so.ApplyModifiedProperties();
@@ -123,13 +124,13 @@ public class GeneratedSceneSetup
         // --- Pipes ---
         var go_Pipes = new GameObject("Pipes");
         go_Pipes.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
-        go_Pipes.AddComponent<Pipes>();
+        go_Pipes.AddComponent<FlappyBird.Pipes>();
         {
-            var so = new SerializedObject(go_Pipes.GetComponent<Pipes>());
-            var prop_gap = so.FindProperty("gap");
-            if (prop_gap != null) prop_gap.floatValue = 3.0f;
+            var so = new SerializedObject(go_Pipes.GetComponent<FlappyBird.Pipes>());
             var prop_speed = so.FindProperty("speed");
             if (prop_speed != null) prop_speed.floatValue = 5.0f;
+            var prop_gap = so.FindProperty("gap");
+            if (prop_gap != null) prop_gap.floatValue = 3.0f;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Pipes);
@@ -179,15 +180,15 @@ public class GeneratedSceneSetup
         // --- Spawner ---
         var go_Spawner = new GameObject("Spawner");
         go_Spawner.transform.position = new Vector3(8.0f, 0.0f, 0.0f);
-        go_Spawner.AddComponent<Spawner>();
+        go_Spawner.AddComponent<FlappyBird.Spawner>();
         {
-            var so = new SerializedObject(go_Spawner.GetComponent<Spawner>());
-            var prop_maxHeight = so.FindProperty("maxHeight");
-            if (prop_maxHeight != null) prop_maxHeight.floatValue = 1.5f;
-            var prop_minHeight = so.FindProperty("minHeight");
-            if (prop_minHeight != null) prop_minHeight.floatValue = -1.5f;
+            var so = new SerializedObject(go_Spawner.GetComponent<FlappyBird.Spawner>());
             var prop_spawnRate = so.FindProperty("spawnRate");
             if (prop_spawnRate != null) prop_spawnRate.floatValue = 1.5f;
+            var prop_minHeight = so.FindProperty("minHeight");
+            if (prop_minHeight != null) prop_minHeight.floatValue = -1.5f;
+            var prop_maxHeight = so.FindProperty("maxHeight");
+            if (prop_maxHeight != null) prop_maxHeight.floatValue = 1.5f;
             var prop_verticalGap = so.FindProperty("verticalGap");
             if (prop_verticalGap != null) prop_verticalGap.floatValue = 3.5f;
             so.ApplyModifiedProperties();
@@ -203,9 +204,9 @@ public class GeneratedSceneSetup
         go_Background_sr.sortingOrder = -10;
         go_Background_sr.drawMode = SpriteDrawMode.Tiled;
         go_Background_sr.size = new Vector2(40f, 12.0f);
-        go_Background.AddComponent<Parallax>();
+        go_Background.AddComponent<FlappyBird.Parallax>();
         {
-            var so = new SerializedObject(go_Background.GetComponent<Parallax>());
+            var so = new SerializedObject(go_Background.GetComponent<FlappyBird.Parallax>());
             var prop_animationSpeed = so.FindProperty("animationSpeed");
             if (prop_animationSpeed != null) prop_animationSpeed.floatValue = 0.5f;
             var prop_wrapWidth = so.FindProperty("wrapWidth");
@@ -223,9 +224,9 @@ public class GeneratedSceneSetup
         go_GroundParallax_sr.sortingOrder = 5;
         go_GroundParallax_sr.drawMode = SpriteDrawMode.Tiled;
         go_GroundParallax_sr.size = new Vector2(40f, 0.5f);
-        go_GroundParallax.AddComponent<Parallax>();
+        go_GroundParallax.AddComponent<FlappyBird.Parallax>();
         {
-            var so = new SerializedObject(go_GroundParallax.GetComponent<Parallax>());
+            var so = new SerializedObject(go_GroundParallax.GetComponent<FlappyBird.Parallax>());
             var prop_animationSpeed = so.FindProperty("animationSpeed");
             if (prop_animationSpeed != null) prop_animationSpeed.floatValue = 2.0f;
             var prop_wrapWidth = so.FindProperty("wrapWidth");
@@ -255,8 +256,7 @@ public class GeneratedSceneSetup
 
         // --- GameManager ---
         var go_GameManager = new GameObject("GameManager");
-        go_GameManager.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
-        go_GameManager.AddComponent<GameManager>();
+        go_GameManager.AddComponent<FlappyBird.GameManager>();
         EditorUtility.SetDirty(go_GameManager);
 
         // --- PlayButtonHandler ---
@@ -265,17 +265,7 @@ public class GeneratedSceneSetup
 
         // === WIRE CROSS-REFERENCES ===
         {
-            var so = new SerializedObject(go_Player.GetComponent<Player>());
-            var prop = so.FindProperty("GameObject");
-            if (prop != null) { prop.objectReferenceValue = go_Player; so.ApplyModifiedProperties(); }
-        }
-        {
-            var so = new SerializedObject(go_Player.GetComponent<Player>());
-            var prop = so.FindProperty("gameObject");
-            if (prop != null) { prop.objectReferenceValue = go_Player; so.ApplyModifiedProperties(); }
-        }
-        {
-            var so = new SerializedObject(go_Player.GetComponent<Player>());
+            var so = new SerializedObject(go_Player.GetComponent<FlappyBird.Player>());
             var prop = so.FindProperty("sprites");
             if (prop != null)
             {
@@ -287,87 +277,37 @@ public class GeneratedSceneSetup
             }
         }
         {
-            var so = new SerializedObject(go_Pipes.GetComponent<Pipes>());
-            var prop = so.FindProperty("GameObject");
-            if (prop != null) { prop.objectReferenceValue = go_Pipes; so.ApplyModifiedProperties(); }
-        }
-        {
-            var so = new SerializedObject(go_Pipes.GetComponent<Pipes>());
-            var prop = so.FindProperty("gameObject");
-            if (prop != null) { prop.objectReferenceValue = go_Pipes; so.ApplyModifiedProperties(); }
-        }
-        {
-            var so = new SerializedObject(go_Spawner.GetComponent<Spawner>());
-            var prop = so.FindProperty("GameObject");
-            if (prop != null) { prop.objectReferenceValue = go_Spawner; so.ApplyModifiedProperties(); }
-        }
-        {
-            var so = new SerializedObject(go_Spawner.GetComponent<Spawner>());
-            var prop = so.FindProperty("gameObject");
-            if (prop != null) { prop.objectReferenceValue = go_Spawner; so.ApplyModifiedProperties(); }
-        }
-        {
-            var so = new SerializedObject(go_Spawner.GetComponent<Spawner>());
+            var so = new SerializedObject(go_Spawner.GetComponent<FlappyBird.Spawner>());
             var prop = so.FindProperty("prefab");
             if (prop != null) { prop.objectReferenceValue = go_Pipes; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_Background.GetComponent<Parallax>());
-            var prop = so.FindProperty("GameObject");
-            if (prop != null) { prop.objectReferenceValue = go_Background; so.ApplyModifiedProperties(); }
+            var so = new SerializedObject(go_GameManager.GetComponent<FlappyBird.GameManager>());
+            var prop = so.FindProperty("player");
+            if (prop != null && go_Player != null)
+            {
+                prop.objectReferenceValue = go_Player.GetComponent<FlappyBird.Player>();
+                so.ApplyModifiedProperties();
+            }
         }
         {
-            var so = new SerializedObject(go_Background.GetComponent<Parallax>());
-            var prop = so.FindProperty("gameObject");
-            if (prop != null) { prop.objectReferenceValue = go_Background; so.ApplyModifiedProperties(); }
+            var so = new SerializedObject(go_GameManager.GetComponent<FlappyBird.GameManager>());
+            var prop = so.FindProperty("spawner");
+            if (prop != null && go_Spawner != null)
+            {
+                prop.objectReferenceValue = go_Spawner.GetComponent<FlappyBird.Spawner>();
+                so.ApplyModifiedProperties();
+            }
         }
         {
-            var so = new SerializedObject(go_GroundParallax.GetComponent<Parallax>());
-            var prop = so.FindProperty("GameObject");
-            if (prop != null) { prop.objectReferenceValue = go_GroundParallax; so.ApplyModifiedProperties(); }
-        }
-        {
-            var so = new SerializedObject(go_GroundParallax.GetComponent<Parallax>());
-            var prop = so.FindProperty("gameObject");
-            if (prop != null) { prop.objectReferenceValue = go_GroundParallax; so.ApplyModifiedProperties(); }
-        }
-        {
-            var so = new SerializedObject(go_GameManager.GetComponent<GameManager>());
-            var prop = so.FindProperty("GameObject");
-            if (prop != null) { prop.objectReferenceValue = go_GameManager; so.ApplyModifiedProperties(); }
-        }
-        {
-            var so = new SerializedObject(go_GameManager.GetComponent<GameManager>());
-            var prop = so.FindProperty("gameObject");
-            if (prop != null) { prop.objectReferenceValue = go_GameManager; so.ApplyModifiedProperties(); }
-        }
-        {
-            var so = new SerializedObject(go_GameManager.GetComponent<GameManager>());
-            var prop = so.FindProperty("gameOverDisplay");
-            if (prop != null) { prop.objectReferenceValue = go_GameOver; so.ApplyModifiedProperties(); }
-        }
-        {
-            var so = new SerializedObject(go_GameManager.GetComponent<GameManager>());
+            var so = new SerializedObject(go_GameManager.GetComponent<FlappyBird.GameManager>());
             var prop = so.FindProperty("playButton");
             if (prop != null) { prop.objectReferenceValue = go_PlayButton; so.ApplyModifiedProperties(); }
         }
         {
-            var so = new SerializedObject(go_GameManager.GetComponent<GameManager>());
-            var prop = so.FindProperty("player");
-            if (prop != null && go_Player != null)
-            {
-                prop.objectReferenceValue = go_Player.GetComponent<Player>();
-                so.ApplyModifiedProperties();
-            }
-        }
-        {
-            var so = new SerializedObject(go_GameManager.GetComponent<GameManager>());
-            var prop = so.FindProperty("spawner");
-            if (prop != null && go_Spawner != null)
-            {
-                prop.objectReferenceValue = go_Spawner.GetComponent<Spawner>();
-                so.ApplyModifiedProperties();
-            }
+            var so = new SerializedObject(go_GameManager.GetComponent<FlappyBird.GameManager>());
+            var prop = so.FindProperty("gameOverDisplay");
+            if (prop != null) { prop.objectReferenceValue = go_GameOver; so.ApplyModifiedProperties(); }
         }
 
         // --- AutoStart (scaffolder fixture, un-pauses on Play) ---
