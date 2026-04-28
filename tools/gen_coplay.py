@@ -25,6 +25,13 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
+# Push REPO_ROOT onto sys.path so `from src...` imports below resolve
+# when this script is invoked directly (`python tools/gen_coplay.py`).
+# _load_runner() also inserts the runner's parent for its relative
+# imports.
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 
 def _load_runner(runner_path: Path):
     """Import a runner module by path so its top-level sys.path edits run.
@@ -54,8 +61,18 @@ def main() -> int:
                         help="Optional path for GeneratedSceneValidation.cs.")
     parser.add_argument("--scene-json", default=None,
                         help="Optional dump of the serialized scene JSON.")
-    parser.add_argument("--namespace", default="",
-                        help="C# namespace for MonoBehaviour components in the output.")
+    # Default is sentinel `None` so we can tell "user said empty string"
+    # apart from "user didn't pass the flag" — the latter triggers
+    # auto-derivation from the runner stem against GAME_NAMESPACES.
+    parser.add_argument(
+        "--namespace",
+        default=None,
+        help="C# namespace for MonoBehaviour components in the output. "
+             "Defaults to the per-game namespace the translator emits "
+             "(derived from the runner stem via GAME_NAMESPACES). Pass "
+             "an explicit empty string to regenerate against output "
+             "that isn't wrapped.",
+    )
     parser.add_argument(
         "--source", default=None,
         help="Python package dir whose MonoBehaviours become the translated-class "
@@ -67,6 +84,18 @@ def main() -> int:
     args = parser.parse_args()
 
     runner_path = Path(args.runner).resolve()
+
+    # Derive default namespace from the runner stem when the flag wasn't
+    # passed.  Mirrors `tools/pipeline.py`'s game→namespace mapping so
+    # CoPlay regen produces editor scripts that resolve against the
+    # translator's `namespace <Game> { ... }` wrapper.  Empty string
+    # (passed explicitly) keeps the legacy un-namespaced behavior.
+    if args.namespace is None:
+        from src.translator.project_translator import GAME_NAMESPACES
+        stem = runner_path.stem
+        derived_game = stem[4:] if stem.startswith("run_") else stem
+        args.namespace = GAME_NAMESPACES.get(derived_game, "")
+
     runner = _load_runner(runner_path)
     assert hasattr(runner, "setup_scene"), (
         f"{runner_path} must define setup_scene() at module scope."

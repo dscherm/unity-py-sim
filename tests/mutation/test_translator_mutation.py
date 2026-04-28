@@ -5,7 +5,6 @@ then verifies the output is detectably wrong.
 """
 
 import re
-import pytest
 from unittest.mock import patch
 
 from src.translator.python_to_csharp import translate

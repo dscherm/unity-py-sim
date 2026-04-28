@@ -16,7 +16,7 @@ import pytest
 from src.engine.core import _game_objects, GameObject, MonoBehaviour
 from src.engine.transform import Transform
 import src.exporter.scene_serializer as _ser_mod
-from src.exporter.scene_serializer import serialize_scene, _serialize_component
+from src.exporter.scene_serializer import serialize_scene
 
 
 # ---------------------------------------------------------------------------
@@ -64,13 +64,11 @@ def _build_mutated_serialize_component():
         if False:
             return None
     """
-    from src.engine.transform import Transform
     from src.engine.rendering.renderer import SpriteRenderer
     from src.engine.rendering.camera import Camera
     from src.engine.audio import AudioSource, AudioListener
     from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
     from src.engine.physics.collider import BoxCollider2D, CircleCollider2D
-    from typing import Any
 
     # Import the real function's helper utilities
     from src.exporter.scene_serializer import _vec3_to_list, _vec2_to_list

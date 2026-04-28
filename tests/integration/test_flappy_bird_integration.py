@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.engine.core import MonoBehaviour, GameObject, _clear_registry
+from src.engine.core import GameObject, _clear_registry
 from src.engine.lifecycle import LifecycleManager
 from src.engine.time_manager import Time
 from src.engine.rendering.camera import Camera
@@ -11,8 +11,7 @@ from src.engine.physics.physics_manager import PhysicsManager
 from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
 from src.engine.physics.collider import BoxCollider2D
 from src.engine.math.vector import Vector2, Vector3
-from src.engine.math.quaternion import Quaternion
-from src.engine.ui import Canvas, RectTransform, Text, TextAnchor
+from src.engine.ui import Text
 
 from examples.flappy_bird.flappy_bird_python.player import Player
 from examples.flappy_bird.flappy_bird_python.game_manager import GameManager

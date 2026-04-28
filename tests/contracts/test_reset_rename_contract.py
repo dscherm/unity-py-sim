@@ -4,7 +4,6 @@ Unity's built-in Reset() is a lifecycle method called by the editor during
 AddComponent, causing NullReferenceException if user code runs there.
 The translator must rename user-defined reset() to ResetState().
 """
-import pytest
 from src.translator.python_to_csharp import translate
 from src.translator.python_parser import parse_python
 

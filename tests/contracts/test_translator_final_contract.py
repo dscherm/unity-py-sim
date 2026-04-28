@@ -4,7 +4,6 @@ Tests are derived from Unity C# conventions and the translator's public API,
 NOT from reading existing test files. Each test targets a specific fix.
 """
 
-import pytest
 
 from src.translator.python_to_csharp import translate
 from src.translator.python_parser import parse_python

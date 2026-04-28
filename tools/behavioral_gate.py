@@ -10,7 +10,6 @@ Usage:
 """
 
 import sys
-import os
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -188,9 +187,8 @@ def gate_space_invaders() -> BehavioralResult:
     result.check("camera_exists", Camera.main is not None)
 
     # Check objects exist in registry (may be inactive after game-over)
-    from src.engine.core import _game_objects
     all_names = [obj.name for obj in _game_objects.values()]
-    result.check("player_created", "Player" in all_names, f"names include Player")
+    result.check("player_created", "Player" in all_names, "names include Player")
 
     all_tags = [obj.tag for obj in _game_objects.values()]
     invader_count = sum(1 for t in all_tags if t == "Invader")

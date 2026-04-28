@@ -6,6 +6,7 @@ namespace UnityEngine
     public class Object
     {
         public string name;
+        public int GetInstanceID() => 0;
         public static void Destroy(Object obj, float t = 0f) { }
         public static void DontDestroyOnLoad(Object obj) { }
         public static T Instantiate<T>(T original) where T : Object => default;
@@ -39,18 +40,18 @@ namespace UnityEngine
 
     public class GameObject : Object
     {
-        public bool activeSelf;
-        public bool activeInHierarchy;
+        public bool activeSelf = true;
+        public bool activeInHierarchy = true;
         public string tag;
         public int layer;
         public Transform transform;
 
-        public GameObject() { }
-        public GameObject(string name) { }
+        public GameObject() { transform = new Transform { gameObject = this }; }
+        public GameObject(string name) { this.name = name; transform = new Transform { gameObject = this }; }
 
         public T GetComponent<T>() where T : Component => default;
         public T AddComponent<T>() where T : Component => default;
-        public void SetActive(bool value) { }
+        public void SetActive(bool value) { activeSelf = value; activeInHierarchy = value; }
 
         public static GameObject Find(string name) => null;
         public static GameObject FindWithTag(string tag) => null;
@@ -61,15 +62,32 @@ namespace UnityEngine
     {
         public Vector3 position;
         public Vector3 localPosition;
-        public Quaternion rotation;
-        public Quaternion localRotation;
-        public Vector3 localScale;
+        public Quaternion rotation = Quaternion.identity;
+        public Quaternion localRotation = Quaternion.identity;
+        public Vector3 localScale = new Vector3(1f, 1f, 1f);
         public Transform parent;
-        public int childCount;
 
-        public Transform GetChild(int index) => null;
-        public void SetParent(Transform parent) { }
-        public void Translate(Vector3 translation) { }
+        // Children tracked in a plain list so childCount + GetChild work in parity tests.
+        // Real Unity uses an internal hierarchy, but for headless behavior the list
+        // suffices and stays in sync via SetParent.
+        private System.Collections.Generic.List<Transform> _children = new System.Collections.Generic.List<Transform>();
+
+        public int childCount => _children.Count;
+
+        public Transform GetChild(int index) => _children[index];
+
+        public void SetParent(Transform newParent)
+        {
+            if (this.parent != null) this.parent._children.Remove(this);
+            this.parent = newParent;
+            if (newParent != null) newParent._children.Add(this);
+        }
+
+        public void Translate(Vector3 translation)
+        {
+            position = new Vector3(position.x + translation.x, position.y + translation.y, position.z + translation.z);
+        }
+
         public void Rotate(Vector3 eulers) { }
     }
 
@@ -123,7 +141,8 @@ namespace UnityEngine
     public struct Quaternion
     {
         public float x, y, z, w;
-        public static Quaternion identity => default;
+        public Quaternion(float x, float y, float z, float w) { this.x = x; this.y = y; this.z = z; this.w = w; }
+        public static Quaternion identity => new Quaternion(0f, 0f, 0f, 1f);
         public static Quaternion Euler(float x, float y, float z) => default;
     }
 
@@ -175,9 +194,10 @@ namespace UnityEngine
     public static class Time
     {
         public static float deltaTime;
-        public static float fixedDeltaTime;
+        public static float fixedDeltaTime = 0.02f;
         public static float time;
-        public static float timeScale;
+        public static float timeScale = 1f;
+        public static int frameCount;
     }
 
     public static class Input
@@ -239,9 +259,10 @@ namespace UnityEngine
         public Vector2 velocity;
         public Vector2 linearVelocity;
         public float angularVelocity;
-        public float gravityScale;
-        public float mass;
-        public RigidbodyType2D bodyType;
+        public float gravityScale = 1f;
+        public float mass = 1f;
+        public float drag;
+        public RigidbodyType2D bodyType = RigidbodyType2D.Dynamic;
 
         public void AddForce(Vector2 force) { }
         public void AddForce(Vector2 force, ForceMode2D mode) { }
@@ -254,13 +275,13 @@ namespace UnityEngine
     public class Collider2D : Component { }
     public class BoxCollider2D : Collider2D
     {
-        public Vector2 size;
+        public Vector2 size = new Vector2(1f, 1f);
         public Vector2 offset;
         public bool isTrigger;
     }
     public class CircleCollider2D : Collider2D
     {
-        public float radius;
+        public float radius = 0.5f;
         public Vector2 offset;
         public bool isTrigger;
     }
@@ -278,15 +299,26 @@ namespace UnityEngine
         public Color color;
         public int sortingOrder;
         public Vector2 size;
+        public bool enabled;
+        public bool flipX;
+        public bool flipY;
     }
 
     public class Sprite : Object { }
     public class Camera : Component
     {
         public static Camera main;
-        public float orthographicSize;
+        public float orthographicSize = 5f;
         public Color backgroundColor;
         public Vector3 ScreenToWorldPoint(Vector3 position) => default;
+    }
+
+    public class PhysicsMaterial2D
+    {
+        public float bounciness;
+        public float friction = 0.4f;
+        public PhysicsMaterial2D() { }
+        public PhysicsMaterial2D(float bounciness, float friction) { this.bounciness = bounciness; this.friction = friction; }
     }
 
     public class AudioSource : Component
@@ -331,6 +363,13 @@ namespace UnityEngine
     public static class Physics2D
     {
         public static RaycastHit2D Raycast(Vector2 origin, Vector2 direction, float distance = float.PositiveInfinity) => default;
+        public static Collider2D OverlapBox(Vector2 point, Vector2 size, float angle) => default;
+        public static Collider2D OverlapBox(Vector2 point, Vector2 size, float angle, int layerMask) => default;
+        public static Collider2D OverlapCircle(Vector2 point, float radius) => default;
+        public static Collider2D OverlapCircle(Vector2 point, float radius, int layerMask) => default;
+        public static Collider2D OverlapPoint(Vector2 point) => default;
+        public static Collider2D OverlapPoint(Vector2 point, int layerMask) => default;
+        public static void IgnoreLayerCollision(int layer1, int layer2, bool ignore = true) { }
     }
 
     public struct RaycastHit2D

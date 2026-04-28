@@ -10,8 +10,7 @@ from src.engine.core import GameObject, _clear_registry
 from src.engine.lifecycle import LifecycleManager
 from src.engine.physics.physics_manager import PhysicsManager
 from src.engine.rendering.renderer import SpriteRenderer
-from src.engine.audio import AudioSource, AudioClip
-from src.engine.math.vector import Vector2
+from src.engine.audio import AudioSource
 
 
 @pytest.fixture(autouse=True)

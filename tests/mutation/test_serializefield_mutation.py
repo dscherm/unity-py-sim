@@ -11,9 +11,7 @@ assumes the correct code path exists.
 from __future__ import annotations
 
 import re
-from unittest.mock import patch
 
-import pytest
 
 from src.translator.python_parser import PyFile, PyClass, PyField, PyMethod
 from src.translator.python_to_csharp import translate

@@ -4,7 +4,6 @@ These tests monkeypatch the translator internals to verify that
 the contract tests would catch real bugs (wrong API, wrong key mapping).
 """
 
-import pytest
 from unittest.mock import patch
 from src.translator.python_parser import parse_python
 from src.translator.python_to_csharp import translate
@@ -47,7 +46,7 @@ class TestMutationForceLegacy:
 
         # Normal translation should produce new input system API
         normal_result = translate(parsed, input_system="new")
-        assert "Keyboard.current.spaceKey.wasPressedThisFrame" in normal_result
+        assert "Keyboard.current?.spaceKey.wasPressedThisFrame == true" in normal_result
 
         # Mutant: override config after translate sets it
         original_translate_new = translator_mod._translate_new_input_system
@@ -70,7 +69,7 @@ class TestMutationForceLegacy:
         parsed = parse_python(source)
 
         normal_result = translate(parsed, input_system="new")
-        assert "Mouse.current.leftButton.wasPressedThisFrame" in normal_result
+        assert "Mouse.current?.leftButton.wasPressedThisFrame == true" in normal_result
 
         def mutant_translate_expr(expr):
             return expr

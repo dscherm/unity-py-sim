@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from examples.pacman_v2.pacman_v2_python.maze_data import (
     MAZE, MAZE_ROWS, MAZE_COLS, MAZE_OFFSET_X, MAZE_OFFSET_Y,
-    cell_to_world, get_cell, select_wall_tile, is_wall, neighbor_walls,
+    cell_to_world, get_cell, select_wall_tile,
 )
 
 

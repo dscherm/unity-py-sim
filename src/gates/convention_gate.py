@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 
-from src.translator.csharp_parser import parse_csharp, CSharpFile
+from src.translator.csharp_parser import parse_csharp
 
 
 @dataclass

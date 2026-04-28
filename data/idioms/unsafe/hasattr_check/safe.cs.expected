@@ -1,0 +1,13 @@
+using UnityEngine;
+public class Probe
+{
+    public GameObject target;
+    public object SafeGet()
+    {
+        if (target != null)
+        {
+            return target;
+        }
+        return null;
+    }
+}

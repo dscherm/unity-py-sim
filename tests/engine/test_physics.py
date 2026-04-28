@@ -4,7 +4,7 @@ import pytest
 
 from src.engine.core import GameObject, MonoBehaviour, _clear_registry
 from src.engine.math.vector import Vector2
-from src.engine.physics.physics_manager import PhysicsManager, Collision2D, Physics2D, RaycastHit2D
+from src.engine.physics.physics_manager import PhysicsManager, Physics2D
 from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D, ForceMode2D
 from src.engine.physics.collider import BoxCollider2D, CircleCollider2D, PhysicsMaterial2D, Bounds
 

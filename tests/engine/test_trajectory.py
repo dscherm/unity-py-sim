@@ -1,6 +1,5 @@
 """Tests for trajectory prediction."""
 
-import pytest
 
 from src.engine.math.vector import Vector2
 from src.engine.trajectory import predict_trajectory

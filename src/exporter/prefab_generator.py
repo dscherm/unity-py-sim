@@ -101,7 +101,7 @@ def generate_prefab_yaml(class_name: str, components: list[str]) -> str:
     lines.append(f"--- !u!4 &{transform_id}")
     lines.append("Transform:")
     lines.append("  m_ObjectHideFlags: 0")
-    lines.append(f"  m_PrefabInstance: {{fileID: 0}}")
+    lines.append("  m_PrefabInstance: {fileID: 0}")
     lines.append(f"  m_GameObject: {{fileID: {go_id}}}")
     lines.append("  m_LocalPosition: {x: 0, y: 0, z: 0}")
     lines.append("  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}")

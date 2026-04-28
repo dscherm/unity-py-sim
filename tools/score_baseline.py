@@ -8,7 +8,7 @@ method signatures, field names, and using directives from C# text.
 import json
 import re
 import sys
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent

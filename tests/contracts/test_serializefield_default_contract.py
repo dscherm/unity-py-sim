@@ -20,7 +20,6 @@ from pathlib import Path
 
 import pytest
 
-from src.translator.python_parser import parse_python_file, PyClass, PyFile, PyField
 from src.translator.python_to_csharp import translate, set_subclassed_classes
 from src.translator.project_translator import translate_project
 

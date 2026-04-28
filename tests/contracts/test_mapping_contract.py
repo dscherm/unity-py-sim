@@ -8,10 +8,8 @@ Derived from expected behavior of the mapping system:
 """
 
 import json
-import tempfile
 from pathlib import Path
 
-import pytest
 
 from src.assets.mapping import (
     AssetMapping,

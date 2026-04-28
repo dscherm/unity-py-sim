@@ -9,15 +9,13 @@ Derived from Unity documentation contracts, NOT from implementation reading.
 from __future__ import annotations
 
 import math
-from unittest.mock import MagicMock
 
 import pymunk
 import pytest
 
-from src.engine.core import Component, GameObject, _clear_registry
-from src.engine.math.vector import Vector2, Vector3
+from src.engine.core import GameObject, _clear_registry
+from src.engine.math.vector import Vector2
 from src.engine.time_manager import Time
-from src.engine.transform import Transform
 
 
 # ---------------------------------------------------------------------------
@@ -80,7 +78,7 @@ class TestAnimationClipBasics:
     def test_on_frame_registers_callback(self):
         from src.engine.animation import AnimationClip
         clip = AnimationClip("x", frames=[{}] * 3, fps=10)
-        cb = lambda: None
+        def cb(): pass
         result = clip.on_frame(1, cb)
         assert result is clip  # fluent API
         assert cb in clip._events[1]
@@ -90,20 +88,19 @@ class TestSpriteAnimatorPlayStop:
     """Play/stop/clip-switching behavior."""
 
     def _make_animator(self):
-        from src.engine.animation import AnimationClip, SpriteAnimator, LoopMode
+        from src.engine.animation import SpriteAnimator
         go = GameObject("test")
         animator = go.add_component(SpriteAnimator)
         return go, animator
 
     def test_play_nonexistent_clip_does_nothing(self):
-        from src.engine.animation import SpriteAnimator
         _, animator = self._make_animator()
         animator.play("missing")
         assert not animator.is_playing
         assert animator.current_clip is None
 
     def test_play_sets_state(self):
-        from src.engine.animation import AnimationClip, SpriteAnimator, LoopMode
+        from src.engine.animation import AnimationClip
         _, animator = self._make_animator()
         clip = AnimationClip("idle", [{"color": (1, 1, 1)}, {"color": (2, 2, 2)}], fps=10)
         animator.add_clip(clip)
@@ -113,7 +110,7 @@ class TestSpriteAnimatorPlayStop:
         assert animator.frame_index == 0
 
     def test_stop_halts_playing(self):
-        from src.engine.animation import AnimationClip, SpriteAnimator
+        from src.engine.animation import AnimationClip
         _, animator = self._make_animator()
         clip = AnimationClip("a", [{"color": (1, 1, 1)}, {"color": (2, 2, 2)}], fps=10)
         animator.add_clip(clip)
@@ -122,7 +119,7 @@ class TestSpriteAnimatorPlayStop:
         assert not animator.is_playing
 
     def test_play_same_clip_is_noop(self):
-        from src.engine.animation import AnimationClip, SpriteAnimator
+        from src.engine.animation import AnimationClip
         _, animator = self._make_animator()
         clip = AnimationClip("a", [{"color": (1, 1, 1)}, {"color": (2, 2, 2)}], fps=10)
         animator.add_clip(clip)
@@ -136,7 +133,7 @@ class TestSpriteAnimatorPlayStop:
         assert animator.frame_index == old_frame
 
     def test_switching_clips_resets_frame(self):
-        from src.engine.animation import AnimationClip, SpriteAnimator
+        from src.engine.animation import AnimationClip
         _, animator = self._make_animator()
         clip_a = AnimationClip("a", [{"color": (1, 1, 1)}, {"color": (2, 2, 2)}], fps=10)
         clip_b = AnimationClip("b", [{"color": (3, 3, 3)}, {"color": (4, 4, 4)}], fps=10)
@@ -908,7 +905,7 @@ class TestJointMutations:
 
     def test_mutation_wrong_joint_type(self):
         """Different joint types produce different pymunk constraints."""
-        from src.engine.physics.joints import SpringJoint2D, DistanceJoint2D
+        from src.engine.physics.joints import SpringJoint2D
 
         go_a, rb_a, go_b, rb_b, pm = _make_joint_pair()
         spring = go_a.add_component(SpringJoint2D)

@@ -8,7 +8,6 @@ CharacterController2D, SpriteAtlas, Rich Text.
 
 from __future__ import annotations
 
-import math
 import pytest
 from unittest.mock import patch, MagicMock
 
@@ -536,7 +535,7 @@ class TestParticleSystem:
         assert ps.particle_count == 0, "All particles should be dead"
 
     def test_gravity_affects_velocity(self):
-        from src.engine.particles import ParticleSystem, Particle
+        from src.engine.particles import ParticleSystem
         go = GameObject("ps")
         ps = go.add_component(ParticleSystem)
         ps.gravity_modifier = 1.0

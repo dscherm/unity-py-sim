@@ -21,10 +21,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
-import os
-import subprocess
 import sys
-import textwrap
 import uuid
 from pathlib import Path
 
@@ -150,8 +147,10 @@ def test_mutation_B_drops_sort_breaks_worst_first(tmp_path):
     pairs_dir = corpus_dir / "pairs"
     pairs_dir.mkdir(parents=True, exist_ok=True)
 
-    cs_a = tmp_path / "A.cs"; _write_csharp(cs_a, "A")
-    cs_c = tmp_path / "C.cs"; _write_csharp(cs_c, "C")
+    cs_a = tmp_path / "A.cs"
+    _write_csharp(cs_a, "A")
+    cs_c = tmp_path / "C.cs"
+    _write_csharp(cs_c, "C")
     bogus = tmp_path / "MISSING.cs"  # never written → error
 
     spec_pairs = [

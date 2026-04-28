@@ -5,7 +5,6 @@ Bug: snake_to_camel("_") returns "" which:
   2. Can corrupt identifiers containing underscores via symbol replacement
 """
 
-import pytest
 
 from src.translator.python_parser import parse_python
 from src.translator.python_to_csharp import translate

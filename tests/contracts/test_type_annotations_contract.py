@@ -6,7 +6,6 @@ the implementation — purely checking that the annotation contract holds.
 """
 from __future__ import annotations
 
-import inspect
 import sys
 import os
 import typing

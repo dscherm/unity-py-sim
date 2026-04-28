@@ -17,7 +17,7 @@ import json
 from dataclasses import dataclass, field, asdict
 from typing import Any
 
-from src.engine.core import _game_objects, GameObject
+from src.engine.core import _game_objects
 from src.engine.rendering.renderer import SpriteRenderer
 from src.engine.audio import AudioSource
 

@@ -6,7 +6,7 @@ end-to-end behavior, not individual function calls.
 
 import pytest
 
-from src.engine.core import GameObject, MonoBehaviour, _clear_registry
+from src.engine.core import GameObject, _clear_registry
 from src.engine.math.vector import Vector2
 from src.engine.physics.collider import BoxCollider2D, CircleCollider2D
 from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D

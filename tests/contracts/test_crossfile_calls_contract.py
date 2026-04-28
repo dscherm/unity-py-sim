@@ -10,12 +10,10 @@ output compiles.  Intra-file calls and Unity built-ins must NOT be qualified.
 
 from __future__ import annotations
 
-import os
 import textwrap
 import tempfile
 from pathlib import Path
 
-import pytest
 
 from src.translator.project_translator import translate_project
 

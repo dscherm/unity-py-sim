@@ -111,6 +111,8 @@ def render_dashboard(
         ("Roundtrip AST %", "roundtrip_ast_pct", _fmt_pct),
         ("Unity API surface (static)", "parity_implemented_pct", _fmt_pct),
         ("Unity API parity (tested)", "parity_test_pct", _fmt_pct),
+        ("Parity tests passing — dotnet (ASP-4 ≥80%)", "parity_dotnet_pct", _fmt_pct),
+        ("Parity tests passing — CoPlay (ASP-4 ≥70%)", "parity_coplay_pct", _fmt_pct),
     ]
     lines.append("| Metric | Value | Δ |")
     lines.append("|---|---|---|")

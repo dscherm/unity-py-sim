@@ -12,11 +12,8 @@ Three mutations under test:
 
 from __future__ import annotations
 
-import re
-from pathlib import Path
 from unittest.mock import patch
 
-import pytest
 
 from src.translator import semantic_layer
 from src.translator import project_translator

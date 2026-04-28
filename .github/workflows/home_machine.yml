@@ -1,12 +1,10 @@
-name: Home Machine — Unity Deploy (v1)
+name: Home Machine — Unity Deploy + PlayMode Tests (v2)
 
 # Runs on the self-hosted Windows runner with Unity 6 + CoPlay installed.
-# v1 scope: regenerate each game's CoPlay scene setup in batchmode,
-# capture the Unity log, fail the check on any compile error or
-# scene-setup exception. PlayMode validation (frame ticking + screenshot
-# capture) is M-7 phase 2 — will use Unity Test Framework's [UnityTest]
-# runner, not custom batchmode harness (which Unity batchmode doesn't
-# reliably keep alive long enough for async coroutines to tick).
+# v1 scope: regenerate each game's CoPlay scene setup in batchmode and
+# capture the Unity log; fail the check on compile errors / setup exceptions.
+# v2 (M-7 phase 2) adds Unity Test Framework PlayMode tests after the deploy
+# step — fails red on Awake/Start/Update NullRefs that batchmode setup misses.
 # See CROSS_MACHINE.md for runner registration and license setup.
 
 on:
@@ -24,23 +22,68 @@ permissions:
   actions: write
 
 jobs:
+  # Build the deploy matrix dynamically so the `games` workflow_dispatch
+  # input can drop matrix entries entirely (rather than running them and
+  # painting the row red on a non-zero "neutral skip" exit). A previous
+  # attempt used a job-level `if:` referencing `matrix.game`, but GitHub
+  # Actions evaluates job-level `if:` BEFORE matrix expansion, so the
+  # `matrix` context is unresolved there ("Unrecognized named-value:
+  # 'matrix'"). Computing the matrix in a prep job is the canonical
+  # GHA pattern for input-driven matrix filtering.
+  setup:
+    name: Resolve matrix
+    runs-on: ubuntu-latest
+    outputs:
+      games: ${{ steps.compute.outputs.games }}
+    steps:
+      - name: Compute matrix
+        id: compute
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Single source of truth for "regenerable games" — when adding
+          # a new generated project, append here AND below in the deploy
+          # job's matrix fallback (kept for readability of the static
+          # case in code review).
+          ALL='["breakout","flappy_bird"]'
+          INPUT='${{ inputs.games }}'
+          EVENT='${{ github.event_name }}'
+          if [[ "$EVENT" == "workflow_dispatch" && -n "${INPUT// /}" ]]; then
+            # Filter the requested list against known games (rejects
+            # typos so a user dispatching `games=brakout` doesn't get a
+            # silent no-op). Whitespace-tolerant, dedup'd, case-sensitive.
+            games=$(echo "$INPUT" \
+              | tr ' ' '\n' \
+              | sort -u \
+              | awk '/^(breakout|flappy_bird)$/' \
+              | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            if [[ -z "$games" || "$games" == "[]" ]]; then
+              echo "::warning::No valid games in inputs.games='$INPUT'; falling back to full matrix"
+              games="$ALL"
+            fi
+          else
+            games="$ALL"
+          fi
+          echo "games=$games" >> "$GITHUB_OUTPUT"
+          echo "Selected matrix: $games"
+
   deploy:
+    needs: setup
     name: ${{ matrix.game }}
     runs-on: [self-hosted, Windows, unity]
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        # Add a row here when a new game's project is regenerable.
-        game:
-          - breakout
-          - flappy_bird
+        game: ${{ fromJSON(needs.setup.outputs.games) }}
     env:
       GAME: ${{ matrix.game }}
       PROJECT_PATH: data/generated/${{ matrix.game }}_project
       # Deterministic log path so the deploy step writes here and the
       # upload step finds it without juggling step outputs.
       DEPLOY_LOG: deploy_logs/${{ matrix.game }}.log
+      TESTS_RESULTS: deploy_logs/${{ matrix.game }}_tests.xml
+      TESTS_LOG: deploy_logs/${{ matrix.game }}_tests.log
     # Use built-in Windows PowerShell 5.1 (`shell: powershell`) — pwsh
     # (PowerShell 7) isn't installed on the runner. The deploy script
     # is written to be PS5.1-compatible.
@@ -51,14 +94,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Skip if game not requested via dispatch
-        if: github.event_name == 'workflow_dispatch' && inputs.games != ''
+      - name: Pre-deploy cleanup (kill orphan Unity processes)
+        # When a prior matrix entry or workflow run is cancelled, Unity
+        # processes are not always terminated cleanly.  The leftover
+        # `Unity.exe` and especially `UnityShaderCompiler.exe` keep RAM
+        # pinned and starve the next cold-start, which is the failure
+        # mode that produced `Crash_2026-04-26_153847992` (master run
+        # 24960280211): the prior cancelled run at 14:23 left enough
+        # memory pressure that the 15:31 deploy OOM'd during URP
+        # path-tracing shader compile (`LightmapDirectIntegration.urtshader`,
+        # `0x8007000e`).  Best-effort kill — exits 0 if nothing to clean.
         run: |
-          $requested = "${{ inputs.games }}".Split(' ')
-          if (-not ($requested -contains "${env:GAME}")) {
-            Write-Host "::notice::Skipping ${env:GAME} (not in dispatch list)"
-            exit 78  # neutral skip
+          $names = @('Unity', 'UnityShaderCompiler', 'UnityHelper', 'UnityHub.CrashHandler64')
+          foreach ($n in $names) {
+            $procs = Get-Process -Name $n -ErrorAction SilentlyContinue
+            if ($procs) {
+              Write-Host ("Killing $($procs.Count) leftover $n process(es)")
+              $procs | Stop-Process -Force -ErrorAction SilentlyContinue
+            }
           }
+          # Wait briefly so handles release before Unity launches.
+          Start-Sleep -Seconds 2
 
       - name: Verify project exists
         run: |
@@ -82,6 +138,24 @@ jobs:
             -Method "GeneratedSceneSetup.Execute" `
             -LogFile "${env:DEPLOY_LOG}"
 
+      - name: Run PlayMode tests
+        run: |
+          & tools/home_machine_run_tests.ps1 `
+            -ProjectPath "${env:PROJECT_PATH}" `
+            -ResultsFile "${env:TESTS_RESULTS}" `
+            -LogFile "${env:TESTS_LOG}"
+
+      - name: Upload PlayMode test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.game }}-tests-${{ github.run_id }}
+          path: |
+            ${{ env.TESTS_RESULTS }}
+            ${{ env.TESTS_LOG }}
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Record run metadata
         if: always()
         run: |
@@ -89,11 +163,11 @@ jobs:
           New-Item -ItemType Directory -Force -Path $resultsDir | Out-Null
           $ts = (Get-Date).ToUniversalTime().ToString("yyyyMMddTHHmmssZ")
           $dst = Join-Path $resultsDir "${env:GAME}_${ts}.json"
-          $status = if ("${{ job.status }}" -eq "success") { "deployed" } else { "deploy_failed" }
+          $status = if ("${{ job.status }}" -eq "success") { "deployed_and_tested" } else { "failed" }
           $payload = @{
             game = "${env:GAME}"
             status = $status
-            phase = "deploy_v1"
+            phase = "deploy+playtest_v2"
             commit = "${env:GITHUB_SHA}"
             run_id = "${env:GITHUB_RUN_ID}"
             timestamp_utc = (Get-Date).ToUniversalTime().ToString("o")
@@ -109,3 +183,107 @@ jobs:
           path: ${{ env.DEPLOY_LOG }}
           if-no-files-found: warn
           retention-days: 14
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # ASP-4 CoPlay leg: scaffolds a self-contained Unity project from the
+  # ParityCases under tests/parity/, runs the suite via Unity batchmode,
+  # parses NUnit XML, and auto-commits the resulting CoPlay pass-rate back
+  # to data/metrics/parity_pass_rates.json on master pushes.
+  parity_runner:
+    name: parity runner (CoPlay leg)
+    needs: deploy
+    runs-on: [self-hosted, Windows, unity]
+    timeout-minutes: 25
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write  # ASP-4: auto-commit parity_pass_rates.json on master
+    env:
+      RUNNER_PROJECT: data/generated/coplay_parity_runner
+      RESULTS_XML: data/metrics/coplay_parity_results.xml
+      RUNNER_LOG: data/metrics/coplay_parity_unity.log
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: python -m pip install --upgrade pip ; python -m pip install -r requirements.txt
+
+      - name: Pre-run cleanup (kill orphan Unity processes)
+        run: |
+          $names = @('Unity', 'UnityShaderCompiler', 'UnityHelper', 'UnityHub.CrashHandler64')
+          foreach ($n in $names) {
+            $procs = Get-Process -Name $n -ErrorAction SilentlyContinue
+            if ($procs) { $procs | Stop-Process -Force -ErrorAction SilentlyContinue }
+          }
+          Start-Sleep -Seconds 2
+
+      - name: Scaffold parity runner project
+        run: python tools/scaffold_coplay_parity_runner.py
+
+      - name: Run parity tests (Unity batchmode)
+        run: |
+          & tools/home_machine_run_tests.ps1 `
+            -ProjectPath "${env:RUNNER_PROJECT}" `
+            -ResultsFile "${env:RESULTS_XML}" `
+            -LogFile "${env:RUNNER_LOG}" `
+            -NoGraphics
+        # Don't fail the job on test failures — we want to record the
+        # pass-rate even when some cases red. The aggregate step asserts
+        # the ASP-4 bar (≥70%) below.
+        continue-on-error: true
+
+      - name: Aggregate CoPlay pass rate
+        run: python tools/aggregate_coplay_parity_results.py
+
+      - name: Assert ASP-4 CoPlay bar (≥70%)
+        run: |
+          $rates = Get-Content data/metrics/parity_pass_rates.json | ConvertFrom-Json
+          $pct = $rates.coplay.pct
+          Write-Host "[parity_runner] coplay pct: $pct"
+          if ($pct -lt 0.70) {
+            Write-Error "CoPlay leg below ASP-4 bar (0.70): got $pct"
+            exit 1
+          }
+
+      - name: Upload parity artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coplay-parity-${{ github.run_id }}
+          path: |
+            ${{ env.RESULTS_XML }}
+            ${{ env.RUNNER_LOG }}
+            data/metrics/parity_pass_rates.json
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Auto-commit parity_pass_rates.json back to master
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+        continue-on-error: true
+        shell: bash
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/metrics/parity_pass_rates.json
+          if git diff --cached --quiet; then
+            echo "[parity_runner] no CoPlay rate changes — skipping commit"
+            exit 0
+          fi
+          git commit -m "chore(metrics): auto-commit CoPlay parity pass-rate ${GITHUB_SHA}
+
+          Auto-generated by .github/workflows/home_machine.yml :: parity_runner.
+          Source: tools/aggregate_coplay_parity_results.py.
+
+          [skip ci]"
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+          git push origin "HEAD:${GITHUB_REF_NAME}"

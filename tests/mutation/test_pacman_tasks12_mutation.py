@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "examples
 
 from src.engine.core import GameObject, _clear_registry
 from src.engine.lifecycle import LifecycleManager
-from src.engine.physics.physics_manager import PhysicsManager, Physics2D
+from src.engine.physics.physics_manager import PhysicsManager
 from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
 from src.engine.physics.collider import BoxCollider2D, CircleCollider2D
 from src.engine.math.vector import Vector2
@@ -306,7 +306,6 @@ class TestMutationZeroSpeed:
 
     def test_zero_speed_prevents_movement(self, engine, monkeypatch):
         """Mutant: speed = 0. Pacman is stationary."""
-        from pacman_python.movement import Movement
         lm, pm = engine
 
         go, mv = _create_pacman(0, 0, Vector2(1, 0))

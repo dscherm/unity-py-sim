@@ -1,0 +1,5 @@
+using UnityEngine;
+public class Limits
+{
+    public static int MAX_HEALTH = 100;
+}

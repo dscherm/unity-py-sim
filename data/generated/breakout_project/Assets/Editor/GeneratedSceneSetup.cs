@@ -42,12 +42,15 @@ public class GeneratedSceneSetup
         }
 
         // === LOAD SPRITE ASSETS ===
-        var sprite_paddle = AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/paddle.png")
-            .OfType<Sprite>().FirstOrDefault(s => s.name == "paddle_0");
-        var sprite_ball = AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/ball.png")
-            .OfType<Sprite>().FirstOrDefault(s => s.name == "ball_0");
-        var sprite_brick = AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/brick.png")
-            .OfType<Sprite>().FirstOrDefault(s => s.name == "brick_0");
+        var sprite_paddle = AssetDatabase.LoadAllAssetsAtPath("Assets/Art/Sprites/paddle.png")
+            .OfType<Sprite>().FirstOrDefault(s => s.name == "paddle_0")
+            ?? AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/Sprites/paddle.png");
+        var sprite_ball = AssetDatabase.LoadAllAssetsAtPath("Assets/Art/Sprites/ball.png")
+            .OfType<Sprite>().FirstOrDefault(s => s.name == "ball_0")
+            ?? AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/Sprites/ball.png");
+        var sprite_brick = AssetDatabase.LoadAllAssetsAtPath("Assets/Art/Sprites/brick.png")
+            .OfType<Sprite>().FirstOrDefault(s => s.name == "brick_0")
+            ?? AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/Sprites/brick.png");
 
         // === CREATE GAMEOBJECTS ===
         // --- MainCamera (find or create Main Camera) ---
@@ -171,9 +174,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_0_0.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_0_0);
@@ -194,9 +197,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_0_1.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_0_1);
@@ -217,9 +220,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_0_2.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_0_2);
@@ -240,9 +243,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_0_3.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_0_3);
@@ -263,9 +266,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_0_4.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_0_4);
@@ -286,9 +289,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_0_5.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_0_5);
@@ -309,9 +312,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_0_6.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_0_6);
@@ -332,9 +335,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_0_7.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_0_7);
@@ -355,9 +358,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_0_8.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_0_8);
@@ -378,9 +381,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_0_9.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_0_9);
@@ -401,9 +404,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_1_0.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_1_0);
@@ -424,9 +427,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_1_1.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_1_1);
@@ -447,9 +450,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_1_2.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_1_2);
@@ -470,9 +473,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_1_3.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_1_3);
@@ -493,9 +496,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_1_4.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_1_4);
@@ -516,9 +519,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_1_5.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_1_5);
@@ -539,9 +542,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_1_6.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_1_6);
@@ -562,9 +565,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_1_7.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_1_7);
@@ -585,9 +588,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_1_8.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_1_8);
@@ -608,9 +611,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_1_9.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 30;
+            if (prop_points != null) prop_points.intValue = 30;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_1_9);
@@ -631,9 +634,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_2_0.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_2_0);
@@ -654,9 +657,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_2_1.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_2_1);
@@ -677,9 +680,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_2_2.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_2_2);
@@ -700,9 +703,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_2_3.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_2_3);
@@ -723,9 +726,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_2_4.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_2_4);
@@ -746,9 +749,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_2_5.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_2_5);
@@ -769,9 +772,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_2_6.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_2_6);
@@ -792,9 +795,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_2_7.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_2_7);
@@ -815,9 +818,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_2_8.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_2_8);
@@ -838,9 +841,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_2_9.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_2_9);
@@ -861,9 +864,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_3_0.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_3_0);
@@ -884,9 +887,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_3_1.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_3_1);
@@ -907,9 +910,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_3_2.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_3_2);
@@ -930,9 +933,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_3_3.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_3_3);
@@ -953,9 +956,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_3_4.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_3_4);
@@ -976,9 +979,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_3_5.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_3_5);
@@ -999,9 +1002,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_3_6.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_3_6);
@@ -1022,9 +1025,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_3_7.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_3_7);
@@ -1045,9 +1048,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_3_8.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_3_8);
@@ -1068,9 +1071,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_3_9.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 20;
+            if (prop_points != null) prop_points.intValue = 20;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_3_9);
@@ -1091,9 +1094,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_4_0.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_4_0);
@@ -1114,9 +1117,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_4_1.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_4_1);
@@ -1137,9 +1140,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_4_2.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_4_2);
@@ -1160,9 +1163,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_4_3.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_4_3);
@@ -1183,9 +1186,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_4_4.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_4_4);
@@ -1206,9 +1209,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_4_5.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_4_5);
@@ -1229,9 +1232,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_4_6.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_4_6);
@@ -1252,9 +1255,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_4_7.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_4_7);
@@ -1275,9 +1278,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_4_8.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_4_8);
@@ -1298,9 +1301,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_4_9.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_4_9);
@@ -1321,9 +1324,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_5_0.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_5_0);
@@ -1344,9 +1347,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_5_1.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_5_1);
@@ -1367,9 +1370,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_5_2.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_5_2);
@@ -1390,9 +1393,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_5_3.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_5_3);
@@ -1413,9 +1416,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_5_4.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_5_4);
@@ -1436,9 +1439,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_5_5.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_5_5);
@@ -1459,9 +1462,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_5_6.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_5_6);
@@ -1482,9 +1485,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_5_7.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_5_7);
@@ -1505,9 +1508,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_5_8.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_5_8);
@@ -1528,9 +1531,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_5_9.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_5_9);
@@ -1551,9 +1554,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_6_0.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_6_0);
@@ -1574,9 +1577,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_6_1.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_6_1);
@@ -1597,9 +1600,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_6_2.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_6_2);
@@ -1620,9 +1623,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_6_3.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_6_3);
@@ -1643,9 +1646,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_6_4.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_6_4);
@@ -1666,9 +1669,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_6_5.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_6_5);
@@ -1689,9 +1692,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_6_6.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_6_6);
@@ -1712,9 +1715,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_6_7.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_6_7);
@@ -1735,9 +1738,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_6_8.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_6_8);
@@ -1758,9 +1761,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_6_9.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_6_9);
@@ -1781,9 +1784,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_7_0.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_7_0);
@@ -1804,9 +1807,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_7_1.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_7_1);
@@ -1827,9 +1830,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_7_2.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_7_2);
@@ -1850,9 +1853,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_7_3.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_7_3);
@@ -1873,9 +1876,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_7_4.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_7_4);
@@ -1896,9 +1899,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_7_5.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_7_5);
@@ -1919,9 +1922,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_7_6.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_7_6);
@@ -1942,9 +1945,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_7_7.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_7_7);
@@ -1965,9 +1968,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_7_8.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_7_8);
@@ -1988,9 +1991,9 @@ public class GeneratedSceneSetup
         {
             var so = new SerializedObject(go_Brick_7_9.GetComponent<Breakout.Brick>());
             var prop_points = so.FindProperty("points");
-            if (prop_points != null) prop_points.floatValue = 10;
+            if (prop_points != null) prop_points.intValue = 10;
             var prop_health = so.FindProperty("health");
-            if (prop_health != null) prop_health.floatValue = 1;
+            if (prop_health != null) prop_health.intValue = 1;
             so.ApplyModifiedProperties();
         }
         EditorUtility.SetDirty(go_Brick_7_9);

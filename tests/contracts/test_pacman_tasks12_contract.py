@@ -9,19 +9,17 @@ Reference: zigurous/unity-pacman-tutorial C# scripts.
 
 import sys
 import os
-import math
 import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "examples", "pacman"))
 
-from src.engine.core import GameObject, MonoBehaviour, _clear_registry
+from src.engine.core import GameObject, _clear_registry
 from src.engine.lifecycle import LifecycleManager
-from src.engine.physics.physics_manager import PhysicsManager, Physics2D
+from src.engine.physics.physics_manager import PhysicsManager
 from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
 from src.engine.physics.collider import BoxCollider2D, CircleCollider2D
 from src.engine.math.vector import Vector2
-from src.engine.math.quaternion import Quaternion
 from src.engine.time_manager import Time
 from src.engine.input_manager import Input
 from src.engine.rendering.renderer import SpriteRenderer
@@ -465,7 +463,6 @@ class TestPacmanRotationContract:
     def test_facing_right_rotation(self, engine):
         """Contract: Moving right -> rotation z = 0 degrees."""
         from pacman_python.pacman import Pacman
-        from pacman_python.movement import Movement
         lm, pm = engine
 
         go, mv = _create_pacman_with_movement(0, 0, Vector2(1, 0))
@@ -481,7 +478,6 @@ class TestPacmanRotationContract:
     def test_facing_up_rotation(self, engine):
         """Contract: Moving up -> rotation z = 90 degrees."""
         from pacman_python.pacman import Pacman
-        from pacman_python.movement import Movement
         lm, pm = engine
 
         go, mv = _create_pacman_with_movement(0, 0, Vector2(0, 1))
@@ -496,7 +492,6 @@ class TestPacmanRotationContract:
     def test_facing_left_rotation(self, engine):
         """Contract: Moving left -> rotation z = 180 degrees."""
         from pacman_python.pacman import Pacman
-        from pacman_python.movement import Movement
         lm, pm = engine
 
         go, mv = _create_pacman_with_movement(0, 0, Vector2(-1, 0))
@@ -512,7 +507,6 @@ class TestPacmanRotationContract:
     def test_facing_down_rotation(self, engine):
         """Contract: Moving down -> rotation z = -90 (or 270) degrees."""
         from pacman_python.pacman import Pacman
-        from pacman_python.movement import Movement
         lm, pm = engine
 
         go, mv = _create_pacman_with_movement(0, 0, Vector2(0, -1))
@@ -537,7 +531,7 @@ class TestMazeDataContract:
 
     def test_maze_dimensions(self):
         """Contract: Classic Pacman maze is 28 columns x 31 rows."""
-        from pacman_python.maze_data import MAZE, MAZE_ROWS, MAZE_COLS
+        from pacman_python.maze_data import MAZE_ROWS, MAZE_COLS
         assert MAZE_ROWS == 31
         assert MAZE_COLS == 28
 

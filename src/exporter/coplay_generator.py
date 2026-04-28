@@ -229,26 +229,26 @@ def generate_scene_script(
                 ppu = info.get("ppu", 100)
                 # Only emit config if non-default values
                 if compression == "None" or is_readable or filter_mode == "Point" or ppu != 100:
-                    lines.append(f"        {{")
+                    lines.append("        {")
                     lines.append(f"            var imp = AssetImporter.GetAtPath(\"{_escape_cs_string(unity_path)}\") as TextureImporter;")
-                    lines.append(f"            if (imp != null) {{")
-                    lines.append(f"                imp.textureType = TextureImporterType.Sprite;")
-                    lines.append(f"                imp.spriteImportMode = SpriteImportMode.Single;")
+                    lines.append("            if (imp != null) {")
+                    lines.append("                imp.textureType = TextureImporterType.Sprite;")
+                    lines.append("                imp.spriteImportMode = SpriteImportMode.Single;")
                     lines.append(f"                imp.spritePixelsPerUnit = {ppu};")
                     fm_map = {"Point": "FilterMode.Point", "Bilinear": "FilterMode.Bilinear", "Trilinear": "FilterMode.Trilinear"}
                     lines.append(f"                imp.filterMode = {fm_map.get(filter_mode, 'FilterMode.Point')};")
                     if is_readable:
-                        lines.append(f"                imp.isReadable = true;")
+                        lines.append("                imp.isReadable = true;")
                     tc_map = {"None": "TextureImporterCompression.Uncompressed", "Low": "TextureImporterCompression.CompressedLQ", "Normal": "TextureImporterCompression.Compressed", "High": "TextureImporterCompression.CompressedHQ"}
                     lines.append(f"                imp.textureCompression = {tc_map.get(compression, 'TextureImporterCompression.Compressed')};")
                     if compression == "None":
-                        lines.append(f"                var settings = imp.GetDefaultPlatformTextureSettings();")
-                        lines.append(f"                settings.format = TextureImporterFormat.RGBA32;")
-                        lines.append(f"                settings.overridden = true;")
-                        lines.append(f"                imp.SetPlatformTextureSettings(settings);")
-                    lines.append(f"                imp.SaveAndReimport();")
-                    lines.append(f"            }}")
-                    lines.append(f"        }}")
+                        lines.append("                var settings = imp.GetDefaultPlatformTextureSettings();")
+                        lines.append("                settings.format = TextureImporterFormat.RGBA32;")
+                        lines.append("                settings.overridden = true;")
+                        lines.append("                imp.SetPlatformTextureSettings(settings);")
+                    lines.append("                imp.SaveAndReimport();")
+                    lines.append("            }")
+                    lines.append("        }")
             lines.append("")
 
     # Load sprite assets from mapping
@@ -309,13 +309,13 @@ def generate_scene_script(
                         # Python simulator is 2D-only; any orthographic_size means the
                         # camera must render orthographically or 2D sprites at z=0 with
                         # a camera at origin render as solid background color.
-                        lines.append(f"            cam.orthographic = true;")
+                        lines.append("            cam.orthographic = true;")
                         lines.append(f"            cam.orthographicSize = {ortho_size}f;")
                     bg = comp.get("background_color")
                     if bg:
                         r, g, b = bg[0] / 255.0, bg[1] / 255.0, bg[2] / 255.0
                         lines.append(f"            cam.backgroundColor = new Color({r:.3f}f, {g:.3f}f, {b:.3f}f, 1f);")
-                        lines.append(f"            cam.clearFlags = CameraClearFlags.SolidColor;")
+                        lines.append("            cam.clearFlags = CameraClearFlags.SolidColor;")
             # Unity 2D convention: camera sits at z=-10 so sprites at z=0 are in
             # front. Python sim leaves camera at z=0 (or the Transform isn't
             # serialized at all for the camera GO — depends on engine internals),
@@ -435,32 +435,32 @@ def generate_scene_script(
                             if ref_name.startswith(pn + "_") or ref_name.startswith(pn + " "):
                                 prefab_match = pn
                                 break
-                    lines.append(f"        {{")
+                    lines.append("        {")
                     lines.append(f"            var so = new SerializedObject({var}.GetComponent<{ns_prefix}{ctype}>());")
                     lines.append(f"            var prop = so.FindProperty(\"{cs_field}\");")
                     if prefab_match:
                         prefab_path = f"Assets/_Project/Prefabs/{_escape_cs_string(prefab_match)}.prefab"
                         lines.append(f"            var asset = AssetDatabase.LoadAssetAtPath<GameObject>(\"{prefab_path}\");")
-                        lines.append(f"            if (prop != null && asset != null) {{ prop.objectReferenceValue = asset; so.ApplyModifiedProperties(); }}")
+                        lines.append("            if (prop != null && asset != null) { prop.objectReferenceValue = asset; so.ApplyModifiedProperties(); }")
                     else:
                         ref_var = _safe_var_name(ref_name)
                         lines.append(f"            if (prop != null) {{ prop.objectReferenceValue = {ref_var}; so.ApplyModifiedProperties(); }}")
-                    lines.append(f"        }}")
+                    lines.append("        }")
                 elif isinstance(field_val, dict) and field_val.get("_type") == "GameObjectRefArray":
                     refs = field_val.get("refs", [])
                     cs_field = _to_camel_case(field_name)
-                    lines.append(f"        {{")
+                    lines.append("        {")
                     lines.append(f"            var so = new SerializedObject({var}.GetComponent<{ns_prefix}{ctype}>());")
                     lines.append(f"            var prop = so.FindProperty(\"{cs_field}\");")
-                    lines.append(f"            if (prop != null)")
-                    lines.append(f"            {{")
+                    lines.append("            if (prop != null)")
+                    lines.append("            {")
                     lines.append(f"                prop.arraySize = {len(refs)};")
                     for i, ref in enumerate(refs):
                         ref_var = _safe_var_name(ref["name"])
                         lines.append(f"                prop.GetArrayElementAtIndex({i}).objectReferenceValue = {ref_var};")
-                    lines.append(f"                so.ApplyModifiedProperties();")
-                    lines.append(f"            }}")
-                    lines.append(f"        }}")
+                    lines.append("                so.ApplyModifiedProperties();")
+                    lines.append("            }")
+                    lines.append("        }")
                 elif isinstance(field_val, dict) and field_val.get("_type") == "MonoBehaviourRef":
                     # Pacman V2 pattern: `GameManager.pacman = pacman_component`.
                     # Resolve by looking up the component on the target
@@ -470,15 +470,15 @@ def generate_scene_script(
                     ref_ctype = field_val.get("component_type", "")
                     cs_field = _to_camel_case(field_name)
                     ref_var = _safe_var_name(ref_name)
-                    lines.append(f"        {{")
+                    lines.append("        {")
                     lines.append(f"            var so = new SerializedObject({var}.GetComponent<{ns_prefix}{ctype}>());")
                     lines.append(f"            var prop = so.FindProperty(\"{cs_field}\");")
                     lines.append(f"            if (prop != null && {ref_var} != null)")
-                    lines.append(f"            {{")
+                    lines.append("            {")
                     lines.append(f"                prop.objectReferenceValue = {ref_var}.GetComponent<{ns_prefix}{ref_ctype}>();")
-                    lines.append(f"                so.ApplyModifiedProperties();")
-                    lines.append(f"            }}")
-                    lines.append(f"        }}")
+                    lines.append("                so.ApplyModifiedProperties();")
+                    lines.append("            }")
+                    lines.append("        }")
                 elif isinstance(field_val, dict) and field_val.get("_type") == "MonoBehaviourRefArray":
                     # Pacman V2 pattern: `GameManager.ghosts: list[Ghost]`
                     # holds refs to Ghost components on separate GameObjects.
@@ -487,11 +487,11 @@ def generate_scene_script(
                     refs = field_val.get("refs", [])
                     ref_ctype = field_val.get("component_type", "")
                     cs_field = _to_camel_case(field_name)
-                    lines.append(f"        {{")
+                    lines.append("        {")
                     lines.append(f"            var so = new SerializedObject({var}.GetComponent<{ns_prefix}{ctype}>());")
                     lines.append(f"            var prop = so.FindProperty(\"{cs_field}\");")
-                    lines.append(f"            if (prop != null)")
-                    lines.append(f"            {{")
+                    lines.append("            if (prop != null)")
+                    lines.append("            {")
                     lines.append(f"                prop.arraySize = {len(refs)};")
                     for i, ref_go_name in enumerate(refs):
                         ref_var = _safe_var_name(ref_go_name)
@@ -500,9 +500,9 @@ def generate_scene_script(
                             f"prop.GetArrayElementAtIndex({i}).objectReferenceValue "
                             f"= {ref_var}.GetComponent<{ns_prefix}{ref_ctype}>();"
                         )
-                    lines.append(f"                so.ApplyModifiedProperties();")
-                    lines.append(f"            }}")
-                    lines.append(f"        }}")
+                    lines.append("                so.ApplyModifiedProperties();")
+                    lines.append("            }")
+                    lines.append("        }")
                 elif isinstance(field_val, dict) and field_val.get("_type") == "SpriteArrayRef":
                     # Gap 6 (data/lessons/flappy_bird_deploy.md): list-of-
                     # asset-names fields become sprite-array SerializeFields,
@@ -513,17 +513,17 @@ def generate_scene_script(
                     # array elements).
                     refs = [r for r in field_val.get("refs", []) if r in sprite_mappings]
                     cs_field = _to_camel_case(field_name)
-                    lines.append(f"        {{")
+                    lines.append("        {")
                     lines.append(f"            var so = new SerializedObject({var}.GetComponent<{ns_prefix}{ctype}>());")
                     lines.append(f"            var prop = so.FindProperty(\"{cs_field}\");")
-                    lines.append(f"            if (prop != null)")
-                    lines.append(f"            {{")
+                    lines.append("            if (prop != null)")
+                    lines.append("            {")
                     lines.append(f"                prop.arraySize = {len(refs)};")
                     for i, name in enumerate(refs):
                         lines.append(f"                prop.GetArrayElementAtIndex({i}).objectReferenceValue = sprite_{name};")
-                    lines.append(f"                so.ApplyModifiedProperties();")
-                    lines.append(f"            }}")
-                    lines.append(f"        }}")
+                    lines.append("                so.ApplyModifiedProperties();")
+                    lines.append("            }")
+                    lines.append("        }")
 
     # Always attach the AutoStart fixture (flappy_bird_deploy.md gap 1) so
     # any GameManager that starts paused gets un-paused at runtime without a
@@ -665,10 +665,10 @@ def _generate_component(
             lines.append(f"        {go_var}_rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;")
         if comp.get("material"):
             mat_path = comp["material"]
-            lines.append(f"        {{")
+            lines.append("        {")
             lines.append(f"            var _mat = AssetDatabase.LoadAssetAtPath<PhysicsMaterial2D>(\"{_escape_cs_string(mat_path)}\");")
             lines.append(f"            if (_mat != null) {go_var}_rb.sharedMaterial = _mat;")
-            lines.append(f"        }}")
+            lines.append("        }")
 
     elif ctype == "BoxCollider2D":
         lines.append(f"        var {go_var}_bc = {go_var}.AddComponent<BoxCollider2D>();")
@@ -678,10 +678,10 @@ def _generate_component(
             lines.append(f"        {go_var}_bc.isTrigger = true;")
         if comp.get("material"):
             mat_path = comp["material"]
-            lines.append(f"        {{")
+            lines.append("        {")
             lines.append(f"            var _mat = AssetDatabase.LoadAssetAtPath<PhysicsMaterial2D>(\"{_escape_cs_string(mat_path)}\");")
             lines.append(f"            if (_mat != null) {go_var}_bc.sharedMaterial = _mat;")
-            lines.append(f"        }}")
+            lines.append("        }")
 
     elif ctype == "CircleCollider2D":
         lines.append(f"        var {go_var}_cc = {go_var}.AddComponent<CircleCollider2D>();")
@@ -691,10 +691,10 @@ def _generate_component(
             lines.append(f"        {go_var}_cc.isTrigger = true;")
         if comp.get("material"):
             mat_path = comp["material"]
-            lines.append(f"        {{")
+            lines.append("        {")
             lines.append(f"            var _mat = AssetDatabase.LoadAssetAtPath<PhysicsMaterial2D>(\"{_escape_cs_string(mat_path)}\");")
             lines.append(f"            if (_mat != null) {go_var}_cc.sharedMaterial = _mat;")
-            lines.append(f"        }}")
+            lines.append("        }")
 
     elif comp.get("is_monobehaviour"):
         ns_prefix = f"{namespace}." if namespace else ""
@@ -706,7 +706,7 @@ def _generate_component(
             if isinstance(fv, (int, float)) and not isinstance(fv, bool) and fv != 0
         }
         if numeric_fields:
-            lines.append(f"        {{")
+            lines.append("        {")
             lines.append(f"            var so = new SerializedObject({go_var}.GetComponent<{ns_prefix}{ctype}>());")
             for cs_field, field_val in numeric_fields.items():
                 # Dispatch on Python type — Python int → C# int (intValue), Python
@@ -719,8 +719,8 @@ def _generate_component(
                     setter, suffix = "intValue", ""
                 lines.append(f"            var prop_{cs_field} = so.FindProperty(\"{cs_field}\");")
                 lines.append(f"            if (prop_{cs_field} != null) prop_{cs_field}.{setter} = {field_val}{suffix};")
-            lines.append(f"            so.ApplyModifiedProperties();")
-            lines.append(f"        }}")
+            lines.append("            so.ApplyModifiedProperties();")
+            lines.append("        }")
 
 
 def _safe_var_name(name: str) -> str:
@@ -798,11 +798,11 @@ def generate_validation_script(
         escaped_name = _escape_cs_string(go_name)
 
         lines.append(f"        // --- {go_name} ---")
-        lines.append(f"        {{")
+        lines.append("        {")
         lines.append(f"            var go = GameObject.Find(\"{escaped_name}\");")
         lines.append(f"            if (go == null) failures.Add(\"Missing GameObject: {escaped_name}\");")
-        lines.append(f"            else")
-        lines.append(f"            {{")
+        lines.append("            else")
+        lines.append("            {")
 
         if tag and tag != "Untagged":
             esc_tag = _escape_cs_string(tag)
@@ -842,15 +842,15 @@ def generate_validation_script(
                     ref_fields.append((fname, fval))
             if not ref_fields:
                 continue
-            lines.append(f"                {{")
+            lines.append("                {")
             lines.append(
                 f"                    var _comp = go.GetComponent<{ns_prefix}{ctype}>();"
             )
             lines.append(
                 f"                    if (_comp == null) failures.Add(\"{escaped_name} missing component {ctype}\");"
             )
-            lines.append(f"                    else {{")
-            lines.append(f"                        var so = new SerializedObject(_comp);")
+            lines.append("                    else {")
+            lines.append("                        var so = new SerializedObject(_comp);")
             for fname, fval in ref_fields:
                 cs_field = _to_camel_case(fname)
                 if fval.get("_type") == "GameObjectRef":
@@ -883,17 +883,17 @@ def generate_validation_script(
                             f"else if (_el.name != \"{esc_r}\") "
                             f"failures.Add(\"{escaped_name}.{cs_field}[{i}] \" + _el.name + \" != {esc_r}\"); }}"
                         )
-                    lines.append(f"                        }} }}")
-            lines.append(f"                    }}")
-            lines.append(f"                }}")
+                    lines.append("                        } }")
+            lines.append("                    }")
+            lines.append("                }")
 
-        lines.append(f"            }}")
-        lines.append(f"        }}")
+        lines.append("            }")
+        lines.append("        }")
         lines.append("")
 
     lines.append("        var sb = new StringBuilder();")
     lines.append("        if (failures.Count == 0)")
-    lines.append(f"            sb.AppendLine(\"PASS: validated \" + expectedCount + \" GameObjects\");")
+    lines.append("            sb.AppendLine(\"PASS: validated \" + expectedCount + \" GameObjects\");")
     lines.append("        else")
     lines.append("        {")
     lines.append("            sb.AppendLine(\"FAIL: \" + failures.Count + \" issues\");")

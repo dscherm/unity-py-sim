@@ -6,8 +6,6 @@ with correct tags, layers, and Unity YAML headers.
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
 
 import pytest
 

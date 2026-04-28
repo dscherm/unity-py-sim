@@ -1,7 +1,7 @@
 """Mutation tests for Flappy Bird — monkeypatch key behaviors and verify tests catch breakage."""
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
 from src.engine.core import MonoBehaviour, GameObject, _clear_registry
 from src.engine.lifecycle import LifecycleManager
@@ -18,7 +18,6 @@ from examples.flappy_bird.flappy_bird_python.player import Player
 from examples.flappy_bird.flappy_bird_python.game_manager import GameManager
 from examples.flappy_bird.flappy_bird_python.pipes import Pipes
 from examples.flappy_bird.flappy_bird_python.spawner import Spawner
-from examples.flappy_bird.flappy_bird_python.parallax import Parallax
 
 
 @pytest.fixture(autouse=True)

@@ -10,7 +10,6 @@ import re
 import textwrap
 from unittest.mock import patch
 
-import pytest
 
 from src.translator.python_parser import parse_python
 from src.translator.python_to_csharp import translate

@@ -1,6 +1,5 @@
 """Tests for ObjectPool and GameObjectPool."""
 
-import pytest
 
 from src.engine.pool import ObjectPool, GameObjectPool
 from src.engine.core import GameObject

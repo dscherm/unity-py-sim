@@ -131,7 +131,7 @@ def test_pytest_job_sets_sdl_videodriver_dummy(workflow):
     )
     assert found, (
         "pytest job must set SDL_VIDEODRIVER=dummy (headless pygame). "
-        f"Searched job env and all step envs."
+        "Searched job env and all step envs."
     )
 
 

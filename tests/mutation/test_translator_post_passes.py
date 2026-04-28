@@ -16,7 +16,6 @@ import re
 import tempfile
 from pathlib import Path
 
-import pytest
 
 from src.translator import python_to_csharp
 from src.translator.python_parser import parse_python_file

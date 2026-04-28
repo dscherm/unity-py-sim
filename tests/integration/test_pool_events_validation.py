@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import pytest
 from dataclasses import dataclass
-from unittest.mock import MagicMock
 
 from src.engine.pool import ObjectPool, GameObjectPool
 from src.engine.events import EventBus, UnityEvent
@@ -287,7 +286,7 @@ class TestEventBusContract:
     def test_unsubscribe_stops_delivery(self):
         """After unsubscribe, handler must not receive events."""
         received = []
-        handler = lambda e: received.append(e)
+        def handler(e): received.append(e)
         EventBus.subscribe(int, handler)
         EventBus.publish(42)
         EventBus.unsubscribe(int, handler)
@@ -335,8 +334,8 @@ class TestEventBusContract:
     def test_subscriber_count(self):
         """subscriber_count must accurately reflect registered handlers."""
         assert EventBus.subscriber_count(int) == 0
-        handler1 = lambda e: None
-        handler2 = lambda e: None
+        def handler1(e): pass
+        def handler2(e): pass
         EventBus.subscribe(int, handler1)
         assert EventBus.subscriber_count(int) == 1
         EventBus.subscribe(int, handler2)
@@ -429,7 +428,7 @@ class TestUnityEventIntegration:
     def test_remove_listener(self):
         """remove_listener must stop that listener from being called."""
         called = []
-        handler = lambda: called.append(1)
+        def handler(): called.append(1)
         evt = UnityEvent()
         evt.add_listener(handler)
         evt.invoke()
@@ -451,8 +450,8 @@ class TestUnityEventIntegration:
         """listener_count property must reflect current state."""
         evt = UnityEvent()
         assert evt.listener_count == 0
-        h1 = lambda: None
-        h2 = lambda: None
+        def h1(): pass
+        def h2(): pass
         evt.add_listener(h1)
         assert evt.listener_count == 1
         evt.add_listener(h2)
@@ -482,7 +481,7 @@ class TestEventBusMutation:
     def test_broken_unsubscribe(self, monkeypatch):
         """If unsubscribe is broken, handler keeps receiving events."""
         received = []
-        handler = lambda e: received.append(e)
+        def handler(e): received.append(e)
         EventBus.subscribe(int, handler)
         # Break unsubscribe to be a no-op
         monkeypatch.setattr(EventBus, 'unsubscribe', classmethod(lambda cls, et, h: None))
@@ -510,7 +509,7 @@ class TestEdgeCases:
     def test_double_subscribe_same_handler(self):
         """Subscribing the same handler twice should call it twice."""
         received = []
-        handler = lambda e: received.append(e)
+        def handler(e): received.append(e)
         EventBus.subscribe(int, handler)
         EventBus.subscribe(int, handler)
         EventBus.publish(1)
@@ -520,7 +519,7 @@ class TestEdgeCases:
     def test_unsubscribe_removes_only_first_duplicate(self):
         """Unsubscribe should remove only the first matching handler."""
         received = []
-        handler = lambda e: received.append(e)
+        def handler(e): received.append(e)
         EventBus.subscribe(int, handler)
         EventBus.subscribe(int, handler)
         EventBus.unsubscribe(int, handler)
@@ -547,7 +546,7 @@ class TestEdgeCases:
 
     def test_unsubscribe_from_empty_type(self):
         """Unsubscribing from a type with no subscribers must not raise."""
-        handler = lambda e: None
+        def handler(e): pass
         EventBus.unsubscribe(float, handler)  # Should not crash
 
     def test_unity_event_remove_nonexistent_listener(self):

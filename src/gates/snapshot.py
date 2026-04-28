@@ -83,6 +83,7 @@ def take_snapshot(
     compilation = _read_json(metrics_dir / "compilation_baseline.json")
     roundtrip = _read_json(metrics_dir / "roundtrip_baseline.json")
     parity = _read_json(metrics_dir / "parity_matrix.json")
+    parity_rates = _read_json(metrics_dir / "parity_pass_rates.json")
 
     # Derive roundtrip aggregates from per-pair scores when present.
     # `compile_pct` proxies "roundtrip didn't blow up at any parse layer" — a
@@ -123,6 +124,11 @@ def take_snapshot(
         "parity_total_apis": parity.get("total_apis"),
         "parity_implemented_pct": parity.get("implementation_pct"),
         "parity_test_pct": parity.get("parity_test_pct"),
+        # Parity pass rates per ASP-4: dotnet leg measured by
+        # tools/measure_parity_pass_rates.py; coplay leg deferred until the
+        # home-machine UTF runner generates parity-PlayMode tests.
+        "parity_dotnet_pct": (parity_rates.get("dotnet") or {}).get("pct"),
+        "parity_coplay_pct": (parity_rates.get("coplay") or {}).get("pct"),
     }
 
     by_game = baseline.get("by_game", {})

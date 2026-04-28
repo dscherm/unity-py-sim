@@ -6,7 +6,6 @@ These are unit-level tests that verify API contracts without running the full ga
 from __future__ import annotations
 
 import pytest
-import pymunk
 
 from src.engine.core import (
     GameObject,
@@ -17,38 +16,23 @@ from src.engine.lifecycle import LifecycleManager
 from src.engine.physics.physics_manager import (
     PhysicsManager,
     Physics2D,
-    RaycastHit2D,
-    Collision2D,
 )
 from src.engine.physics.rigidbody import Rigidbody2D, RigidbodyType2D
 from src.engine.physics.collider import (
     BoxCollider2D,
-    CircleCollider2D,
     PhysicsMaterial2D,
-    Collider2D,
 )
 from src.engine.math.vector import Vector2
 from src.engine.time_manager import Time
 from src.engine.coroutine import (
-    CoroutineManager,
-    Coroutine,
     WaitForSeconds,
-    WaitForSecondsRealtime,
-    WaitForEndOfFrame,
-    WaitForFixedUpdate,
-    WaitUntil,
-    WaitWhile,
 )
 from src.engine.scene import SceneManager, dont_destroy_on_load
-from src.engine.audio import AudioClip, AudioSource, AudioListener
+from src.engine.audio import AudioSource, AudioListener
 from src.engine.ui import (
     Canvas,
     RectTransform,
-    Text,
-    Image,
     Button,
-    RenderMode,
-    TextAnchor,
 )
 from src.engine.debug import Debug
 from src.engine.rendering.display import DisplayManager

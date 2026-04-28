@@ -30,8 +30,27 @@ include = ["src*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = [
+    "slow: tests that re-run a heavy suite (e.g. the parity harness end-to-end). Skipped by default; opt-in via `-m slow` or `-m ''`.",
+]
+addopts = "-m 'not slow'"
 
 [tool.pyright]
 include = ["src"]
 pythonVersion = "3.11"
 typeCheckingMode = "basic"
+
+[tool.ruff]
+extend-exclude = ["data/generated", "examples", ".venv", "stubs"]
+
+[tool.ruff.lint]
+ignore = [
+    "F841",  # unused-variable — stylistic, deferred
+    "E741",  # ambiguous-variable-name — stylistic, deferred
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tools/*" = ["E402"]  # sys.path.insert before imports is the legitimate pattern
+"tests/*" = ["E402"]
+"src/engine/core.py" = ["F821"]  # forward references for circular-import-avoidance
+"src/engine/physics/physics_manager.py" = ["F821"]

@@ -18,12 +18,18 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
-import os
 import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 FLAPPY_DIR = REPO_ROOT / "examples" / "flappy_bird"
+
+# Push REPO_ROOT onto sys.path before any `from src...` imports below,
+# so this script can be run directly (`python tools/gen_flappy_coplay.py`)
+# without needing a wrapping `python -m`.  _load_flappy_setup() also
+# inserts FLAPPY_DIR for the runner's relative imports.
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 
 def _load_flappy_setup():
@@ -66,11 +72,23 @@ def main() -> int:
                         help="Optional path for the companion validation script.")
     parser.add_argument("--scene-json", default=None,
                         help="Optional path to also dump the serialized scene JSON.")
-    parser.add_argument("--namespace", default="",
-                        help="C# namespace wrapper for emitted component refs. "
-                             "Leave empty (default) when translated scripts live "
-                             "in the global namespace — which the current translator "
-                             "always emits.")
+    # Default to the FlappyBird namespace the translator now wraps every
+    # MonoBehaviour in (see src/translator/project_translator.py
+    # GAME_NAMESPACES).  Older builds left this empty because the
+    # translator emitted into the global namespace; that drift caused
+    # CS0246 on home-machine deploy when the editor script's bare class
+    # refs (e.g. GetComponent<Player>()) couldn't resolve against the
+    # `namespace FlappyBird { ... }` wrapper. Pass `--namespace ""` to
+    # regenerate against legacy un-namespaced output.
+    from src.translator.project_translator import GAME_NAMESPACES
+    parser.add_argument(
+        "--namespace",
+        default=GAME_NAMESPACES.get("flappy_bird", ""),
+        help="C# namespace wrapper for emitted component refs. "
+             "Defaults to the per-game namespace the translator emits "
+             "(currently 'FlappyBird'). Pass an empty string to "
+             "regenerate against translator output that isn't wrapped.",
+    )
     args = parser.parse_args()
 
     runner = _load_flappy_setup()

@@ -7,9 +7,7 @@ verifying that real example games produce valid .prefab files on disk.
 from __future__ import annotations
 
 import re
-from pathlib import Path
 
-import pytest
 
 from src.exporter.prefab_detector import detect_prefabs
 from src.exporter.prefab_generator import generate_prefab_files, generate_prefab_yaml

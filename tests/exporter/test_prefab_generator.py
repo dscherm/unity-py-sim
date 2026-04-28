@@ -1,6 +1,5 @@
 """Tests for prefab YAML stub generation."""
 
-import pytest
 
 from src.exporter.prefab_generator import (
     generate_prefab_files,

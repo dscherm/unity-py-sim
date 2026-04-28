@@ -6,7 +6,6 @@ when coroutine detection or yield translation is disabled.
 Written by independent validation agent — no existing test files were consulted.
 """
 
-import pytest
 from pathlib import Path
 
 from src.translator.python_parser import PyFile, PyClass, PyMethod, parse_python

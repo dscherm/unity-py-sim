@@ -94,12 +94,18 @@ def test_validation_script_checks_gameobjects(tmp_path):
     assert "PASS" in val_cs and "FAIL" in val_cs
 
 
-def test_generator_no_namespace_prefix_by_default(tmp_path):
-    # Translator emits scripts in the global namespace, so the generator
-    # must not prefix component refs with a namespace it can't satisfy.
+def test_generator_emits_using_directive_for_default_namespace(tmp_path):
+    # Translator now wraps every Flappy Bird MonoBehaviour in
+    # `namespace FlappyBird { ... }` (per src/translator/project_translator.py
+    # GAME_NAMESPACES), so the generator must emit `using FlappyBird;`
+    # at the top of both editor scripts to satisfy bare type references
+    # in the generated GetComponent<T>() / AddComponent<T>() calls.
+    # See tests/exporter/test_coplay_namespace_emission.py for the
+    # hardened contract — this is the smoke check against the
+    # default-flag invocation only.
     setup_cs, val_cs, _ = _run_generator(tmp_path)
-    assert "FlappyBird." not in setup_cs
-    assert "FlappyBird." not in val_cs
+    assert "using FlappyBird;" in setup_cs
+    assert "using FlappyBird;" in val_cs
 
 
 def test_generator_honors_explicit_namespace(tmp_path):
@@ -107,3 +113,7 @@ def test_generator_honors_explicit_namespace(tmp_path):
     # must emit the prefix for MonoBehaviour GetComponent/AddComponent calls.
     setup_cs, val_cs, _ = _run_generator(tmp_path, namespace="MyGame")
     assert "MyGame.Player" in setup_cs or "MyGame.Player" in val_cs
+    # And the matching `using` directive must be declared so the bare
+    # class refs in `_p.objectReferenceValue.name` checks resolve.
+    assert "using MyGame;" in setup_cs
+    assert "using MyGame;" in val_cs

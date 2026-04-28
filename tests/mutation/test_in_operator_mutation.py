@@ -5,9 +5,8 @@ then verify that our contract tests would catch them.
 """
 
 import re
-from unittest.mock import patch
 
-from src.translator.python_to_csharp import translate, _translate_py_condition
+from src.translator.python_to_csharp import translate
 from src.translator.python_parser import parse_python
 
 

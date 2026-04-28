@@ -18,7 +18,7 @@ Usage:
 
 from __future__ import annotations
 
-from typing import Any, Callable, TypeVar, Generic
+from typing import Callable, TypeVar, Generic
 
 from src.engine.core import GameObject
 

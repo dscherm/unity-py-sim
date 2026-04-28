@@ -263,10 +263,14 @@ class TestAutoStartFixture:
 
     def test_autostart_uses_reflection_for_gamemanager_singleton(self, tmp_path, sample_cs_files):
         """AutoStart must not hard-reference GameManager — must look it up
-        reflectively so it compiles even for games without a GameManager."""
+        reflectively so it compiles even for games without a GameManager,
+        and so it works regardless of which namespace the regenerator wraps
+        GameManager in (Breakout, FlappyBird, PacmanV2, …)."""
         scaffold_project("test", tmp_path, cs_files=sample_cs_files)
         content = (tmp_path / "Assets" / "_Project" / "Scripts" / "AutoStart.cs").read_text(encoding="utf-8")
-        assert "System.Type.GetType" in content
+        # Must walk loaded assemblies (namespace-agnostic), not call
+        # System.Type.GetType("GameManager") which only finds top-level types.
+        assert "AppDomain.CurrentDomain.GetAssemblies" in content
         assert '"GameManager"' in content
         # Must probe both common singleton naming conventions
         assert '"instance"' in content

@@ -35,7 +35,6 @@ def _clean() -> None:
 
 
 def test_transform_position_default_is_zero_vector() -> None:
-    from src.engine.math.vector import Vector3
 
     g = GameObject("g")
     # Force transform creation

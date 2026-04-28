@@ -31,16 +31,11 @@ _GAME_PATHS = {
     "flappy_bird": "examples/flappy_bird/flappy_bird_python",
 }
 
-_NAMESPACES = {
-    "pong": "Pong",
-    "breakout": "Breakout",
-    "space_invaders": "SpaceInvaders",
-    "angry_birds": "AngryBirds",
-    "fsm_platformer": "FSMPlatformer",
-    "pacman": "Pacman",
-    "pacman_v2": "PacmanV2",
-    "flappy_bird": "FlappyBird",
-}
+# GAME_NAMESPACES lives in src.translator.project_translator so the
+# CoPlay generators can also default to the same per-game namespace
+# without duplicating the table.  Keep `_NAMESPACES` as a local alias
+# so the rest of this script reads naturally.
+from src.translator.project_translator import GAME_NAMESPACES as _NAMESPACES  # noqa: E402
 
 
 def main() -> int:
@@ -121,7 +116,7 @@ def main() -> int:
     # Step 3: Validate
     failed_steps = []
     if args.validate:
-        print(f"\n--- Step 3: Structural Gate ---")
+        print("\n--- Step 3: Structural Gate ---")
         from src.gates.structural_gate import validate_csharp
         total_errors = 0
         for name, code in cs_only.items():
@@ -133,7 +128,7 @@ def main() -> int:
         if total_errors > 0:
             failed_steps.append("structural")
 
-        print(f"\n--- Step 4: Convention Gate ---")
+        print("\n--- Step 4: Convention Gate ---")
         from src.gates.convention_gate import check_conventions
         total_violations = 0
         total_checks = 0
@@ -151,7 +146,7 @@ def main() -> int:
     if failed_steps:
         print(f"PIPELINE FAILED — {', '.join(failed_steps)}")
     else:
-        print(f"PIPELINE PASSED")
+        print("PIPELINE PASSED")
     print(f"Elapsed: {elapsed:.1f}s")
     print(f"{'=' * 60}")
 

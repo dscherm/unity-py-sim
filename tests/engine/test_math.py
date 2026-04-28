@@ -1,7 +1,6 @@
 """Tests for Vector2, Vector3, Quaternion, and Mathf."""
 
 import math
-import pytest
 
 from src.engine.math.vector import Vector2, Vector3
 from src.engine.math.quaternion import Quaternion

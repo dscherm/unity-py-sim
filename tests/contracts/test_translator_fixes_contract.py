@@ -9,10 +9,9 @@ from __future__ import annotations
 
 import textwrap
 
-import pytest
 
 from src.translator.python_parser import PyFile, PyClass, PyField, PyMethod
-from src.translator.python_to_csharp import translate, translate_file
+from src.translator.python_to_csharp import translate
 from src.translator.project_translator import translate_project
 from src.gates.structural_gate import validate_csharp
 

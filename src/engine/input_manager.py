@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
 
 # Pygame key constants will be mapped at runtime.
 # We keep a string-based key system so tests can run without pygame display.

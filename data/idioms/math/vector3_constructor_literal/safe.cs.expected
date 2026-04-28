@@ -1,0 +1,8 @@
+using UnityEngine;
+public class V
+{
+    public void Origin()
+    {
+        Vector3 v = new Vector3(1.0f, 2.0f, 3.0f);
+    }
+}

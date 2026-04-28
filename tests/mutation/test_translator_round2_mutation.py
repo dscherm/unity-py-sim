@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.translator.python_to_csharp import translate, _translate_py_expression
+from src.translator.python_to_csharp import translate
 from src.translator.python_parser import parse_python
 import src.translator.python_to_csharp as p2cs
 
@@ -307,7 +307,7 @@ class TestMutationDynamicFieldRegex:
         """Verify that _discover_dynamic_fields processes line-by-line.
         If it used re.DOTALL or didn't split by lines, 'self.active'
         on one line and '= 42' on the next could fuse."""
-        from src.translator.python_parser import parse_python, PyClass, PyMethod
+        from src.translator.python_parser import PyClass, PyMethod
 
         # Create a class with a method whose body has self.X on one line
         # and = value on the next

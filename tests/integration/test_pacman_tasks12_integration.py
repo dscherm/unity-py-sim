@@ -15,7 +15,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "examples
 from src.engine.core import GameObject, _clear_registry
 from src.engine.lifecycle import LifecycleManager
 from src.engine.physics.physics_manager import PhysicsManager
-from src.engine.math.vector import Vector2
 from src.engine.time_manager import Time
 from src.engine.input_manager import Input
 from src.engine.rendering.renderer import SpriteRenderer
@@ -118,7 +117,6 @@ class TestPacmanSceneSetup:
 
     def test_nodes_exist_at_intersections(self, pacman_scene):
         """Node GameObjects should be placed at maze intersections."""
-        from pacman_python.node import Node
         # Find any node
         node = None
         for go_name in ["Node_5_1", "Node_5_6", "Node_1_1"]:
@@ -164,7 +162,7 @@ class TestPacmanMovement:
         _run_frames(lm, pm, 200)
 
         # Pacman moves left from start; verify position is still within maze bounds
-        from pacman_python.maze_data import MAZE_COLS, MAZE_OFFSET_X
+        from pacman_python.maze_data import MAZE_OFFSET_X
         min_x = MAZE_OFFSET_X - 1  # leftmost wall position with margin
         assert pac.transform.position.x >= min_x, \
             f"Pacman should be stopped by wall, not at x={pac.transform.position.x}"

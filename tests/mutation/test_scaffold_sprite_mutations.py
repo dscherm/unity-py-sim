@@ -10,7 +10,6 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-import pytest
 
 from src.exporter import project_scaffolder as ps
 

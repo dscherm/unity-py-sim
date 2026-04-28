@@ -5,7 +5,7 @@ by monkeypatching them away and verifying tests detect the breakage.
 """
 
 import pytest
-from src.engine.core import GameObject, MonoBehaviour, Component, _clear_registry
+from src.engine.core import GameObject, MonoBehaviour, _clear_registry
 from src.engine.lifecycle import LifecycleManager
 from src.engine.rendering.camera import Camera
 

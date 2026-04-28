@@ -6,7 +6,6 @@ Validates movement, wall collision, direction queuing, and overall stability.
 
 import sys
 import os
-import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -170,7 +169,7 @@ class TestPacmanWallCollision:
         assert pacman is not None
 
         # Maze top boundary in world coords: row 0 wall centers at y = MAZE_ROWS/2 - 0.5
-        from examples.pacman.pacman_python.maze_data import MAZE_ROWS, MAZE_OFFSET_Y
+        from examples.pacman.pacman_python.maze_data import MAZE_OFFSET_Y
         top_wall_y = MAZE_OFFSET_Y  # row 0 center y
 
         # Run a few setup frames
@@ -348,7 +347,6 @@ class TestPacmanFullLoop:
 class TestPacmanRotation:
     def test_rotation_follows_direction(self):
         """Pacman should rotate to face its movement direction."""
-        import math
         display, lifecycle, physics = _setup_pacman_scene()
 
         pacman = _get_pacman_go()

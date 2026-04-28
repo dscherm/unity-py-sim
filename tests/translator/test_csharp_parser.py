@@ -1,7 +1,7 @@
 """Tests for C# parser — verify IR extracted from Pong C# files."""
 
 from pathlib import Path
-from src.translator.csharp_parser import parse_csharp, parse_csharp_file, CSharpFile
+from src.translator.csharp_parser import parse_csharp, parse_csharp_file
 
 PONG_DIR = Path(__file__).parent.parent.parent / "examples" / "pong" / "pong_unity"
 

@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import re
 
-import pytest
 
 from src.translator.python_parser import PyFile, PyClass, PyField, PyMethod
 from src.translator.python_to_csharp import translate

@@ -43,7 +43,6 @@ class TestInvaderScoreMutation:
         """If Invaders.ROW_CONFIG[0].score is changed, new invaders in row 0 get the mutated value."""
         from examples.space_invaders.space_invaders_python.invaders import (
             Invaders,
-            InvaderRowConfig,
         )
         # Use same import path as invaders.py uses internally
         from space_invaders_python.invader import Invader
@@ -76,7 +75,6 @@ class TestInvaderScoreMutation:
         """Rows with different ROW_CONFIG entries must produce different scores."""
         from examples.space_invaders.space_invaders_python.invaders import (
             Invaders,
-            InvaderRowConfig,
         )
         # Use same import path as invaders.py uses internally
         from space_invaders_python.invader import Invader

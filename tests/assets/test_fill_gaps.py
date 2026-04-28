@@ -29,7 +29,6 @@ from src.assets.fill_gaps import (
     _parse_size_from_notes,
     _size_px_from_world,
     GapSpec,
-    SpriteGap,
     scan_gaps,
 )
 

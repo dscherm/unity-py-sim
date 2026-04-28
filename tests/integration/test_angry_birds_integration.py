@@ -17,7 +17,6 @@ from src.engine.app import run
 
 from examples.angry_birds.angry_birds_python.bird import Bird
 from examples.angry_birds.angry_birds_python.slingshot import Slingshot
-from examples.angry_birds.angry_birds_python.enums import BirdState, SlingshotState
 
 
 @pytest.fixture(autouse=True)
@@ -44,7 +43,6 @@ def _reset_all():
 
 def _minimal_scene():
     """Set up a minimal Angry Birds scene for integration testing."""
-    from src.engine.rendering.renderer import SpriteRenderer
     from src.engine.physics.collider import BoxCollider2D
 
     lm = LifecycleManager.instance()
@@ -119,7 +117,6 @@ class TestAngryBirdsSceneRuns:
     def test_scene_runs_with_full_setup(self):
         """Run using the actual run_angry_birds setup_scene (imported)."""
         # Import the real setup but we need to adjust import path
-        import importlib
         import sys
         import os
 
@@ -212,7 +209,6 @@ class TestBirdThrowMakesBirdMove:
         not restore them. This means space.step() will raise an assertion
         error if a bird is actually thrown during gameplay.
         """
-        import pymunk
 
         bird_go = GameObject("BugBird")
         rb = bird_go.add_component(Rigidbody2D)

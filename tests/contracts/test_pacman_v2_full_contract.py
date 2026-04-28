@@ -13,18 +13,16 @@ Tests verify behavioral contracts derived from the zigurous Unity Pacman tutoria
 
 import sys
 import os
-import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "examples", "pacman_v2"))
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-from src.engine.core import GameObject, MonoBehaviour
+from src.engine.core import GameObject
 from src.engine.math.vector import Vector2
 
 from pacman_v2_python.ghost import Ghost
-from pacman_v2_python.ghost_behavior import GhostBehavior
 from pacman_v2_python.ghost_scatter import GhostScatter
 from pacman_v2_python.ghost_chase import GhostChase
 from pacman_v2_python.ghost_frightened import GhostFrightened
@@ -33,7 +31,6 @@ from pacman_v2_python.ghost_eyes import GhostEyes
 from pacman_v2_python.game_manager import GameManager
 from pacman_v2_python.movement import Movement
 from pacman_v2_python.node import Node
-from pacman_v2_python.pellet import Pellet
 from pacman_v2_python.power_pellet import PowerPellet
 
 

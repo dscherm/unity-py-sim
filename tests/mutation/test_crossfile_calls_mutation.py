@@ -12,9 +12,7 @@ from __future__ import annotations
 import textwrap
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
 
-import pytest
 
 from src.translator.project_translator import translate_project, _post_process
 

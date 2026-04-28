@@ -1,8 +1,7 @@
 """Tests for LifecycleManager."""
 
-import pytest
 
-from src.engine.core import Component, MonoBehaviour, GameObject
+from src.engine.core import MonoBehaviour, GameObject
 from src.engine.lifecycle import LifecycleManager
 
 

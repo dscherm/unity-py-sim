@@ -7,23 +7,18 @@ contract, NOT from reading existing test files.
 
 from __future__ import annotations
 
-import re
-import pytest
 
-from src.translator.python_parser import parse_python, PyFile
+from src.translator.python_parser import parse_python
 from src.translator.python_to_csharp import (
     translate,
     _translate_for_loop,
     _translate_py_expression,
-    _translate_py_statement,
     _translate_len_calls,
     _translate_all_call,
     _translate_any_call,
     _translate_sum_count_call,
     _translate_list_comprehension,
     _upper_snake_to_pascal,
-    _infer_attributes,
-    _infer_using_directives,
 )
 
 

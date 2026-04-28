@@ -4,6 +4,11 @@
 
 Python simulation of Unity's core game engine for bidirectional C# <-> Python translation.
 
+> **Building a game on this sim? Read `AGENT_GUIDE.md` first.** It is the
+> operating manual: parity-tested API surface, the snippet/idiom/gap-gate
+> feedback loop, the playtest+pipeline workflow, and a 10-item antipattern
+> checklist to grep your draft against before opening a PR.
+
 ## Purpose
 
 Enable Python-first game development that translates to Unity C# via Ralph loop automation.
@@ -107,3 +112,7 @@ When work is complete and the test suite passes, stage the relevant files (`git 
 @.claude/.ralph-pending-reviews.md
 @.claude/.ralph-handoff.md
 @.claude/.ralph-bridge-resume.md
+
+
+<!-- unpossible-ralph: auto-injected context -->
+@.claude/.ralph-bootstrap-needed.md
