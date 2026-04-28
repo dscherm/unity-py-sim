@@ -30,6 +30,10 @@ include = ["src*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = [
+    "slow: tests that re-run a heavy suite (e.g. the parity harness end-to-end). Skipped by default; opt-in via `-m slow` or `-m ''`.",
+]
+addopts = "-m 'not slow'"
 
 [tool.pyright]
 include = ["src"]

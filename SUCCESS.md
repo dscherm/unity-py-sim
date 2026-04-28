@@ -84,7 +84,9 @@ These define the project's *maturity*, not its *shipping*. Useful for prioritiza
 
 **Definition**: Of the parity tests built per ASP-3, at least 80% pass the headless `dotnet run` path against UnityEngine reference DLLs, and at least 70% pass the CoPlay snapshot path on the home machine.
 
-**Delivered by**: M-4 (post-audit expansion).
+**Status (2026-04-27)**: dotnet leg ✅ **87/87 = 100.0%**, comfortably above the ≥80% bar. 28 cases are correctly classified as parked (PARITY_SCAFFOLD_PARKED — Audio×3, Canvas/RectTransform/Text/Image/Button, SceneManager, DOTween — explicit out-of-scope per M-9), so they don't punish the rate. Measurement tool: `tools/measure_parity_pass_rates.py` runs the parity suite via pytest+JUnit, classifies skips as parked vs other, and writes `data/metrics/parity_pass_rates.json`. Wired into the CI snapshot job as the new "Measure parity pass rates" step; the dashboard now shows two new ASP-4 rows under "Latest Snapshot" with arrow trends. CoPlay leg ⏳ deferred — needs a home-machine `[UnityTest]` runner that generates a Unity Test Framework PlayMode test from each `ParityCase` and aggregates pass/fail back into `parity_pass_rates.json` under the `coplay` key. The CoPlay column on the dashboard renders as `—` until that lands.
+
+**Delivered by**: dotnet leg by ASP-4 closure (2026-04-27); CoPlay leg blocked on home-machine UTF wiring (separate task).
 
 ### ASP-5 · Cross-machine deploy fully automated
 

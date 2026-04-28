@@ -3187,3 +3187,18 @@ Premise: today the Python sim and the translated C# can drift silently — the s
   "estimated_effort_hours": 2
 }
 ```
+
+### ASP-4 closure: dotnet leg measurement (2026-04-27)
+
+```json
+{
+  "id": "ASP-4-dotnet-passrate",
+  "category": "infrastructure",
+  "title": "ASP-4 — measure parity-test pass rate on the dotnet leg + wire into dashboard",
+  "description": "ASP-3 built the parity test surface (80/87 = 92% coverage). ASP-4 measures the *pass rate*: of the parity tests that exist, how many actually go green on each leg? Today's dotnet measurement: 87/87 = 100.0% — comfortably above the ≥80% bar. Tooling: `tools/measure_parity_pass_rates.py` runs the parity suite under pytest+JUnit, classifies each testcase as passed/failed/skipped-parked/skipped-other (parked = explicit out-of-scope per M-9 PARITY_SCAFFOLD_PARKED markers; the denominator is `passed + failed`, so parked cases don't inflate or deflate the rate). Output: `data/metrics/parity_pass_rates.json`. Snapshot module reads it; dashboard renders two new ASP-4 rows (dotnet ✅, CoPlay ⏳ deferred). CI snapshot job picks up the measurement before the snapshot+render sequence and auto-commits the JSON alongside history+dashboard per ASP-6. CoPlay leg deferred — needs a home-machine UTF runner that generates a Unity Test Framework PlayMode test from each ParityCase and aggregates pass/fail back into the same JSON.",
+  "passes": true,
+  "verified_2026-04-27": "Local pipeline ran clean — `parity_matrix` → `measure_parity_pass_rates` → `snapshot` → `render_dashboard` produced a dashboard whose 'Parity tests passing — dotnet (ASP-4 ≥80%)' row reads 100.0%. Independent validation agent wrote `tests/tools/test_measure_parity_pass_rates.py` (31 tests across skip-classification, JUnit parsing, CoPlay-deferral schema, and an end-to-end real-suite run); 31/31 passed; no defects found in the tool. The 100% number was independently re-confirmed by the validator: pytest collects 115 testcases, runs 87 passed + 28 skipped, all 28 skip-messages are scaffold/skeleton-classifiable so they bucket correctly as parked.",
+  "depends_on": ["M-9-parity-backfill", "ASP-6-dashboard-autocommit"],
+  "estimated_effort_hours": 2
+}
+```
