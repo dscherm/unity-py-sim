@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-04-28T00:23:07+00:00",
+  "dotnet": {
+    "passed": 87,
+    "failed": 0,
+    "skipped_parked": 28,
+    "skipped_other": 0,
+    "total_runnable": 87,
+    "pct": 1.0
+  },
+  "coplay": {
+    "passed": 49,
+    "failed": 3,
+    "skipped_other": 0,
+    "total_runnable": 52,
+    "pct": 0.9423076923076923,
+    "measured_at": "2026-04-28T01:41:45+00:00",
+    "source": "data\\metrics\\coplay_parity_results.xml"
+  }
+}

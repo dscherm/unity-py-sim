@@ -80,15 +80,19 @@ These define the project's *maturity*, not its *shipping*. Useful for prioritiza
 
 **Delivered by**: M-9 (closed 2026-04-27).
 
-### ASP-4 · Parity tests ≥80% pass dotnet path, ≥70% pass CoPlay path
+### ASP-4 · Parity tests ≥80% pass dotnet path, ≥70% pass CoPlay path ✅
 
 **Definition**: Of the parity tests built per ASP-3, at least 80% pass the headless `dotnet run` path against UnityEngine reference DLLs, and at least 70% pass the CoPlay snapshot path on the home machine.
 
-**Status (2026-04-27)**: dotnet leg ✅ **87/87 = 100.0%**, comfortably above the ≥80% bar. 28 cases are correctly classified as parked (PARITY_SCAFFOLD_PARKED — Audio×3, Canvas/RectTransform/Text/Image/Button, SceneManager, DOTween — explicit out-of-scope per M-9), so they don't punish the rate. Measurement tool: `tools/measure_parity_pass_rates.py` runs the parity suite via pytest+JUnit, classifies skips as parked vs other, and writes `data/metrics/parity_pass_rates.json`. Wired into the CI snapshot job as the new "Measure parity pass rates" step; the dashboard now shows two new ASP-4 rows under "Latest Snapshot" with arrow trends. CoPlay leg ⏳ deferred — needs a home-machine `[UnityTest]` runner that generates a Unity Test Framework PlayMode test from each `ParityCase` and aggregates pass/fail back into `parity_pass_rates.json` under the `coplay` key. The CoPlay column on the dashboard renders as `—` until that lands.
+**Status (2026-04-27)**: ✅ both bars cleared.
+- **dotnet leg**: **87/87 = 100.0%** (≥80% bar). 28 cases parked (PARITY_SCAFFOLD_PARKED — Audio×3, Canvas/RectTransform/Text/Image/Button, SceneManager, DOTween, Camera.backgroundColor, SpriteRenderer.color, Component.GetComponent — out-of-scope per M-9 / deferred-implementation), so they don't punish the rate. Measurement: `tools/measure_parity_pass_rates.py` (pytest + JUnit XML).
+- **CoPlay leg**: **49/52 = 94.2%** (≥70% bar). End-to-end validated on the home machine via `Unity.exe -batchmode -runTests -testPlatform PlayMode` against a generated parity runner project. Three known divergences (Unity throws on invalid Tag/InputAxis/KeyName; Python sim returns sensible defaults — real strictness gap, not a harness bug). Measurement: `tools/aggregate_coplay_parity_results.py` parses NUnit-3 XML, merges into `data/metrics/parity_pass_rates.json :: coplay`.
 
-**CoPlay leg scaffold (2026-04-27)**: `tools/scaffold_coplay_parity_runner.py` discovers every active `ParityCase` (52 today; PARKED/SKELETON files skipped) by monkey-patching `tests.parity._harness.assert_parity`, writes a JSON manifest to `data/metrics/coplay_parity_cases.json`, and emits one `[UnityTest]` IEnumerator C# file per case under `data/generated/coplay_parity_runner/Assets/Tests/PlayMode/`. Each emitted test wraps the dotnet-leg `scenario_csharp_body`, tags observables with `Debug.Log("PARITY_OBSERVABLES:" + json)` (same shape as the dotnet harness), and yields. The remaining home-machine work to close the leg: (1) drop the generated tree into a Unity project + provide `ParityHarnessShim.Serialize`; (2) run `Unity -batchmode -runTests -testPlatform PlayMode`; (3) parse NUnit XML, classify pass/fail, write back to `data/metrics/parity_pass_rates.json :: coplay`; (4) wire into `.github/workflows/home_machine.yml`.
+Pipeline: `tools/scaffold_coplay_parity_runner.py` discovers every active `ParityCase` by monkey-patching `tests.parity._harness.assert_parity`, writes a JSON manifest, and emits a self-contained Unity project (`data/generated/coplay_parity_runner/`) with ProjectSettings (copied from breakout_project), Packages/manifest, asmdef, `ParityHarnessShim.cs`, and one `[UnityTest]` IEnumerator C# file per case (52 today). A regex post-pass rewrites bare `new <Component>()` to `__parityHost.AddComponent<...>()` so component lifecycle works under Unity proper (recovered 20 tests vs naive emission).
 
-**Delivered by**: dotnet leg by ASP-4 closure (2026-04-27) + CoPlay scaffold (2026-04-27); CoPlay leg validation blocked on home-machine UTF wiring (separate session).
+CI wiring: `.github/workflows/home_machine.yml :: parity_runner` job (needs deploy, runs on the home runner, push/dispatch only) scaffolds the project, runs Unity batchmode, aggregates, asserts the ≥70% bar, and auto-commits the updated `parity_pass_rates.json` back to master with `[skip ci]`. Pattern mirrors the ASP-6 dashboard auto-commit (job-scoped `contents: write`, race-safe rebase, fail-soft push).
+
+**Delivered by**: dotnet leg + CoPlay leg both closed 2026-04-27.
 
 ### ASP-5 · Cross-machine deploy fully automated
 
