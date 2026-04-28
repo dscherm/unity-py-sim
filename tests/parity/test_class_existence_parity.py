@@ -20,9 +20,7 @@ regression on any of them shows up red.
 
 from __future__ import annotations
 
-import math
 
-import pytest
 
 from src.engine.math.mathf import Mathf
 from src.engine.math.quaternion import Quaternion

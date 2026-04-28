@@ -17,7 +17,6 @@ remaining 60 untested APIs onto the same harness shape.
 
 from __future__ import annotations
 
-import pytest
 
 from src.engine.core import GameObject
 from src.engine.math.vector import Vector2, Vector3

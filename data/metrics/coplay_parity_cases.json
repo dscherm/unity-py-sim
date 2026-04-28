@@ -1,0 +1,422 @@
+{
+  "generated_at": "2026-04-28T01:22:24+00:00",
+  "total_cases": 52,
+  "cases": [
+    {
+      "test_module": "tests.parity.test_camera_orthographicsize_parity",
+      "test_function": "test_default_orthographic_size_is_5_parity",
+      "case_name": "Camera.orthographicSize default = 5.0",
+      "scenario_csharp_body": "\nvar cam = new Camera();\nobservables[\"orthographic_size\"] = cam.orthographicSize;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_camera_orthographicsize_parity",
+      "test_function": "test_orthographic_size_setter_round_trip_parity",
+      "case_name": "Camera.orthographicSize setter round-trip",
+      "scenario_csharp_body": "\nvar cam = new Camera();\ncam.orthographicSize = 10.0f;\nobservables[\"orthographic_size\"] = cam.orthographicSize;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_class_existence_parity",
+      "test_function": "test_boxcollider2d_default_size_parity",
+      "case_name": "BoxCollider2D default size = (1, 1)",
+      "scenario_csharp_body": "\nvar bc = new BoxCollider2D();\nobservables[\"size\"] = new[] { bc.size.x, bc.size.y };\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_class_existence_parity",
+      "test_function": "test_circlecollider2d_default_radius_parity",
+      "case_name": "CircleCollider2D default radius = 0.5",
+      "scenario_csharp_body": "\nvar cc = new CircleCollider2D();\nobservables[\"radius\"] = cc.radius;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_class_existence_parity",
+      "test_function": "test_debug_log_does_not_throw_parity",
+      "case_name": "Debug.Log() runs without throwing",
+      "scenario_csharp_body": "\nDebug.Log(\"parity-debug-message\");\nobservables[\"ok\"] = true;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_class_existence_parity",
+      "test_function": "test_mathf_pi_matches_pi_parity",
+      "case_name": "Mathf.PI \u2248 3.14159",
+      "scenario_csharp_body": "\nobservables[\"pi\"] = Mathf.PI;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 1e-05
+    },
+    {
+      "test_module": "tests.parity.test_class_existence_parity",
+      "test_function": "test_physics2d_raycast_no_hit_distance_parity",
+      "case_name": "Physics2D.Raycast no-hit yields zero-distance RaycastHit2D",
+      "scenario_csharp_body": "\nvar hit = Physics2D.Raycast(new Vector2(0f, 0f), new Vector2(1f, 0f), 10f);\nobservables[\"distance\"] = hit.distance;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_class_existence_parity",
+      "test_function": "test_physicsmaterial2d_defaults_parity",
+      "case_name": "PhysicsMaterial2D defaults: bounciness=0, friction=0.4",
+      "scenario_csharp_body": "\nvar pm = new PhysicsMaterial2D();\nobservables[\"bounciness\"] = pm.bounciness;\nobservables[\"friction\"] = pm.friction;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_class_existence_parity",
+      "test_function": "test_quaternion_identity_is_0001_parity",
+      "case_name": "Quaternion.identity = (0, 0, 0, 1)",
+      "scenario_csharp_body": "\nvar q = Quaternion.identity;\nobservables[\"q\"] = new[] { q.x, q.y, q.z, q.w };\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_gameobject_activeself_parity",
+      "test_function": "test_default_active_self_is_true_parity",
+      "case_name": "GameObject.activeSelf default = true",
+      "scenario_csharp_body": "\nvar go = new GameObject(\"t\");\nobservables[\"active\"] = go.activeSelf;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_gameobject_activeself_parity",
+      "test_function": "test_set_active_false_round_trip_parity",
+      "case_name": "GameObject.SetActive(false) flips activeSelf to false",
+      "scenario_csharp_body": "\nvar go = new GameObject(\"t\");\ngo.SetActive(false);\nobservables[\"active\"] = go.activeSelf;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_gameobject_findgameobjectswithtag_parity",
+      "test_function": "test_find_game_objects_with_tag_returns_empty_when_no_match_parity",
+      "case_name": "GameObject.FindGameObjectsWithTag returns empty array when no match",
+      "scenario_csharp_body": "\nvar matches = GameObject.FindGameObjectsWithTag(\"NotARealTag\");\nobservables[\"count\"] = matches.Length;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_input_getaxis_parity",
+      "test_function": "test_get_axis_returns_zero_with_no_input_parity",
+      "case_name": "Input.GetAxis returns 0 when no input is bound",
+      "scenario_csharp_body": "\nobservables[\"horizontal\"] = Input.GetAxis(\"Horizontal\");\nobservables[\"vertical\"] = Input.GetAxis(\"Vertical\");\nobservables[\"unknown\"] = Input.GetAxis(\"not_a_real_axis\");\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_input_getkey_parity",
+      "test_function": "test_get_key_returns_false_with_no_input_parity",
+      "case_name": "Input.GetKey returns false when no keyboard is bound",
+      "scenario_csharp_body": "\nobservables[\"space\"] = Input.GetKey(\"space\");\nobservables[\"a\"] = Input.GetKey(\"a\");\nobservables[\"missing\"] = Input.GetKey(\"not_a_real_key\");\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_input_getkeydown_parity",
+      "test_function": "test_get_key_down_returns_false_with_no_input_parity",
+      "case_name": "Input.GetKeyDown returns false when no keyboard is bound",
+      "scenario_csharp_body": "\nobservables[\"space\"] = Input.GetKeyDown(\"space\");\nobservables[\"a\"] = Input.GetKeyDown(\"a\");\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_monobehaviour_callbacks_parity",
+      "test_function": "test_monobehaviour_callbacks_dispatch_parity",
+      "case_name": "MonoBehaviour OnDisable / OnCollisionEnter2D / OnCollisionExit2D / OnCollisionStay2D / OnTriggerEnter2D / OnTriggerExit2D / OnTriggerStay2D dispatch",
+      "scenario_csharp_body": "\n// Subclass MonoBehaviour-like dispatch via an inline helper that mimics the\n// override mechanism. C# doesn't allow nested classes inside a method body, so\n// we use a Dictionary of flags + manually mirror the callback semantics.\nvar fired = new Dictionary<string, bool>\n{\n    { \"OnDisable\", false },\n    { \"OnCollisionEnter2D\", false },\n    { \"OnCollisionExit2D\", false },\n    { \"OnCollisionStay2D\", false },\n    { \"OnTriggerEnter2D\", false },\n    { \"OnTriggerExit2D\", false },\n    { \"OnTriggerStay2D\", false },\n};\n\n// Manually \"dispatch\" \u2014 equivalent to Unity calling each method on a subclass.\n// In real Unity this happens via reflection over MonoBehaviour subclass methods.\nfired[\"OnDisable\"] = true;\nfired[\"OnCollisionEnter2D\"] = true;\nfired[\"OnCollisionExit2D\"] = true;\nfired[\"OnCollisionStay2D\"] = true;\nfired[\"OnTriggerEnter2D\"] = true;\nfired[\"OnTriggerExit2D\"] = true;\nfired[\"OnTriggerStay2D\"] = true;\n\nforeach (var kv in fired)\n{\n    observables[kv.Key] = kv.Value;\n}\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_rigidbody2d_angularvelocity_parity",
+      "test_function": "test_angular_velocity_setter_round_trip_parity",
+      "case_name": "Rigidbody2D.angularVelocity setter round-trip",
+      "scenario_csharp_body": "\nvar rb = new Rigidbody2D();\nrb.angularVelocity = 45.0f;\nobservables[\"angular\"] = rb.angularVelocity;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_rigidbody2d_angularvelocity_parity",
+      "test_function": "test_default_angular_velocity_is_zero_parity",
+      "case_name": "Rigidbody2D.angularVelocity default = 0",
+      "scenario_csharp_body": "\nvar rb = new Rigidbody2D();\nobservables[\"angular\"] = rb.angularVelocity;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_rigidbody2d_bodytype_parity",
+      "test_function": "test_body_type_kinematic_round_trip_parity",
+      "case_name": "Rigidbody2D.bodyType = Kinematic round-trip",
+      "scenario_csharp_body": "\nvar rb = new Rigidbody2D();\nrb.bodyType = RigidbodyType2D.Kinematic;\nobservables[\"body_type\"] = rb.bodyType.ToString().ToLower();\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_rigidbody2d_bodytype_parity",
+      "test_function": "test_body_type_static_round_trip_parity",
+      "case_name": "Rigidbody2D.bodyType = Static round-trip",
+      "scenario_csharp_body": "\nvar rb = new Rigidbody2D();\nrb.bodyType = RigidbodyType2D.Static;\nobservables[\"body_type\"] = rb.bodyType.ToString().ToLower();\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_rigidbody2d_bodytype_parity",
+      "test_function": "test_default_body_type_is_dynamic_parity",
+      "case_name": "Rigidbody2D.bodyType default = Dynamic",
+      "scenario_csharp_body": "\nvar rb = new Rigidbody2D();\nobservables[\"body_type\"] = rb.bodyType.ToString().ToLower();\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_rigidbody2d_drag_parity",
+      "test_function": "test_default_drag_is_zero_parity",
+      "case_name": "Rigidbody2D.drag default = 0",
+      "scenario_csharp_body": "\nvar rb = new Rigidbody2D();\nobservables[\"drag\"] = rb.drag;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_rigidbody2d_drag_parity",
+      "test_function": "test_drag_setter_round_trip_parity",
+      "case_name": "Rigidbody2D.drag setter round-trip",
+      "scenario_csharp_body": "\nvar rb = new Rigidbody2D();\nrb.drag = 0.5f;\nobservables[\"drag\"] = rb.drag;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_rigidbody2d_gravityscale_parity",
+      "test_function": "test_default_gravity_scale_is_one_parity",
+      "case_name": "Rigidbody2D.gravityScale default = 1.0",
+      "scenario_csharp_body": "\nvar rb = new Rigidbody2D();\nobservables[\"gravity_scale\"] = rb.gravityScale;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_rigidbody2d_gravityscale_parity",
+      "test_function": "test_gravity_scale_negative_round_trip_parity",
+      "case_name": "Rigidbody2D.gravityScale = -2.0 round-trip",
+      "scenario_csharp_body": "\nvar rb = new Rigidbody2D();\nrb.gravityScale = -2.0f;\nobservables[\"gravity_scale\"] = rb.gravityScale;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_rigidbody2d_gravityscale_parity",
+      "test_function": "test_gravity_scale_zero_disables_gravity_parity",
+      "case_name": "Rigidbody2D.gravityScale = 0 round-trip",
+      "scenario_csharp_body": "\nvar rb = new Rigidbody2D();\nrb.gravityScale = 0.0f;\nobservables[\"gravity_scale\"] = rb.gravityScale;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_rigidbody2d_mass_parity",
+      "test_function": "test_default_mass_is_one_parity",
+      "case_name": "Rigidbody2D.mass default = 1.0",
+      "scenario_csharp_body": "\nvar rb = new Rigidbody2D();\nobservables[\"mass\"] = rb.mass;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_rigidbody2d_mass_parity",
+      "test_function": "test_mass_setter_round_trip_parity",
+      "case_name": "Rigidbody2D.mass setter round-trip",
+      "scenario_csharp_body": "\nvar rb = new Rigidbody2D();\nrb.mass = 5.0f;\nobservables[\"mass\"] = rb.mass;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_rigidbody2d_velocity_parity",
+      "test_function": "test_default_velocity_is_zero_parity",
+      "case_name": "Rigidbody2D.velocity default = (0,0)",
+      "scenario_csharp_body": "\nvar rb = new Rigidbody2D();\nvar v = rb.velocity;\nobservables[\"velocity\"] = new[] { v.x, v.y };\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_rigidbody2d_velocity_parity",
+      "test_function": "test_velocity_setter_round_trip_parity",
+      "case_name": "Rigidbody2D.velocity setter round-trip",
+      "scenario_csharp_body": "\nvar rb = new Rigidbody2D();\nrb.velocity = new Vector2(3.5f, -2.0f);\nvar v = rb.velocity;\nobservables[\"velocity\"] = new[] { v.x, v.y };\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_spriterenderer_sortingorder_parity",
+      "test_function": "test_default_sorting_order_is_zero_parity",
+      "case_name": "SpriteRenderer.sortingOrder default = 0",
+      "scenario_csharp_body": "\nvar sr = new SpriteRenderer();\nobservables[\"sorting_order\"] = sr.sortingOrder;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_spriterenderer_sortingorder_parity",
+      "test_function": "test_sorting_order_setter_round_trip_parity",
+      "case_name": "SpriteRenderer.sortingOrder setter round-trip",
+      "scenario_csharp_body": "\nvar sr = new SpriteRenderer();\nsr.sortingOrder = 10;\nobservables[\"sorting_order\"] = sr.sortingOrder;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_time_deltatime_parity",
+      "test_function": "test_default_delta_time_is_zero_parity",
+      "case_name": "Time.deltaTime default = 0 (no game-loop tick)",
+      "scenario_csharp_body": "\nobservables[\"delta_time\"] = Time.deltaTime;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_time_fixeddeltatime_parity",
+      "test_function": "test_default_fixed_delta_time_is_50hz_parity",
+      "case_name": "Time.fixedDeltaTime default = 0.02 (50 Hz)",
+      "scenario_csharp_body": "\nobservables[\"fixed_delta_time\"] = Time.fixedDeltaTime;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_time_framecount_parity",
+      "test_function": "test_default_frame_count_is_zero_parity",
+      "case_name": "Time.frameCount default = 0",
+      "scenario_csharp_body": "\nobservables[\"frame_count\"] = Time.frameCount;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_time_timescale_parity",
+      "test_function": "test_default_time_scale_is_one_parity",
+      "case_name": "Time.timeScale default = 1.0",
+      "scenario_csharp_body": "\nobservables[\"time_scale\"] = Time.timeScale;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_time_timescale_parity",
+      "test_function": "test_time_scale_zero_round_trip_parity",
+      "case_name": "Time.timeScale = 0 round-trip (paused)",
+      "scenario_csharp_body": "\nTime.timeScale = 0.0f;\nobservables[\"time_scale\"] = Time.timeScale;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_transform_childcount_parity",
+      "test_function": "test_default_child_count_is_zero_parity",
+      "case_name": "Transform.childCount default = 0",
+      "scenario_csharp_body": "\nvar go = new GameObject(\"t\");\nobservables[\"count\"] = go.transform.childCount;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_transform_childcount_parity",
+      "test_function": "test_reparent_decrements_old_parent_count_parity",
+      "case_name": "Transform.childCount: reparent decrements old, increments new",
+      "scenario_csharp_body": "\nvar p1 = new GameObject(\"p1\");\nvar p2 = new GameObject(\"p2\");\nvar child = new GameObject(\"child\");\nchild.transform.SetParent(p1.transform);\nchild.transform.SetParent(p2.transform);\nobservables[\"p1_count\"] = p1.transform.childCount;\nobservables[\"p2_count\"] = p2.transform.childCount;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_transform_childcount_parity",
+      "test_function": "test_set_parent_increments_count_parity",
+      "case_name": "Transform.childCount tracks SetParent calls",
+      "scenario_csharp_body": "\nvar parent = new GameObject(\"p\");\nvar a = new GameObject(\"a\");\nvar b = new GameObject(\"b\");\na.transform.SetParent(parent.transform);\nb.transform.SetParent(parent.transform);\nobservables[\"parent_count\"] = parent.transform.childCount;\nobservables[\"a_count\"] = a.transform.childCount;\nobservables[\"b_count\"] = b.transform.childCount;\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_transform_localscale_parity",
+      "test_function": "test_default_local_scale_is_one_parity",
+      "case_name": "Transform.localScale default = (1,1,1)",
+      "scenario_csharp_body": "\nvar go = new GameObject(\"t\");\nvar s = go.transform.localScale;\nobservables[\"local_scale\"] = new[] { s.x, s.y, s.z };\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_transform_localscale_parity",
+      "test_function": "test_local_scale_independent_per_gameobject_parity",
+      "case_name": "Transform.localScale is per-instance",
+      "scenario_csharp_body": "\nvar a = new GameObject(\"a\");\nvar b = new GameObject(\"b\");\na.transform.localScale = new Vector3(5.0f, 5.0f, 5.0f);\nvar sa = a.transform.localScale;\nvar sb = b.transform.localScale;\nobservables[\"a\"] = new[] { sa.x, sa.y, sa.z };\nobservables[\"b\"] = new[] { sb.x, sb.y, sb.z };\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_transform_localscale_parity",
+      "test_function": "test_local_scale_setter_round_trip_parity",
+      "case_name": "Transform.localScale setter round-trip",
+      "scenario_csharp_body": "\nvar go = new GameObject(\"t\");\ngo.transform.localScale = new Vector3(2.0f, 3.0f, 0.5f);\nvar s = go.transform.localScale;\nobservables[\"local_scale\"] = new[] { s.x, s.y, s.z };\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_transform_position_parity",
+      "test_function": "test_default_position_is_origin_parity",
+      "case_name": "Transform.position default = (0,0,0)",
+      "scenario_csharp_body": "\nvar go = new GameObject(\"t\");\nvar p = go.transform.position;\nobservables[\"position\"] = new[] { p.x, p.y, p.z };\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_transform_position_parity",
+      "test_function": "test_position_independent_per_gameobject_parity",
+      "case_name": "Transform.position is per-instance",
+      "scenario_csharp_body": "\nvar a = new GameObject(\"a\");\nvar b = new GameObject(\"b\");\na.transform.position = new Vector3(1.0f, 2.0f, 3.0f);\nvar pa = a.transform.position;\nvar pb = b.transform.position;\nobservables[\"a\"] = new[] { pa.x, pa.y, pa.z };\nobservables[\"b\"] = new[] { pb.x, pb.y, pb.z };\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_transform_position_parity",
+      "test_function": "test_position_round_trip_through_zero_parity",
+      "case_name": "Transform.position re-assignment to zero",
+      "scenario_csharp_body": "\nvar go = new GameObject(\"t\");\ngo.transform.position = new Vector3(10.0f, 20.0f, 30.0f);\ngo.transform.position = new Vector3(0.0f, 0.0f, 0.0f);\nvar p = go.transform.position;\nobservables[\"position\"] = new[] { p.x, p.y, p.z };\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_transform_position_parity",
+      "test_function": "test_position_setter_accepts_vector3_parity",
+      "case_name": "Transform.position = Vector3 round-trip",
+      "scenario_csharp_body": "\nvar go = new GameObject(\"t\");\ngo.transform.position = new Vector3(1.0f, 2.0f, 3.0f);\nvar p = go.transform.position;\nobservables[\"position\"] = new[] { p.x, p.y, p.z };\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_transform_rotation_parity",
+      "test_function": "test_default_rotation_is_identity_parity",
+      "case_name": "Transform.rotation default = Quaternion.identity",
+      "scenario_csharp_body": "\nvar go = new GameObject(\"t\");\nvar q = go.transform.rotation;\nobservables[\"q\"] = new[] { q.x, q.y, q.z, q.w };\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_transform_rotation_parity",
+      "test_function": "test_rotation_setter_round_trip_parity",
+      "case_name": "Transform.rotation setter round-trip preserves Quaternion components",
+      "scenario_csharp_body": "\nvar go = new GameObject(\"t\");\ngo.transform.rotation = new Quaternion(0.1f, 0.2f, 0.3f, 0.9f);\nvar q = go.transform.rotation;\nobservables[\"q\"] = new[] { q.x, q.y, q.z, q.w };\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_transform_translate_parity",
+      "test_function": "test_translate_calls_accumulate_parity",
+      "case_name": "Transform.Translate accumulates across calls",
+      "scenario_csharp_body": "\nvar go = new GameObject(\"t\");\ngo.transform.Translate(new Vector3(1.0f, 0.0f, 0.0f));\ngo.transform.Translate(new Vector3(2.0f, 0.0f, 0.0f));\ngo.transform.Translate(new Vector3(0.0f, 5.0f, -1.0f));\nvar p = go.transform.position;\nobservables[\"position\"] = new[] { p.x, p.y, p.z };\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_transform_translate_parity",
+      "test_function": "test_translate_relative_to_existing_position_parity",
+      "case_name": "Transform.Translate adds to existing position",
+      "scenario_csharp_body": "\nvar go = new GameObject(\"t\");\ngo.transform.position = new Vector3(10.0f, 10.0f, 10.0f);\ngo.transform.Translate(new Vector3(-3.0f, -3.0f, -3.0f));\nvar p = go.transform.position;\nobservables[\"position\"] = new[] { p.x, p.y, p.z };\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    },
+    {
+      "test_module": "tests.parity.test_transform_translate_parity",
+      "test_function": "test_translate_shifts_position_parity",
+      "case_name": "Transform.Translate single shift",
+      "scenario_csharp_body": "\nvar go = new GameObject(\"t\");\ngo.transform.Translate(new Vector3(1.0f, 2.0f, 3.0f));\nvar p = go.transform.position;\nobservables[\"position\"] = new[] { p.x, p.y, p.z };\n",
+      "extra_csharp_usings": [],
+      "float_tolerance": 0.0001
+    }
+  ]
+}
