@@ -86,11 +86,21 @@ $absProject = (Resolve-Path $ProjectPath).Path
 if (-not $ResultsFile) {
     $ResultsFile = Join-Path $absProject "test_results.xml"
 }
-# Make ResultsFile absolute so Unity (cwd-agnostic) writes to the expected spot.
+# Resolve ResultsFile to an absolute path BEFORE passing to Unity. Unity
+# resolves relative -testResults against the project directory, not the
+# script's CWD — so a relative path like `data/metrics/foo.xml` ends up at
+# `<project>/data/metrics/foo.xml`, not the repo-root path the caller
+# expected. The parity_runner job in home_machine.yml depends on the XML
+# landing at the repo-root path so the aggregator can find it.
+if (-not [System.IO.Path]::IsPathRooted($ResultsFile)) {
+    $ResultsFile = Join-Path (Get-Location).Path $ResultsFile
+}
 $resultsDir = Split-Path -Parent $ResultsFile
 if ($resultsDir -and -not (Test-Path $resultsDir)) {
     New-Item -ItemType Directory -Force -Path $resultsDir | Out-Null
 }
+# Normalize after the directory exists so .. segments collapse cleanly.
+$ResultsFile = [System.IO.Path]::GetFullPath($ResultsFile)
 
 if (-not $LogFile) {
     $LogFile = Join-Path $env:TEMP ("unity_runtests_{0}.log" -f ([Guid]::NewGuid().ToString('N')))
