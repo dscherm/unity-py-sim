@@ -18,8 +18,9 @@ Anything outside the parity-tested API surface is undefined behavior — see (a)
 
 ## (a) What the simulator is and isn't
 
-**Faithful** for the **80 APIs** (out of 87 claimed) that have a passing
-dual-path parity test under `tests/parity/`. Source of truth:
+**Faithful** for **83 of 87 APIs in the registry** — 80 have a passing
+dual-path parity test under `tests/parity/`, and 3 are explicitly parked as
+deferred-implementation. Source of truth:
 `data/metrics/parity_matrix.json` and the rendered table at
 `data/metrics/parity_matrix.md`.
 
@@ -32,12 +33,14 @@ LateUpdate), Camera.orthographicSize, SpriteRenderer.sortingOrder, and basic
 classes (Quaternion, Mathf, Debug, BoxCollider2D, CircleCollider2D,
 PhysicsMaterial2D, Physics2D.Raycast).
 
-**Undefined** outside that surface. `Component.GetComponent`, `Transform.Rotate`/
-`LookAt`/`forward`/`right`, `Camera.backgroundColor`, `SpriteRenderer.color`
-are explicitly *deferred* (M-9). Audio, Canvas/RectTransform/Text/Image/Button,
-SceneManager, and DOTween are explicitly *parked* (out-of-scope for the
-headless dual-path harness; `PARITY_SCAFFOLD_PARKED` markers under
-`tests/parity/`).
+**Undefined** outside that surface. `Transform.Rotate`/`LookAt`/`forward`/
+`right` are still deferred-untested (M-9) — they need Quaternion-faithful
+stub math. `Component.GetComponent`, `Camera.backgroundColor`, and
+`SpriteRenderer.color` are parked as *deferred-implementation* (in-scope
+long-term, blocked on stub work). Audio, Canvas/RectTransform/Text/Image/
+Button, SceneManager, and DOTween are parked as *out-of-scope* for the
+headless dual-path harness. All parked APIs carry `PARITY_SCAFFOLD_PARKED`
+markers under `tests/parity/`.
 
 3D, Unity Editor extensions, particles, tilemaps, and shaders are off the
 roadmap — see `SHELVED.md`.

@@ -16,10 +16,25 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 BREAKOUT_RUN = "examples/breakout/run_breakout.py"
+
+
+def _make_synthetic_uncovered_file(tmp_path: Path) -> Path:
+    """Write a synthetic .py file under tmp_path/src/ that references a
+    still-untested Unity API (Transform.Rotate per ASP-3 deferred list).
+    The gate's `_is_in_scope` accepts files with `src/` or `examples/` in
+    their path parts even when not under REPO_ROOT."""
+    target = tmp_path / "src" / "synthetic_spinner.py"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        "class Spinner:\n"
+        "    def update(self, transform) -> None:\n"
+        "        transform.rotate(0, 1, 0)\n",  # snake_case for Transform.Rotate
+        encoding="utf-8",
+    )
+    return target
 
 
 def _run_gate(*args: str) -> subprocess.CompletedProcess:
@@ -40,28 +55,29 @@ def _run_gate(*args: str) -> subprocess.CompletedProcess:
 # Camera.backgroundColor, which is documented as parity_skipped in SUCCESS.md.
 
 
-def test_gate_fails_on_breakout_camera_background_color():
-    """`examples/breakout/run_breakout.py` sets `cam.background_color = (...)`
-    — a deferred-coverage API per ASP-3. Running the gate against this file
-    must exit non-zero and call the API out by name."""
-    proc = _run_gate("--files", BREAKOUT_RUN, "--no-scaffold")
+def test_gate_fails_on_synthetic_file_referencing_untested_api(tmp_path):
+    """A synthetic file that references a still-untested API
+    (Transform.Rotate) must make the gate exit non-zero and call the API out
+    by name. Synthetic-fixture pattern is more durable than asserting a real
+    corpus file fails — when an API moves between tested/parked, the corpus
+    test silently flips."""
+    synthetic = _make_synthetic_uncovered_file(tmp_path)
+    proc = _run_gate("--files", str(synthetic), "--no-scaffold")
     assert proc.returncode == 1, (
         f"expected exit 1, got {proc.returncode}\n"
         f"stdout: {proc.stdout}\nstderr: {proc.stderr}"
     )
     combined = proc.stdout + proc.stderr
-    # The gate must surface either Camera.backgroundColor or
-    # SpriteRenderer.color — the two genuinely-untested APIs touched.
-    assert (
-        "Camera.backgroundColor" in combined
-        or "SpriteRenderer.color" in combined
-    ), f"expected Camera.backgroundColor or SpriteRenderer.color in output:\n{combined}"
+    assert "Transform.Rotate" in combined, (
+        f"expected Transform.Rotate in output:\n{combined}"
+    )
 
 
-def test_gate_failure_message_points_at_skeleton():
+def test_gate_failure_message_points_at_skeleton(tmp_path):
     """Failure message should include the skeleton path under tests/parity/
     so the agent has a clear next step."""
-    proc = _run_gate("--files", BREAKOUT_RUN, "--no-scaffold")
+    synthetic = _make_synthetic_uncovered_file(tmp_path)
+    proc = _run_gate("--files", str(synthetic), "--no-scaffold")
     assert proc.returncode == 1
     assert (
         "tests/parity/" in proc.stdout
@@ -113,12 +129,13 @@ def test_gate_filters_non_python_files():
     assert proc.returncode == 0
 
 
-def test_gate_no_scaffold_does_not_write_files():
-    """Running with --no-scaffold should NOT mutate tests/parity/ on disk.
-    We compare directory contents before and after."""
+def test_gate_no_scaffold_does_not_write_files(tmp_path):
+    """Running with --no-scaffold against a file with an uncovered API
+    should NOT mutate tests/parity/ on disk."""
     parity_dir = REPO_ROOT / "tests" / "parity"
     before = sorted(p.name for p in parity_dir.iterdir())
-    proc = _run_gate("--files", BREAKOUT_RUN, "--no-scaffold")
+    synthetic = _make_synthetic_uncovered_file(tmp_path)
+    proc = _run_gate("--files", str(synthetic), "--no-scaffold")
     assert proc.returncode == 1
     after = sorted(p.name for p in parity_dir.iterdir())
     assert before == after, (

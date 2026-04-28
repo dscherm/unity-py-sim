@@ -19,9 +19,6 @@ Validation lane: do NOT modify src/ or tools/. Tests only.
 
 from __future__ import annotations
 
-import json
-import subprocess
-import sys
 from pathlib import Path
 
 import pytest
@@ -29,9 +26,6 @@ import pytest
 from src.gates import gap_gate
 from src.gates.gap_gate import (
     APIReference,
-    GateResult,
-    PARITY_TESTS_DIR,
-    REPO_ROOT,
     _expected_skeleton_paths,
     _untested_set,
     main,

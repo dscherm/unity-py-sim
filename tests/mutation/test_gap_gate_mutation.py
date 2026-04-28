@@ -15,8 +15,6 @@ If a mutation passes the contract test, that's a hole in our contracts.
 
 from __future__ import annotations
 
-import subprocess
-import sys
 from pathlib import Path
 from unittest.mock import patch
 
@@ -135,29 +133,33 @@ def test_mutation_untested_set_returns_empty_flips_exit_code(synthetic_repo):
 # breaks the integration test against examples/breakout/run_breakout.py.
 
 
-def test_mutation_is_in_scope_always_false_breaks_integration():
+def test_mutation_is_in_scope_always_false_breaks_integration(tmp_path):
     """If _is_in_scope returns False for every path, every file gets filtered
-    out before scanning. The integration test that asserts breakout fails on
-    Camera.backgroundColor would now see a green gate (returncode 0)."""
+    out before scanning. A synthetic file referencing Transform.Rotate (still
+    deferred-untested per ASP-3) should fail the gate before mutation, and
+    pass after."""
+    synthetic = tmp_path / "src" / "synthetic_spinner.py"
+    synthetic.parent.mkdir(parents=True, exist_ok=True)
+    synthetic.write_text(
+        "class Spinner:\n"
+        "    def update(self, transform) -> None:\n"
+        "        transform.rotate(0, 1, 0)\n",
+        encoding="utf-8",
+    )
 
-    # We can't monkey-patch a subprocess from this test, so we patch in-proc.
-    # Sanity: BEFORE mutation, the gate fails on breakout.
     from src.gates.gap_gate import main as gate_main
-    rc_before = gate_main(["--files", BREAKOUT_RUN, "--no-scaffold"])
+    rc_before = gate_main(["--files", str(synthetic), "--no-scaffold"])
     assert rc_before == 1, (
         f"pre-mutation sanity check failed — expected 1, got {rc_before}"
     )
 
-    # AFTER mutation: pretend nothing is in scope.
     with patch.object(gap_gate, "_is_in_scope", return_value=False):
-        rc_after = gate_main(["--files", BREAKOUT_RUN, "--no-scaffold"])
-        # Mutation should silently green the gate.
+        rc_after = gate_main(["--files", str(synthetic), "--no-scaffold"])
         assert rc_after == 0, (
             f"mutation should green the gate; got {rc_after}"
         )
 
-    # Re-run WITHOUT the mutation context — should be back to red.
-    rc_restored = gate_main(["--files", BREAKOUT_RUN, "--no-scaffold"])
+    rc_restored = gate_main(["--files", str(synthetic), "--no-scaffold"])
     assert rc_restored == 1, (
         f"after restore, gate should be red again; got {rc_restored}"
     )

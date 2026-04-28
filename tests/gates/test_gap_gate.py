@@ -10,12 +10,10 @@ Strategy:
 
 from __future__ import annotations
 
-import json
 import subprocess
 import sys
 from pathlib import Path
 
-import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
@@ -65,17 +63,24 @@ def test_run_gate_detects_well_tested_transform_position() -> None:
     )
 
 
-def test_run_gate_flags_untested_camera_backgroundcolor() -> None:
-    """Camera.backgroundColor is on the M-9 deferred list (no parity test).
-    A file mentioning it must be flagged."""
+def test_run_gate_flags_uncovered_api_in_synthetic_file(tmp_path) -> None:
+    """A still-untested API (Transform.Rotate) referenced in a synthetic
+    touched file must be flagged. Uses a synthetic file rather than a real
+    corpus path to avoid fragility when the corpus's API references shift."""
+    synthetic = _make_python_file(
+        tmp_path,
+        "class Spinner:\n"
+        "    def update(self, transform) -> None:\n"
+        "        transform.rotate(0, 1, 0)\n",  # snake_case for Transform.Rotate
+    )
     result = gg.run_gate(
         base=None,
-        files=["examples/breakout/run_breakout.py"],
+        files=[str(synthetic)],
         scaffold=False,
     )
     untested_pairs = {(r.unity_class, r.unity_member) for r in result.untested}
-    assert ("Camera", "backgroundColor") in untested_pairs, (
-        "Gap Gate did not flag Camera.backgroundColor as untested"
+    assert ("Transform", "Rotate") in untested_pairs, (
+        "Gap Gate did not flag Transform.Rotate as untested"
     )
 
 
@@ -101,34 +106,28 @@ def test_grandfather_only_untouched_files() -> None:
 
 
 def test_auto_skeleton_writes_when_uncovered_api_in_touched_file(tmp_path, monkeypatch) -> None:
-    """Synthetic file references an UNTESTED API (Camera.backgroundColor).
-    Gate should write the expected skeleton path. Patch PARITY_TESTS_DIR to
-    tmp_path so we don't pollute the real tests/parity/ directory."""
+    """Synthetic file references an UNTESTED API (Transform.Rotate, on the
+    deferred list per ASP-3). Gate should compute the expected skeleton path.
+    Patch PARITY_TESTS_DIR to tmp_path so we don't pollute the real
+    tests/parity/ directory."""
     fake_parity = tmp_path / "fake_parity"
     fake_parity.mkdir()
     monkeypatch.setattr(gg, "PARITY_TESTS_DIR", fake_parity)
 
-    # Also patch parity_scaffold's destination by invoking it via subprocess
-    # with the same env. Since gap_gate calls SCAFFOLD_TOOL via subprocess,
-    # the scaffolder will write to its own hardcoded PARITY_DIR (tests/parity).
-    # To keep the test clean, we use --no-scaffold mode and just assert the
-    # PATH the gate would have written to.
     synthetic = _make_python_file(
         tmp_path,
-        "from src.engine.rendering.camera import Camera\n"
-        "cam = Camera()\n"
-        "print(cam.background_color)\n",  # snake_case Python, matches matrix's backgroundColor
+        "class Spinner:\n"
+        "    def update(self, transform) -> None:\n"
+        "        transform.rotate(0, 1, 0)\n",  # snake_case for Transform.Rotate
     )
     result = gg.run_gate(
         base=None,
-        files=[str(synthetic.relative_to(REPO_ROOT)) if synthetic.is_relative_to(REPO_ROOT) else str(synthetic)],
+        files=[str(synthetic)],
         scaffold=False,  # report-only; verify expected path string
     )
-    # Build the expected skeleton path against the patched dir
     expected = [p for p in result.skeletons_written
-                if "background" in p.name.lower() and "camera" in p.name.lower()]
-    # The scaffolder's path naming is `test_camera_backgroundcolor_parity.py`
-    assert any(p.name == "test_camera_backgroundcolor_parity.py" for p in expected), (
+                if "transform" in p.name.lower() and "rotate" in p.name.lower()]
+    assert any(p.name == "test_transform_rotate_parity.py" for p in expected), (
         f"Expected skeleton path not in {[p.name for p in result.skeletons_written]}"
     )
 
@@ -151,6 +150,9 @@ def test_cli_exits_zero_with_no_files() -> None:
 
 
 def test_cli_explicit_files_flag() -> None:
+    """Gate should pass on examples/breakout/run_breakout.py — its references
+    (Camera.backgroundColor, SpriteRenderer.color, Component.GetComponent) are
+    all PARITY_SCAFFOLD_PARKED as deferred-implementation per ASP-3."""
     proc = subprocess.run(
         [
             sys.executable, "-m", "src.gates.gap_gate",
@@ -162,12 +164,8 @@ def test_cli_explicit_files_flag() -> None:
         text=True,
         timeout=30,
     )
-    # File references untested APIs (Camera.backgroundColor, SpriteRenderer.color),
-    # so gate should fail with exit 1.
-    assert proc.returncode == 1, f"expected fail, got {proc.returncode}: {proc.stderr}"
-    assert "Camera.backgroundColor" in proc.stdout or "SpriteRenderer.color" in proc.stdout, (
-        f"expected uncovered-API report in stdout: {proc.stdout!r}"
-    )
+    assert proc.returncode == 0, f"expected pass, got {proc.returncode}: {proc.stderr}"
+    assert "PASS" in proc.stdout, f"expected PASS in stdout: {proc.stdout!r}"
 
 
 # ── Regression guard: scanner doesn't false-positive on docstrings ──────────

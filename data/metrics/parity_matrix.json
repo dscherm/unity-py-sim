@@ -1,9 +1,9 @@
 {
   "total_apis": 87,
   "implemented": 83,
-  "with_parity_test": 80,
+  "with_parity_test": 83,
   "implementation_pct": 0.954,
-  "parity_test_pct": 0.92,
+  "parity_test_pct": 0.954,
   "by_kind": {
     "class": {
       "total": 29,
@@ -13,12 +13,12 @@
     "method": {
       "total": 13,
       "implemented": 13,
-      "with_parity_test": 10
+      "with_parity_test": 11
     },
     "property": {
       "total": 31,
       "implemented": 27,
-      "with_parity_test": 27
+      "with_parity_test": 29
     },
     "lifecycle": {
       "total": 14,
@@ -60,12 +60,12 @@
     "Camera": {
       "total": 3,
       "implemented": 3,
-      "with_parity_test": 2
+      "with_parity_test": 3
     },
     "SpriteRenderer": {
       "total": 3,
       "implemented": 1,
-      "with_parity_test": 2
+      "with_parity_test": 3
     },
     "Vector2": {
       "total": 1,
@@ -160,7 +160,7 @@
     "Component": {
       "total": 5,
       "implemented": 5,
-      "with_parity_test": 4
+      "with_parity_test": 5
     },
     "Time": {
       "total": 6,
@@ -517,7 +517,7 @@
       "python_module": null,
       "python_member": "get_component",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "Object",
@@ -837,7 +837,7 @@
       "python_module": null,
       "python_member": "background_color",
       "has_python_impl": true,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "SpriteRenderer",
@@ -847,7 +847,7 @@
       "python_module": null,
       "python_member": "color",
       "has_python_impl": false,
-      "has_parity_test": false
+      "has_parity_test": true
     },
     {
       "unity_class": "SpriteRenderer",
