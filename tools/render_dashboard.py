@@ -23,6 +23,17 @@ ROOT = Path(__file__).resolve().parent.parent
 METRICS_DIR = ROOT / "data" / "metrics"
 HISTORY_DIR = METRICS_DIR / "history"
 DASHBOARD_PATH = METRICS_DIR / "dashboard.md"
+ASP7_STATUS_PATH = METRICS_DIR / "asp7_status.json"
+
+
+def _load_asp7_status(status_path: Path = ASP7_STATUS_PATH) -> dict[str, Any] | None:
+    """Read the ASP-7 gate's structured status if present."""
+    if not status_path.exists():
+        return None
+    try:
+        return json.loads(status_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
 
 
 def _load_history(history_dir: Path) -> list[dict[str, Any]]:
@@ -118,6 +129,16 @@ def render_dashboard(
     lines.append("|---|---|---|")
     for label, key, formatter in rows:
         lines.append(f"| {label} | {formatter(m.get(key))} | {_arrow(prev_m.get(key), m.get(key))} |")
+    # ASP-7 row pulled from data/metrics/asp7_status.json — written by
+    # `python -m src.gates.asp7_gate --write-status` in the snapshot job.
+    asp7 = _load_asp7_status()
+    if asp7 is not None:
+        passed = asp7.get("total_passed", 0)
+        n = asp7.get("threshold_N", 3)
+        flag = " ✅" if asp7.get("asp7_passed") else ""
+        lines.append(f"| ASP-7 playground fidelity (≤5 tweaks/72h, ≥3 games) | {passed}/{n}{flag} | → |")
+    else:
+        lines.append("| ASP-7 playground fidelity (≤5 tweaks/72h, ≥3 games) | — | |")
     lines.append("")
 
     lines.append(f"## Trend (last {len(recent)} snapshots)")

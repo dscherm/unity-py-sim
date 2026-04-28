@@ -152,6 +152,15 @@ jobs:
         run: python tools/measure_parity_pass_rates.py
         continue-on-error: true
 
+      # ASP-7 (Playground Fidelity): advisory until 3 games clear the
+      # ≤J=5 in-window-tweak bar in the same week. --write-status drops a
+      # JSON next to the dashboard so render_dashboard.py can surface the
+      # current x/3 count without re-running the gate. continue-on-error
+      # mirrors the ASP-6 advisory→required ratchet.
+      - name: ASP-7 advisory check (Playground Fidelity)
+        run: python -m src.gates.asp7_gate --check --write-status
+        continue-on-error: true
+
       - name: Take snapshot
         run: python -m src.gates.snapshot --notes "ci push ${{ github.sha }}"
 
@@ -173,7 +182,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/metrics/history/ data/metrics/dashboard.md data/metrics/parity_pass_rates.json
+          git add data/metrics/history/ data/metrics/dashboard.md data/metrics/parity_pass_rates.json data/metrics/asp7_status.json
           if git diff --cached --quiet; then
             echo "[snapshot] no metric changes since last push — skipping commit"
             exit 0

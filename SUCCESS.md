@@ -110,6 +110,24 @@ CI wiring: `.github/workflows/home_machine.yml :: parity_runner` job (needs depl
 
 **Delivered by**: M-3 (renderer + schema) + ASP-6 closure (CI auto-commit, 2026-04-27).
 
+### ASP-7 · Playground fidelity
+
+**Definition**: The Python pygame simulator faithfully predicts Unity runtime behavior, so games arrive at Unity with mechanics, physics, and behaviors *worked out* — leaving sprite/art polish as the only remaining work. Operationalized as a per-game **post-deploy runtime-behavior tweak budget** layered on top of MAN-1: a game passes ASP-7 when the author needs ≤J=5 runtime-behavior tweaks within 72h of the deploy commit (first all-green `home_machine.yml` run for that game) to reach shippable feel. The criterion as a whole passes when ≥N=3 games independently clear that bar.
+
+**Tweak unit**: any post-deploy change that alters how the game *plays* — source-code retunes (constants, magic numbers, timing), Inspector value changes, prefab numeric edits, AnimatorController param tweaks, audio import settings. Excludes pure visual/sprite/font changes. Allowed categories: `physics-constant`, `animation-timing`, `audio-mix`, `control-feel`, `other`. Schema in `data/lessons/_feel_journal_template.md`.
+
+**Status (2026-04-28)**: **2/3 advisory** — Breakout and Flappy Bird both shipped at 0 in-window tweaks since deploy_commit `38e00d3` (2026-04-27 home_machine all-green, run 24972279901). Need one more game's deploy + journal to clear the bar. Seed journals at `data/lessons/breakout_feel_journal.md` and `data/lessons/flappy_bird_feel_journal.md`. Gate: `src/gates/asp7_gate.py`. CI step in `.github/workflows/test.yml :: snapshot` runs `python -m src.gates.asp7_gate --check --write-status` with `continue-on-error: true`; result surfaces as a dashboard row.
+
+**Constraints**:
+- ASP-7 is **purely additive** — it does not modify MAN-1's intervention counter.
+- Per-game scope; the budget is per-game, not project-wide.
+- Window: `[deploy_commit, deploy_commit + 72h]`.
+- Author writes the journal (narrative truth); the gate parses it (mechanical check).
+
+**Promotion criterion**: ASP-7 starts as an *advisory* CI gate (`continue-on-error: true`). It promotes to *required* (`continue-on-error: false`) when 3 distinct games clear the J=5 bar within the same calendar week. Pattern mirrors ASP-6's advisory→validated→enforced ratchet.
+
+**Delivered by**: spec at `.omc/specs/deep-interview-asp7-playground-fidelity.md` + `plan.md` task `asp-7-playground-fidelity` (advisory shipped 2026-04-28; promotion pending the 3rd game's deploy).
+
 ---
 
 ## Stopping rule

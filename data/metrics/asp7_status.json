@@ -1,0 +1,31 @@
+{
+  "games": [
+    {
+      "game": "breakout",
+      "deploy_commit": "38e00d3",
+      "deploy_at": "2026-04-27T01:27:17Z",
+      "shipped_at": "2026-04-27T01:27:17Z",
+      "tweak_count": 0,
+      "in_window_count": 0,
+      "passed": true,
+      "journal_path": "data/lessons/breakout_feel_journal.md",
+      "notes": "ASP-7 deploy_commit for Breakout is 38e00d3 \u2014 the first commit where the\nhome_machine.yml workflow went all-green for both Breakout and Flappy Bird\n(run 24972279901, 2026-04-27 01:27 UTC). Per SUCCESS.md ASP-5, that run\nvalidated PlayMode tests passing under Unity 6000.4.0f1.\n\n72h window: [2026-04-27T01:27:17Z, 2026-04-30T01:27:17Z]. As of the\ninitial seed journal (2026-04-28), no commits have touched\n`data/generated/breakout_project/` or `examples/breakout/` since the\ndeploy_commit \u2014 `git log --since=2026-04-27T01:27Z -- data/generated/\nbreakout_project/ examples/breakout/` returns empty.\n\nThis is honest: Breakout shipped at MAN-1 = 1 manual intervention\n(Gap B2 GameManager.cs camelCase patch, fixed at source post-deploy in\nfc9496e on 2026-04-26 \u2014 counts as MAN-1, not ASP-7), and there has been\nno post-CI-deploy feel-tuning. The game's mechanics, physics, and\nbehaviors translated cleanly from the Python sim.\n\nSee `data/lessons/breakout_deploy.md` for the MAN-1 intervention ledger\nand the gap catalog (B1-B6) that informed the source-side fixes."
+    },
+    {
+      "game": "flappy_bird",
+      "deploy_commit": "38e00d3",
+      "deploy_at": "2026-04-27T01:27:17Z",
+      "shipped_at": "2026-04-27T01:27:17Z",
+      "tweak_count": 0,
+      "in_window_count": 0,
+      "passed": true,
+      "journal_path": "data/lessons/flappy_bird_feel_journal.md",
+      "notes": "ASP-7 deploy_commit for Flappy Bird is 38e00d3 \u2014 the first commit where\nthe home_machine.yml workflow went all-green for both Breakout and Flappy\nBird (run 24972279901, 2026-04-27 01:27 UTC).\n\n72h window: [2026-04-27T01:27:17Z, 2026-04-30T01:27:17Z]. As of the\ninitial seed journal (2026-04-28), no commits have touched\n`data/generated/flappy_bird_project/` or `examples/flappy_bird/` since\nthe deploy_commit \u2014 `git log --since=2026-04-27T01:27Z -- data/generated/\nflappy_bird_project/ examples/flappy_bird/` returns empty.\n\nEarlier feel work happened during the 2026-04-22 \u2192 2026-04-24 manual\nplaytest sessions (documented in `data/lessons/flappy_bird_deploy.md`):\nAutoStart un-pause timing fix, Spawner prefab wiring, Tiled drawMode\nfor parallax, sprite-array wiring, deterministic .cs.meta GUIDs. Those\nwere MAN-1 interventions or source-side fixes that closed before the\nASP-7 deploy_commit; they don't count in this window.\n\nHonesty caveat: an alternative reading of \"deploy_commit\" is the\n2026-04-24 Task-8 home-machine playtest at fc6c05b. Under that earlier\nframing, the post-deploy in-window tweaks would be the\nPlayButtonHandler.cs simplification and the AutoStart Start->Update\nmove (both documented in flappy_bird_deploy.md, 2026-04-24 section) \u2014\n2 tweaks in the 72h window, still well below J=5. We pick the\nhome_machine-CI-green commit because that's the first deploy with a\nreproducible CI bar, which is the truer ASP-7 anchor."
+    }
+  ],
+  "total_passed": 2,
+  "asp7_passed": false,
+  "threshold_J": 5,
+  "threshold_N": 3,
+  "window_hours": 72
+}

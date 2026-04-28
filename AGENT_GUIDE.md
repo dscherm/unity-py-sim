@@ -180,6 +180,44 @@ lesson before retrying.
 
 ---
 
+## (g) ASP-7 — Playtest fidelity / feel journal
+
+unity-py-sim's second pillar (alongside the Python→Unity translator) is
+that the pygame sim is a **playground** — you tune mechanics, physics,
+and behaviors in Python so the deployed Unity game arrives shippable
+with sprite/art polish the only remaining work. ASP-7 in `SUCCESS.md`
+formalizes that pillar with a per-game post-deploy tweak budget.
+
+**When to start a journal:** the moment `home_machine.yml` first goes
+all-green for a new game. That commit is the journal's `deploy_commit`
+and starts the 72-hour ASP-7 window.
+
+**What counts as a tweak:** anything that changes how the game *plays*
+post-deploy — source-code retunes (constants, magic numbers, timing),
+Inspector value changes, prefab numeric edits, AnimatorController param
+tweaks, audio import settings. Categorize each as `physics-constant`,
+`animation-timing`, `audio-mix`, `control-feel`, or `other`.
+
+**What does NOT count:** sprite swaps, recolors, font changes — pure
+visual asset edits. Setup interventions (CoPlay menu clicks, manifest
+edits) — those live in `<game>_deploy.md` under MAN-1.
+
+**Where the journal lives:** `data/lessons/<game>_feel_journal.md` with
+a YAML frontmatter block. Schema and an in-line example: copy
+`data/lessons/_feel_journal_template.md`.
+
+**Where the gate runs:** `src/gates/asp7_gate.py`. Local advisory check:
+`python -m src.gates.asp7_gate --check`. CI runs it from the snapshot
+job in `test.yml` with `continue-on-error: true` until 3 games clear
+the J=5 bar in the same calendar week.
+
+If you find yourself making >5 in-window tweaks for a game, that's
+diagnostic — the engine has a parity gap that should be fixed at
+source (engine API, parity test, idiom catalog) instead of patched
+per-game in Unity.
+
+---
+
 ## Antipattern checklist (grep your draft before claiming done)
 
 Before opening a PR, grep your changes for these. Each one is a known

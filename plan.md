@@ -3202,3 +3202,30 @@ Premise: today the Python sim and the translated C# can drift silently — the s
   "estimated_effort_hours": 2
 }
 ```
+
+### ASP-7: Playground fidelity (advisory shipped 2026-04-28; promotion pending)
+
+```json
+{
+  "id": "asp-7-playground-fidelity",
+  "category": "infrastructure",
+  "title": "ASP-7 — Playground fidelity criterion + advisory CI gate",
+  "description": "Adds the project's second-pillar criterion: the Python pygame sim faithfully predicts Unity runtime behavior so games arrive at Unity with mechanics/physics/behaviors worked out. Operationalized as a per-game post-deploy runtime-behavior tweak budget (J=5 tweaks within 72h of deploy_commit, N=3 games required). Advisory in CI from day 1; ratchets to required when 3 games clear the bar in the same calendar week. Mirrors ASP-6's auto-commit advisory→required pattern. Spec: .omc/specs/deep-interview-asp7-playground-fidelity.md (deep-interview output, ambiguity 7.25%, 4 rounds).",
+  "passes": false,
+  "blocked_on": "Promotion criterion: 3 distinct games clear the J=5 in-window-tweak bar within the same calendar week. Today: 2/3 (Breakout 0/5, Flappy Bird 0/5 since deploy_commit 38e00d3 on 2026-04-27). Next game's home_machine deploy + journal closes the criterion.",
+  "steps": [
+    "Author canonical schema + template at data/lessons/_feel_journal_template.md (5 categories, 72h window, frontmatter shape).",
+    "Implement src/gates/asp7_gate.py with --check / --write-status modes mirroring src/gates/gap_gate.py style.",
+    "Cover gate with tests/gates/test_asp7_gate.py (16 tests: pass/fail/schema-error scenarios + window/threshold edges).",
+    "Reconstruct seed feel journals for breakout + flappy_bird from git history + data/lessons/<game>_deploy.md, marking honesty caveats where data is uncertain.",
+    "Add ASP-7 section to SUCCESS.md after ASP-6 (purely additive — does NOT touch MAN-1 text).",
+    "Document section (g) 'ASP-7 — Playtest fidelity' in AGENT_GUIDE.md.",
+    "Wire advisory CI step in .github/workflows/test.yml :: snapshot job (continue-on-error: true; runs `python -m src.gates.asp7_gate --check --write-status` before snapshot; auto-commits asp7_status.json alongside dashboard).",
+    "Surface ASP-7 row in tools/render_dashboard.py reading data/metrics/asp7_status.json.",
+    "Promote to passes:true when 3rd game's deploy clears the bar; flip CI step to continue-on-error: false at that point."
+  ],
+  "depends_on": ["ASP-6-dashboard-autocommit"],
+  "estimated_effort_hours": 4,
+  "shipped_2026-04-28": "Advisory infrastructure shipped: gate + 16 passing tests, 2 seed journals (breakout + flappy_bird both at 0/5 in-window tweaks since deploy_commit 38e00d3), SUCCESS.md/AGENT_GUIDE.md/dashboard wiring, CI step running advisory. Awaiting 3rd game's home_machine deploy + journal to clear the bar."
+}
+```
