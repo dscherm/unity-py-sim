@@ -70,6 +70,7 @@ public class GeneratedSceneSetup
         var go_LeftPaddle_bc = go_LeftPaddle.AddComponent<BoxCollider2D>();
         go_LeftPaddle_bc.size = new Vector2(0.5f, 2.0f);
         var go_LeftPaddle_sr = go_LeftPaddle.AddComponent<SpriteRenderer>();
+        go_LeftPaddle_sr.sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/Sprites/WhiteSquare.png");
         if (unlitMat != null) go_LeftPaddle_sr.sharedMaterial = unlitMat;
         go_LeftPaddle_sr.color = new Color(0.392f, 0.706f, 1.000f, 1f);
         go_LeftPaddle.AddComponent<Pong.PaddleController>();
@@ -92,6 +93,7 @@ public class GeneratedSceneSetup
         var go_RightPaddle_bc = go_RightPaddle.AddComponent<BoxCollider2D>();
         go_RightPaddle_bc.size = new Vector2(0.5f, 2.0f);
         var go_RightPaddle_sr = go_RightPaddle.AddComponent<SpriteRenderer>();
+        go_RightPaddle_sr.sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/Sprites/WhiteSquare.png");
         if (unlitMat != null) go_RightPaddle_sr.sharedMaterial = unlitMat;
         go_RightPaddle_sr.color = new Color(1.000f, 0.510f, 0.392f, 1f);
         go_RightPaddle.AddComponent<Pong.PaddleController>();
@@ -122,6 +124,7 @@ public class GeneratedSceneSetup
             if (_mat != null) go_Ball_cc.sharedMaterial = _mat;
         }
         var go_Ball_sr = go_Ball.AddComponent<SpriteRenderer>();
+        go_Ball_sr.sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/Sprites/Circle.png");
         if (unlitMat != null) go_Ball_sr.sharedMaterial = unlitMat;
         go_Ball_sr.color = new Color(1.000f, 1.000f, 0.000f, 1f);
         go_Ball.AddComponent<Pong.BallController>();
@@ -160,6 +163,7 @@ public class GeneratedSceneSetup
         // --- CenterLine ---
         var go_CenterLine = new GameObject("CenterLine");
         var go_CenterLine_sr = go_CenterLine.AddComponent<SpriteRenderer>();
+        go_CenterLine_sr.sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/Sprites/WhiteSquare.png");
         if (unlitMat != null) go_CenterLine_sr.sharedMaterial = unlitMat;
         go_CenterLine_sr.sortingOrder = -1;
         go_CenterLine_sr.color = new Color(0.235f, 0.235f, 0.314f, 1f);

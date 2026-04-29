@@ -400,12 +400,27 @@ def generate_scene_script(
         # background-like and should tile.
         components = go.get("components", [])
         has_parallax = any(c.get("type") == "Parallax" for c in components)
+        # Pick a default sprite for SpriteRenderers whose serialized form has
+        # no `asset_ref` mapping. The Python sim renders objects as colored
+        # pygame rects (no source PNG); without a fallback Unity's
+        # SpriteRenderer with sprite=null draws nothing even when color +
+        # size are set. The scaffolder always copies Circle.png +
+        # WhiteSquare.png into Assets/Art/Sprites/ so these paths are safe.
+        # Surfaced 2026-04-29 when Pong deployed cleanly under home_machine
+        # but the Editor scene was empty (run 25130791054).
+        has_circle_collider = any(c.get("type") == "CircleCollider2D" for c in components)
+        default_sprite_path = (
+            "Assets/Art/Sprites/Circle.png"
+            if has_circle_collider
+            else "Assets/Art/Sprites/WhiteSquare.png"
+        )
         for comp in components:
             ctype = comp["type"]
             if ctype in SKIP_COMPONENTS:
                 continue
             _generate_component(lines, var, comp, sprite_mappings, audio_mappings,
-                                namespace, tile_sprite=has_parallax)
+                                namespace, tile_sprite=has_parallax,
+                                default_sprite_path=default_sprite_path)
 
         lines.append(f"        EditorUtility.SetDirty({var});")
         lines.append("")
@@ -605,6 +620,7 @@ def _generate_component(
     audio_mappings: dict,
     namespace: str,
     tile_sprite: bool = False,
+    default_sprite_path: str | None = None,
 ) -> None:
     """Generate C# lines to add and configure a component.
 
@@ -621,11 +637,21 @@ def _generate_component(
         asset_ref = comp.get("asset_ref")
         if asset_ref and asset_ref in sprite_mappings:
             lines.append(f"        if (sprite_{asset_ref} != null) {go_var}_sr.sprite = sprite_{asset_ref};")
+        elif default_sprite_path:
+            # Fallback for color-only objects (Python sim rect rendering).
+            # Unity SpriteRenderer with sprite=null draws nothing even with
+            # color + size set; load the scaffolder-shipped white-square /
+            # circle so the color tint becomes visible.
+            esc = _escape_cs_string(default_sprite_path)
+            lines.append(
+                f"        {go_var}_sr.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(\"{esc}\");"
+            )
         lines.append(f"        if (unlitMat != null) {go_var}_sr.sharedMaterial = unlitMat;")
         so = comp.get("sorting_order", 0)
         if so != 0:
             lines.append(f"        {go_var}_sr.sortingOrder = {so};")
-        # Set color as tint if no sprite mapping
+        # Set color as tint if no sprite mapping (applies to both the
+        # default-fallback path and the no-mapping-no-fallback path).
         if not asset_ref or asset_ref not in sprite_mappings:
             color = comp.get("color", [255, 255, 255])
             r, g, b = color[0] / 255.0, color[1] / 255.0, color[2] / 255.0
