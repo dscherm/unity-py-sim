@@ -45,7 +45,7 @@ jobs:
           # a new generated project, append here AND below in the deploy
           # job's matrix fallback (kept for readability of the static
           # case in code review).
-          ALL='["breakout","flappy_bird","space_invaders"]'
+          ALL='["breakout","flappy_bird","pong","space_invaders"]'
           INPUT='${{ inputs.games }}'
           EVENT='${{ github.event_name }}'
           if [[ "$EVENT" == "workflow_dispatch" && -n "${INPUT// /}" ]]; then
@@ -55,7 +55,7 @@ jobs:
             games=$(echo "$INPUT" \
               | tr ' ' '\n' \
               | sort -u \
-              | awk '/^(breakout|flappy_bird|space_invaders)$/' \
+              | awk '/^(breakout|flappy_bird|pong|space_invaders)$/' \
               | jq -R -s -c 'split("\n") | map(select(length > 0))')
             if [[ -z "$games" || "$games" == "[]" ]]; then
               echo "::warning::No valid games in inputs.games='$INPUT'; falling back to full matrix"
