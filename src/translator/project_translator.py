@@ -477,8 +477,16 @@ def _post_process(
             # Comment out ROW_CONFIG indexing and length
             if "ROW_CONFIG" in stripped:
                 fixed_lines.append(line.replace(stripped, f"// TODO: {stripped}"))
-                # Track variable assigned from ROW_CONFIG
-                m = re.match(r"var\s+(\w+)\s*=\s*ROW_CONFIG", stripped)
+                # Track variable assigned from ROW_CONFIG so downstream
+                # references (e.g. `config.score`) get TODO'd too — leaving
+                # them live produces CS0103 in Unity.  Match BOTH `var X = ...`
+                # and typed `Type X = ...` declarations whose initializer
+                # touches ROW_CONFIG anywhere in the RHS.  Discovered when
+                # space_invaders' Invaders.cs declared
+                # `InvaderRowConfig config = Invaders.ROW_CONFIG[i % ...]` —
+                # the old regex only matched `var X = ROW_CONFIG`, so `config`
+                # escaped tracking and three downstream lines stayed live.
+                m = re.match(r"(?:var\s+|[\w<>\[\],\s]+?\s)(\w+)\s*=\s*[^;]*ROW_CONFIG", stripped)
                 if m:
                     commented_vars.add(m.group(1))
             elif any(f"{v}[" in stripped or f"{v}." in stripped for v in commented_vars):

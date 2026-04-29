@@ -566,6 +566,12 @@ def _infer_field_types(cls: PyClass) -> dict[str, str]:
 _current_symbols: dict[str, str] = {}
 _current_method_params: set[str] = set()
 _current_method_locals: set[str] = set()  # C# camelCase names of locals declared in the current method body
+_current_class_methods: set[str] = set()  # Python snake_case method names of the class being translated.
+# Consulted by _self_dot_replace so `self._method_name` (no parens — method-as-value
+# reference) emits PascalCase `MethodName` instead of falling through to field-style
+# camelCase. Surfaced by Space Invaders' GameManager.on_player_killed:
+#     self._invoke_callback = self._new_round
+# previously emitted `... = newRound;` — a dangling identifier, not the method.
 _in_trigger_callback: bool = False
 _in_coroutine: bool = False  # True when translating an IEnumerator method — rewrites `return` → `yield break;`
 _declared_vars: dict[str, int] = {}  # local_name -> indent level of first declaration
@@ -591,11 +597,12 @@ def set_project_bool_fields(names: set[str]) -> None:
 
 def _translate_monobehaviour(cls: PyClass, parsed: PyFile) -> str:
     """Translate a MonoBehaviour subclass using the Jinja2 template."""
-    global _current_symbols, _bool_fields, _array_fields, _dict_fields, _prefab_fields
+    global _current_symbols, _bool_fields, _array_fields, _dict_fields, _prefab_fields, _current_class_methods
     _bool_fields = set()
     _array_fields = set()
     _dict_fields = set()
     _prefab_fields = set()
+    _current_class_methods = {m.name for m in cls.methods}
     attributes = _infer_attributes(cls)
 
     # Discover dynamic fields (self.X = Y in methods, not in __init__) first,
@@ -810,11 +817,12 @@ def _translate_scriptable_object(cls: PyClass, parsed: PyFile) -> str:
     ``[CreateAssetMenu(...)]`` attribute derived from the ``@create_asset_menu``
     decorator on the Python source.
     """
-    global _current_symbols, _bool_fields, _array_fields, _dict_fields, _prefab_fields
+    global _current_symbols, _bool_fields, _array_fields, _dict_fields, _prefab_fields, _current_class_methods
     _bool_fields = set()
     _array_fields = set()
     _dict_fields = set()
     _prefab_fields = set()
+    _current_class_methods = {m.name for m in cls.methods}
     attributes = _infer_attributes(cls)
 
     extra_using = _infer_using_directives(cls, parsed)
@@ -912,6 +920,8 @@ def _translate_plain_class(cls: PyClass, parsed: PyFile) -> str:
     have coroutines and generic collections, so emit the same
     using-directive set we compute for MonoBehaviours.
     """
+    global _current_class_methods
+    _current_class_methods = {m.name for m in cls.methods}
     lines = ["using UnityEngine;"]
     for ns in _infer_using_directives(cls, parsed):
         lines.append(f"using {ns};")
@@ -2241,6 +2251,18 @@ def _translate_py_expression(expr: str) -> str:
         attr = m.group(1)
         if attr in _reserved_method_renames:
             return _reserved_method_renames[attr]
+        # Method-as-value reference: `self._new_round` (no parens) on the RHS
+        # of an assignment is a delegate-style method handle, not a field
+        # access. The method-name path emits PascalCase (`NewRound`) — the
+        # field-name path would camelCase to `newRound`, a dangling identifier.
+        # Surfaced by Space Invaders' GameManager: `self._invoke_callback =
+        # self._new_round` previously emitted `... = newRound;` and failed
+        # Unity compile with CS0103.
+        if attr in _current_class_methods or attr.lstrip("_") in _current_class_methods:
+            method_name = attr if attr in _current_class_methods else attr.lstrip("_")
+            if method_name in _lifecycle_map_reverse:
+                return _lifecycle_map_reverse[method_name]
+            return snake_to_pascal(method_name)
         # Match the field-declaration name-mangling: strip leading `_`, then
         # camelCase (e.g. `_body_sr` → `bodySr`, `blue_sprite` → `blueSprite`).
         # UPPER_SNAKE constants stay verbatim.
