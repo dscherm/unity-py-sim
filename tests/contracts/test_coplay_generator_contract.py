@@ -301,7 +301,7 @@ class TestSpriteRendererMapped:
 
 
 # ---------------------------------------------------------------------------
-# Contract: SpriteRenderer without mapping uses color fallback
+# Contract: SpriteRenderer without mapping uses default-sprite + color tint
 # ---------------------------------------------------------------------------
 
 class TestSpriteRendererUnmapped:
@@ -309,9 +309,24 @@ class TestSpriteRendererUnmapped:
         cs = generate_scene_script(sprite_without_mapping, None)
         assert "_sr.color = new Color(" in cs
 
-    def test_no_sprite_assignment_when_not_mapped(self, sprite_without_mapping):
+    def test_default_sprite_assigned_when_not_mapped(self, sprite_without_mapping):
+        """Updated contract (2026-04-29): when no `asset_ref` mapping exists,
+        the SpriteRenderer falls back to the scaffolder-shipped default
+        (`WhiteSquare.png` for box/no-collider, `Circle.png` for
+        CircleCollider2D siblings) so the color tint is actually visible.
+        Unity's SpriteRenderer with sprite=null draws nothing — surfaced
+        2026-04-29 when Pong's home_machine deploy was green but the local
+        Editor scene rendered empty."""
         cs = generate_scene_script(sprite_without_mapping, None)
-        assert ".sprite = " not in cs
+        # A sprite assignment IS expected (the fallback) — either via a
+        # mapped variable (sprite_<ref>) or via AssetDatabase.LoadAssetAtPath.
+        assert ".sprite = " in cs
+        # And specifically, the fallback must reference one of the
+        # scaffolder-shipped default sprites.
+        assert (
+            "Assets/Art/Sprites/WhiteSquare.png" in cs
+            or "Assets/Art/Sprites/Circle.png" in cs
+        )
 
 
 # ---------------------------------------------------------------------------
