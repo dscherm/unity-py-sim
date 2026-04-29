@@ -3203,16 +3203,16 @@ Premise: today the Python sim and the translated C# can drift silently — the s
 }
 ```
 
-### ASP-7: Playground fidelity (advisory shipped 2026-04-28; promotion pending)
+### ASP-7: Playground fidelity (CLOSED 2026-04-29 — 3/3 passing, ratcheted to required)
 
 ```json
 {
   "id": "asp-7-playground-fidelity",
   "category": "infrastructure",
-  "title": "ASP-7 — Playground fidelity criterion + advisory CI gate",
+  "title": "ASP-7 — Playground fidelity criterion + CI gate (advisory → required)",
   "description": "Adds the project's second-pillar criterion: the Python pygame sim faithfully predicts Unity runtime behavior so games arrive at Unity with mechanics/physics/behaviors worked out. Operationalized as a per-game post-deploy runtime-behavior tweak budget (J=5 tweaks within 72h of deploy_commit, N=3 games required). Advisory in CI from day 1; ratchets to required when 3 games clear the bar in the same calendar week. Mirrors ASP-6's auto-commit advisory→required pattern. Spec: .omc/specs/deep-interview-asp7-playground-fidelity.md (deep-interview output, ambiguity 7.25%, 4 rounds).",
-  "passes": false,
-  "blocked_on": "Promotion criterion: 3 distinct games clear the J=5 in-window-tweak bar within the same calendar week. Today: 2/3 (Breakout 0/5, Flappy Bird 0/5 since deploy_commit 38e00d3 on 2026-04-27). Next game's home_machine deploy + journal closes the criterion.",
+  "passes": true,
+  "closed_on": "2026-04-29 — Space Invaders cleared the bar as game #3 (deploy_commit fd9ab00, home_machine run 25086126256, 0/5 in-window tweaks). Gate ratcheted from --check (advisory) to enforce mode in .github/workflows/test.yml on the same day. ASP-7 enforced from this point forward.",
   "steps": [
     "Author canonical schema + template at data/lessons/_feel_journal_template.md (5 categories, 72h window, frontmatter shape).",
     "Implement src/gates/asp7_gate.py with --check / --write-status modes mirroring src/gates/gap_gate.py style.",
@@ -3226,6 +3226,7 @@ Premise: today the Python sim and the translated C# can drift silently — the s
   ],
   "depends_on": ["ASP-6-dashboard-autocommit"],
   "estimated_effort_hours": 4,
-  "shipped_2026-04-28": "Advisory infrastructure shipped: gate + 16 passing tests, 2 seed journals (breakout + flappy_bird both at 0/5 in-window tweaks since deploy_commit 38e00d3), SUCCESS.md/AGENT_GUIDE.md/dashboard wiring, CI step running advisory. Awaiting 3rd game's home_machine deploy + journal to clear the bar."
+  "shipped_2026-04-28": "Advisory infrastructure shipped: gate + 16 passing tests, 2 seed journals (breakout + flappy_bird both at 0/5 in-window tweaks since deploy_commit 38e00d3), SUCCESS.md/AGENT_GUIDE.md/dashboard wiring, CI step running advisory. Awaiting 3rd game's home_machine deploy + journal to clear the bar.",
+  "closed_2026-04-29": "Promotion bar cleared. Space Invaders deployed via home_machine run 25086126256 (deploy_commit fd9ab00) with all three matrix entries green: breakout, flappy_bird, space_invaders. Path required two translator-source fixes (commit 4a7c1ca: method-as-value PascalCase + ROW_CONFIG TODO scope tracking) — neither counts as a runtime-behavior tweak under ASP-7. Third feel journal data/lessons/space_invaders_feel_journal.md at 0/5. Gate flipped from --check to enforce mode in .github/workflows/test.yml; continue-on-error removed. ASP-7 now PASSING (3/3) and enforced."
 }
 ```

@@ -152,14 +152,15 @@ jobs:
         run: python tools/measure_parity_pass_rates.py
         continue-on-error: true
 
-      # ASP-7 (Playground Fidelity): advisory until 3 games clear the
-      # ≤J=5 in-window-tweak bar in the same week. --write-status drops a
-      # JSON next to the dashboard so render_dashboard.py can surface the
-      # current x/3 count without re-running the gate. continue-on-error
-      # mirrors the ASP-6 advisory→required ratchet.
-      - name: ASP-7 advisory check (Playground Fidelity)
-        run: python -m src.gates.asp7_gate --check --write-status
-        continue-on-error: true
+      # ASP-7 (Playground Fidelity): RATCHETED to required on 2026-04-29
+      # after breakout, flappy_bird, and space_invaders all cleared the
+      # ≤J=5 in-window-tweak bar (3/3 → asp7_passed: true). Enforce mode
+      # exits 1 if a game's feel journal records >5 runtime tweaks within
+      # 72h of its deploy commit, or if total_passed drops below N=3.
+      # --write-status still drops asp7_status.json so render_dashboard.py
+      # can surface the current state.
+      - name: ASP-7 enforce check (Playground Fidelity)
+        run: python -m src.gates.asp7_gate --write-status
 
       - name: Take snapshot
         run: python -m src.gates.snapshot --notes "ci push ${{ github.sha }}"

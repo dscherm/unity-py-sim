@@ -21,10 +21,21 @@
       "passed": true,
       "journal_path": "data/lessons/flappy_bird_feel_journal.md",
       "notes": "ASP-7 deploy_commit for Flappy Bird is 38e00d3 \u2014 the first commit where\nthe home_machine.yml workflow went all-green for both Breakout and Flappy\nBird (run 24972279901, 2026-04-27 01:27 UTC).\n\n72h window: [2026-04-27T01:27:17Z, 2026-04-30T01:27:17Z]. As of the\ninitial seed journal (2026-04-28), no commits have touched\n`data/generated/flappy_bird_project/` or `examples/flappy_bird/` since\nthe deploy_commit \u2014 `git log --since=2026-04-27T01:27Z -- data/generated/\nflappy_bird_project/ examples/flappy_bird/` returns empty.\n\nEarlier feel work happened during the 2026-04-22 \u2192 2026-04-24 manual\nplaytest sessions (documented in `data/lessons/flappy_bird_deploy.md`):\nAutoStart un-pause timing fix, Spawner prefab wiring, Tiled drawMode\nfor parallax, sprite-array wiring, deterministic .cs.meta GUIDs. Those\nwere MAN-1 interventions or source-side fixes that closed before the\nASP-7 deploy_commit; they don't count in this window.\n\nHonesty caveat: an alternative reading of \"deploy_commit\" is the\n2026-04-24 Task-8 home-machine playtest at fc6c05b. Under that earlier\nframing, the post-deploy in-window tweaks would be the\nPlayButtonHandler.cs simplification and the AutoStart Start->Update\nmove (both documented in flappy_bird_deploy.md, 2026-04-24 section) \u2014\n2 tweaks in the 72h window, still well below J=5. We pick the\nhome_machine-CI-green commit because that's the first deploy with a\nreproducible CI bar, which is the truer ASP-7 anchor."
+    },
+    {
+      "game": "space_invaders",
+      "deploy_commit": "fd9ab00",
+      "deploy_at": "2026-04-29T01:22:54Z",
+      "shipped_at": "2026-04-29T01:25:10Z",
+      "tweak_count": 0,
+      "in_window_count": 0,
+      "passed": true,
+      "journal_path": "data/lessons/space_invaders_feel_journal.md",
+      "notes": "ASP-7 deploy_commit for Space Invaders is fd9ab00 \u2014 the first commit\nwhere the home_machine.yml workflow went green for space_invaders\n(run 25086126256, 2026-04-29 01:25 UTC). Per SUCCESS.md ASP-5, that\nrun validated both batchmode CoPlay scene setup AND Unity Test\nFramework PlayMode tests passing under Unity 6000.4.0f1.\n\n72h window: [2026-04-29T01:22:54Z, 2026-05-02T01:22:54Z]. As of the\ninitial seed journal (2026-04-29), this is the deploy commit itself \u2014\nthere has been no post-CI-deploy feel-tuning yet.\n\nHonesty caveat: Space Invaders shipped at MAN-N = 0 manual interventions,\nbut the path to deploy required two source-side translator fixes (NOT\nASP-7 tweaks):\n\n  1. Method-as-value RHS naming bug \u2014 `self._invoke_callback =\n     self._new_round` emitted `... = newRound;` (camelCase, dangling)\n     instead of `... = NewRound;` (PascalCase method ref). Fixed in\n     4a7c1ca by adding `_current_class_methods` to python_to_csharp.py\n     and consulting it in `_self_dot_replace`.\n\n  2. TODO scope leakage \u2014 typed locals initialised from ROW_CONFIG\n     (`InvaderRowConfig config = Invaders.ROW_CONFIG[...]`) were\n     commented out as TODO, but downstream `config.X` references\n     stayed live as dangling identifiers. Fixed in 4a7c1ca by\n     broadening the regex in project_translator._post_process to\n     match typed declarations, not just `var X = ROW_CONFIG`.\n\nBoth fixes are translator-level (apply to every future game), with\nregression tests in tests/translator/test_method_as_value_and_todo_scope.py.\nPer the existing ASP-7 schema, these are pipeline-side fixes and do\nNOT count as runtime-behavior tweaks.\n\nSee data/generated/space_invaders_project/ for the regenerated C# and\nthe home_machine run for the green PlayMode test artifact."
     }
   ],
-  "total_passed": 2,
-  "asp7_passed": false,
+  "total_passed": 3,
+  "asp7_passed": true,
   "threshold_J": 5,
   "threshold_N": 3,
   "window_hours": 72

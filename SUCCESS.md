@@ -116,7 +116,7 @@ CI wiring: `.github/workflows/home_machine.yml :: parity_runner` job (needs depl
 
 **Tweak unit**: any post-deploy change that alters how the game *plays* — source-code retunes (constants, magic numbers, timing), Inspector value changes, prefab numeric edits, AnimatorController param tweaks, audio import settings. Excludes pure visual/sprite/font changes. Allowed categories: `physics-constant`, `animation-timing`, `audio-mix`, `control-feel`, `other`. Schema in `data/lessons/_feel_journal_template.md`.
 
-**Status (2026-04-28)**: **2/3 advisory** — Breakout and Flappy Bird both shipped at 0 in-window tweaks since deploy_commit `38e00d3` (2026-04-27 home_machine all-green, run 24972279901). Need one more game's deploy + journal to clear the bar. Seed journals at `data/lessons/breakout_feel_journal.md` and `data/lessons/flappy_bird_feel_journal.md`. Gate: `src/gates/asp7_gate.py`. CI step in `.github/workflows/test.yml :: snapshot` runs `python -m src.gates.asp7_gate --check --write-status` with `continue-on-error: true`; result surfaces as a dashboard row.
+**Status (2026-04-29)**: **3/3 PASSING** — Breakout and Flappy Bird shipped at 0 in-window tweaks since deploy_commit `38e00d3` (2026-04-27 home_machine all-green, run 24972279901); Space Invaders shipped at 0 in-window tweaks since deploy_commit `fd9ab00` (2026-04-29 home_machine all-green, run 25086126256). Promotion bar cleared. Seed journals at `data/lessons/{breakout,flappy_bird,space_invaders}_feel_journal.md`. Gate: `src/gates/asp7_gate.py`. CI step in `.github/workflows/test.yml :: snapshot` ratcheted from advisory to required on 2026-04-29 — now runs `python -m src.gates.asp7_gate --write-status` (enforce mode, no `continue-on-error`); a regression to >5 tweaks in any game's 72h window or a drop below N=3 reds the suite.
 
 **Constraints**:
 - ASP-7 is **purely additive** — it does not modify MAN-1's intervention counter.
@@ -124,9 +124,9 @@ CI wiring: `.github/workflows/home_machine.yml :: parity_runner` job (needs depl
 - Window: `[deploy_commit, deploy_commit + 72h]`.
 - Author writes the journal (narrative truth); the gate parses it (mechanical check).
 
-**Promotion criterion**: ASP-7 starts as an *advisory* CI gate (`continue-on-error: true`). It promotes to *required* (`continue-on-error: false`) when 3 distinct games clear the J=5 bar within the same calendar week. Pattern mirrors ASP-6's advisory→validated→enforced ratchet.
+**Promotion criterion**: ASP-7 started as an *advisory* CI gate (`continue-on-error: true`) and promoted to *required* (no `continue-on-error`, enforce mode) on 2026-04-29 when Space Invaders cleared the bar as the 3rd game. Pattern mirrors ASP-6's advisory→validated→enforced ratchet.
 
-**Delivered by**: spec at `.omc/specs/deep-interview-asp7-playground-fidelity.md` + `plan.md` task `asp-7-playground-fidelity` (advisory shipped 2026-04-28; promotion pending the 3rd game's deploy).
+**Delivered by**: spec at `.omc/specs/deep-interview-asp7-playground-fidelity.md` + `plan.md` task `asp-7-playground-fidelity` (advisory shipped 2026-04-28; ratcheted to required 2026-04-29 with Space Invaders' green home_machine run + zero-tweak journal).
 
 ---
 
