@@ -164,7 +164,7 @@ namespace SpaceInvaders
             }
             if (lives > 0)
             {
-                invokeCallback = newRound;
+                invokeCallback = NewRound;
                 invokeDelay = 1.0f;
                 invokeTimer = 0.0f;
                 invokePending = true;

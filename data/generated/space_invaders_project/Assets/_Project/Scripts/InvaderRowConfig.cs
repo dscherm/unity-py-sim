@@ -46,12 +46,12 @@ namespace SpaceInvaders
                     col.size = new Vector2(1.5f, 1.5f);
                     col.isTrigger = true;
                     SpriteRenderer sr = invaderGo.AddComponent<SpriteRenderer>();
-                    sr.color = config.animationSprites[0];
+                    // TODO: sr.color = config.animationSprites[0];
                     sr.size = new Vector2(1.5f, 1.0f);
                     sr.sortingOrder = 2;
                     Invader inv = invaderGo.AddComponent<Invader>();
-                    inv.score = config.score;
-                    inv.animationSprites = config.animationSprites;
+                    // TODO: inv.score = config.score;
+                    // TODO: inv.animationSprites = config.animationSprites;
                     // Vector3 position = rowPosition; position.x += 2f * j
                     Vector3 position = new Vector3(rowPosition.x + 2.0f * j, rowPosition.y, 0);
                     // invader.transform.localPosition = position
