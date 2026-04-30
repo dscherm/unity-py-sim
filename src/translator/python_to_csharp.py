@@ -155,6 +155,17 @@ def translate(
     _config.unity_version = unity_version
     _config.input_system = input_system
 
+    # Snapshot user-defined class names from the parsed file so the
+    # expression translator can prepend `new ` for bare constructor
+    # calls. Excludes enums (those use static-member access, not new).
+    # Also unions in any cross-file class names that the project_translator
+    # has pre-scanned (via set_project_user_classes); FSM Platformer's
+    # PlayerInputHandler instantiates PlayerIdleState etc. defined in
+    # sibling files.
+    global _current_user_classes
+    _current_user_classes = {c.name for c in parsed.classes if not c.is_enum}
+    _current_user_classes |= _project_user_classes
+
     # Build enum value mapping for UPPER_SNAKE -> PascalCase conversion in expressions
     global _enum_values
     _enum_values = {}
@@ -566,6 +577,11 @@ def _infer_field_types(cls: PyClass) -> dict[str, str]:
 _current_symbols: dict[str, str] = {}
 _current_method_params: set[str] = set()
 _current_method_locals: set[str] = set()  # C# camelCase names of locals declared in the current method body
+_current_user_classes: set[str] = set()  # All Python class names declared in the current PyFile.
+# Used by the expression translator to prepend `new ` for bare constructor calls
+# of user-defined classes (`PlayerIdleState()` → `new PlayerIdleState()`).
+# Surfaced 2026-04-29 by FSM Platformer's PlayerInputHandler.Start which
+# instantiates 5 state classes + 5 transition classes + FSM + commands.
 _current_class_methods: set[str] = set()  # Python snake_case method names of the class being translated.
 # Consulted by _self_dot_replace so `self._method_name` (no parens — method-as-value
 # reference) emits PascalCase `MethodName` instead of falling through to field-style
@@ -584,6 +600,22 @@ _prefab_fields: set[str] = set()  # Prefab fields discovered from Instantiate() 
 _enum_values: dict[str, str] = {}  # "EnumType.UPPER_SNAKE" -> "EnumType.PascalCase"
 _cross_class_bool_fields: set[str] = set()  # Bool field names across ALL classes in the translation unit — survives the per-class _bool_fields reset so `other.bool_field` can be correctly translated.
 _project_bool_fields: set[str] = set()  # Bool field names across ALL files in the project — seeded by project_translator before per-file translate() calls.
+
+
+_project_user_classes: set[str] = set()  # User class names across ALL files in the project.
+# Populated by project_translator before per-file translate() calls so the
+# expression translator can prepend `new ` for cross-file constructor calls
+# (e.g., PlayerInputHandler instantiates PlayerIdleState defined in another
+# file). Empty when translate() is called standalone — falls back to
+# in-file class snapshot.
+
+
+def set_project_user_classes(names: set[str]) -> None:
+    """Seed the project-wide user-class registry. Called by
+    project_translator after a cross-file pre-scan so per-file translate()
+    knows about classes declared in other files."""
+    global _project_user_classes
+    _project_user_classes = set(names)
 
 
 def set_project_bool_fields(names: set[str]) -> None:
@@ -1697,6 +1729,19 @@ def _translate_py_statement(line: str) -> str:
             # Fix .ToList() → .ToArray() when target is array type
             if cs_value.endswith(".ToList()"):
                 cs_value = cs_value[:-len(".ToList()")] + ".ToArray()"
+        # Inject explicit cast when downcasting from a method parameter to
+        # a user-defined class. Python's duck-typing allows
+        #   def act(self, owner): player: Derived = owner
+        # but C# requires the explicit cast (CS0266 otherwise). Surfaced by
+        # FSM Platformer's PlayerRunningState.act and similar state classes
+        # where `owner` is typed `MonoBehaviour` (translator default for
+        # untyped owner-style params) and the body downcasts.
+        if (
+            cs_type in _current_user_classes
+            and re.match(r"^[A-Za-z_]\w*$", cs_value)
+            and cs_value in _current_method_params
+        ):
+            cs_value = f"({cs_type}){cs_value}"
         return f"{cs_type} {cs_target} = {cs_value};"
 
     # Typed declaration without assignment: var: Type (no =)
@@ -2091,6 +2136,23 @@ def _translate_py_expression(expr: str) -> str:
     if " in " in expr or " not in " in expr:
         expr = _translate_in_membership(expr)
 
+    # isinstance(x, T) → x is T   /   isinstance(x, (A, B)) → (x is A || x is B)
+    # Surfaced by FSM Platformer's PlayerInputHandler.update which gates
+    # commands on `isinstance(current, (PlayerIdleState, PlayerRunningState))`.
+    # Without this rewrite, the Python builtin leaks verbatim → CS0103.
+    if "isinstance(" in expr:
+        expr = _translate_isinstance(expr)
+
+    # type(x).__name__ → x.GetType().Name (Python class-name introspection).
+    # FSM Platformer's PlayerInputHandler.state_name returns this for the
+    # debug overlay. Without rewrite, leaks the Python `type()` builtin.
+    if "type(" in expr and "__name__" in expr:
+        expr = re.sub(
+            r"\btype\(([^)]+)\)\.__name__",
+            r"\1.GetType().Name",
+            expr,
+        )
+
     # self.start_coroutine(method(args)) -> StartCoroutine(method(args))
     expr = re.sub(r"self\.start_coroutine\(", "StartCoroutine(", expr)
 
@@ -2298,7 +2360,12 @@ def _translate_py_expression(expr: str) -> str:
     expr = expr.replace(" is not None", " != null")
     expr = expr.replace(" is None", " == null")
     expr = re.sub(r"\bis not\b", "!=", expr)
-    expr = re.sub(r"\bis\b(?!\s*null)", "==", expr)
+    # `is` → `==` for identity-style comparisons, but PRESERVE C# type-tests
+    # of the form `x is ClassName` (which the isinstance() pre-pass emits).
+    # Lookahead skips `null` and PascalCase identifiers — Python rarely
+    # uses `is` for class-identity comparison, and when it does it'd be
+    # written `is type(...)` not `is ClassName`.
+    expr = re.sub(r"\bis\b(?!\s*(?:null|[A-Z]\w*))", "==", expr)
 
     # game_object -> gameObject (with or without dot prefix)
     expr = re.sub(r"\bgame_object\b", "gameObject", expr)
@@ -2404,6 +2471,15 @@ def _translate_py_expression(expr: str) -> str:
     for ctor in ("Vector2", "Vector3", "Quaternion", "GameObject"):
         # Match Ctor( but not .Ctor( or already preceded by 'new '
         expr = re.sub(rf"(?<!\.)\b{ctor}\((?!\.)", f"new {ctor}(", expr)
+    # Same treatment for user-defined classes from the current file. The
+    # call site `PlayerIdleState(...)` (no `new`) is valid Python but C#
+    # rejects it with CS0411 — surfaced by FSM Platformer's PlayerInputHandler.
+    # Skip when preceded by `.` (method-style access on a value/static class)
+    # or already preceded by `new `.
+    for ctor in _current_user_classes:
+        expr = re.sub(rf"(?<!\.)\bnew {re.escape(ctor)}\(", f"__NEW_MARK__{ctor}(", expr)
+        expr = re.sub(rf"(?<!\.)\b{re.escape(ctor)}\(", f"new {ctor}(", expr)
+        expr = expr.replace(f"__NEW_MARK__{ctor}(", f"new {ctor}(")
     # Clean up double 'new new'
     expr = expr.replace("new new ", "new ")
     # Don't add new to Vector2.zero etc.
@@ -2700,6 +2776,38 @@ def _translate_py_expression(expr: str) -> str:
         return parts[0] + ''.join(p.capitalize() for p in parts[1:])
     expr = re.sub(r"(?<![.\w])_[a-z][a-z_]*[a-z]\b(?!\()", _underscore_to_camel, expr)
 
+    return expr
+
+
+def _translate_isinstance(expr: str) -> str:
+    """Translate Python isinstance() to C# `is` / `(x is A || x is B)`.
+
+    Handles two forms:
+      isinstance(x, T)        → x is T
+      isinstance(x, (A, B))   → (x is A || x is B)
+
+    The replacement is parenthesized for the tuple form so it slots safely
+    into compound conditions (`if isinstance(...) and other_check:`).
+    """
+    # Tuple-form first (more specific) so the single-class regex doesn't
+    # match the inner tuple.
+    def _tuple_repl(m):
+        var = m.group(1).strip()
+        types_csv = m.group(2)
+        types = [t.strip() for t in types_csv.split(",") if t.strip()]
+        return "(" + " || ".join(f"{var} is {t}" for t in types) + ")"
+
+    expr = re.sub(
+        r"\bisinstance\(\s*([^,()]+(?:\([^)]*\)[^,()]*)*)\s*,\s*\(\s*([^)]+)\s*\)\s*\)",
+        _tuple_repl,
+        expr,
+    )
+    # Single-class form
+    expr = re.sub(
+        r"\bisinstance\(\s*([^,()]+(?:\([^)]*\)[^,()]*)*)\s*,\s*([\w.]+)\s*\)",
+        r"\1 is \2",
+        expr,
+    )
     return expr
 
 

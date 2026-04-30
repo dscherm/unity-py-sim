@@ -87,18 +87,23 @@ def translate_project(
     # GhostFrightened in a separate file.
     from .python_to_csharp import (
         set_project_bool_fields,
+        set_project_user_classes,
         set_subclassed_classes,
         set_cross_accessed_fields,
     )
     project_bool_fields: set[str] = set()
+    project_user_classes: set[str] = set()
     for parsed in parsed_files.values():
         for cls in parsed.classes:
+            if not cls.is_enum:
+                project_user_classes.add(cls.name)
             for f in cls.fields:
                 ann = (f.type_annotation or "").strip()
                 cs_name = f.name if f.name.isupper() else snake_to_camel(f.name)
                 if ann == "bool" or f.default_value in ("True", "False"):
                     project_bool_fields.add(cs_name)
     set_project_bool_fields(project_bool_fields)
+    set_project_user_classes(project_user_classes)
 
     # Phase 3.8: Collect class names that are subclassed somewhere in the
     # project so _translate_monobehaviour can emit their [SerializeField]
